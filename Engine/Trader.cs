@@ -72,7 +72,6 @@ namespace Engine
                 }
             }
         }
-
         public void StartTrade(Player player)
         {
             bool trading = true;
@@ -208,7 +207,6 @@ namespace Engine
                 //}
             }
         }
-
         private void DisplayTraderItems(List<InventoryItem> items, bool highlight = true)
         {
             if(items.Count == 0)
@@ -226,7 +224,6 @@ namespace Engine
                 Console.ResetColor();
             }
         }
-
         private void DisplayPlayerItems(List<InventoryItem> items, bool highlight = true)
         {
             if (items.Count == 0)
@@ -245,7 +242,6 @@ namespace Engine
                 Console.ResetColor();
             }
         }
-
         private string BuySelectedItem(Player player)
         {
             if (ItemsForSale.Count == 0)
@@ -267,7 +263,6 @@ namespace Engine
 
             return BuyItem(player, selectedItem, quantity);
         }
-
         private int SelectQuantity(InventoryItem item, string action, bool isBuying)
         {
             int quantity = 1;
@@ -309,7 +304,6 @@ namespace Engine
 
             return quantity;
         }
-
         // Вспомогательный класс для меню опций
         private class MenuOption
         {
@@ -322,7 +316,6 @@ namespace Engine
                 Action = action;
             }
         }
-
         private string SellSelectedItem(Player player)
         {
             if (player.Inventory.Count == 0)
@@ -341,7 +334,6 @@ namespace Engine
 
             return SellItem(player, itemToSell, quantity);
         }
-
         private int AskForQuantity(InventoryItem item, string action, bool isBuying)
         {
             int quantity = 1;
@@ -399,7 +391,6 @@ namespace Engine
 
             return quantity;
         }
-
         private string GetItemTypeName(ItemType type)
         {
             return type switch

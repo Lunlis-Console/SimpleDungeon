@@ -91,28 +91,29 @@ namespace Engine
                 MoveTo(CurrentLocation.LocationToSouth);
             }
         }
+
         public void DisplayInventory()
         {
             while (true)
             {
                 Console.Clear();
-
                 MessageSystem.DisplayMessages();
 
-                Console.WriteLine("=========Сумка=========");
+                // Создаем объединенный список предметов: инвентарь + экипировка
+                var allItems = new List<object>();
+                //allItems.AddRange(Inventory.Cast<object>());
 
-                Console.WriteLine("======Снаряжение=======");
-                Console.WriteLine($"Оружие: {(EquipmentWeapon?.Name ?? "Пусто")}");
-                Console.WriteLine($"Голова: {(EquipmentHelmet?.Name ?? "Пусто")}");
-                Console.WriteLine($"Тело: {(EquipmentArmor?.Name ?? "Пусто")}");
-                Console.WriteLine($"Руки: {(EquipmentGloves?.Name ?? "Пусто")}");
-                Console.WriteLine($"Ноги: {(EquipmentBoots?.Name ?? "Пусто")}");
+                // Добавляем экипированные предметы как специальные объекты
+                if (EquipmentHelmet != null) allItems.Add(new EquipmentSlotItem("Надето", EquipmentHelmet));
+                if (EquipmentArmor != null) allItems.Add(new EquipmentSlotItem("Надето", EquipmentArmor));
+                if (EquipmentGloves != null) allItems.Add(new EquipmentSlotItem("Надето", EquipmentGloves));
+                if (EquipmentBoots != null) allItems.Add(new EquipmentSlotItem("Надето", EquipmentBoots));
+                if (EquipmentWeapon != null) allItems.Add(new EquipmentSlotItem("Надето", EquipmentWeapon));
 
-                Console.WriteLine("======Параметры========");
-                Console.WriteLine($"| Защита: {Defence} | Атака: {Attack} |");
-                Console.WriteLine("========================");
+                allItems.AddRange(Inventory.Cast<object>());
 
-                if (Inventory.Count == 0)
+
+                if (allItems.Count == 0)
                 {
                     Console.WriteLine("Пусто");
                     Console.WriteLine("\nНажмите любую клавишу чтобы вернуться...");
@@ -121,20 +122,67 @@ namespace Engine
                 }
                 else
                 {
-                    InventoryItem selectedItem = InventoryUI.SelectItemFromInventoryWithEquipment(Inventory,
-                "Выберите предмет", EquipmentHelmet, EquipmentArmor, EquipmentGloves, EquipmentBoots, EquipmentWeapon);
+                    // Используем новый метод для выбора из объединенного списка
+                    var selectedItem = InventoryUI.SelectItemFromCombinedList(
+                        allItems,
+                        "Выберите предмет (TAB - переключить на экипировку)",
+                        EquipmentHelmet, EquipmentArmor, EquipmentGloves, EquipmentBoots, EquipmentWeapon,
+                        Gold, Defence, Attack, Level, CurrentEXP, MaximumEXP, CurrentHP, MaximumHP);
 
-                    if(selectedItem == null)
+                    if (selectedItem == null)
                     {
                         break;
                     }
 
-                    InventoryUI.ShowItemContextMenu(this, selectedItem);
+                    // Обрабатываем выбранный предмет
+                    if (selectedItem is InventoryItem inventoryItem)
+                    {
+                        InventoryUI.ShowItemContextMenu(this, inventoryItem);
+                    }
+                    else if (selectedItem is EquipmentSlotItem equipmentItem)
+                    {
+                        ShowEquipmentContextMenu(equipmentItem.Equipment);
+                    }
                 }
-                
             }
             MessageSystem.ClearMessages();
         }
+
+        // Новый метод для контекстного меню экипированных предметов
+        private void ShowEquipmentContextMenu(Equipment equipment)
+        {
+            var actions = new List<string> { "Снять", "Осмотреть", "Назад" };
+            string selectedAction = InventoryUI.SelectActionFromList(actions, $"Экипировка: {equipment.Name}");
+
+            switch (selectedAction)
+            {
+                case "Снять":
+                    UnequipItem(equipment);
+                    break;
+                case "Осмотреть":
+                    equipment.Read();
+                    break;
+            }
+        }
+
+        // Вспомогательный класс для представления экипированных предметов
+        public class EquipmentSlotItem
+        {
+            public string SlotName { get; }
+            public Equipment Equipment { get; }
+
+            public EquipmentSlotItem(string slotName, Equipment equipment)
+            {
+                SlotName = slotName;
+                Equipment = equipment;
+            }
+
+            public override string ToString()
+            {
+                return $"{SlotName}: {Equipment.Name}";
+            }
+        }
+
         public void StartCombat(Monster monster)
         {
             CurrentMonster = monster;
@@ -203,10 +251,13 @@ namespace Engine
                 Inventory.Remove(item);
             }
         }
-        public void UnequipItem(EquipmentItem item)
+
+        public void UnequipItem(Equipment equipment)
         {
+            if (equipment == null) return;
+
             // Снимаем предмет
-            switch (item.Details.Type)
+            switch (equipment.Type)
             {
                 case ItemType.Helmet:
                     EquipmentHelmet = null;
@@ -224,19 +275,24 @@ namespace Engine
                     EquipmentWeapon = null;
                     break;
                 default:
-                    Console.WriteLine("СИСТЕМА: Неизвестный тип предмета.");
+                    MessageSystem.AddMessage("СИСТЕМА: Неизвестный тип предмета.");
                     return;
             }
 
             // Удаляем из списка экипировки
-            EquipmentItems.Remove(item);
+            var equipmentItem = EquipmentItems.FirstOrDefault(ei => ei.Details.ID == equipment.ID);
+            if (equipmentItem != null)
+            {
+                EquipmentItems.Remove(equipmentItem);
+            }
 
             // Добавляем в инвентарь
-            AddItemToInventory(item.Details);
+            AddItemToInventory(equipment);
 
-            Console.WriteLine($"Снято: {item.Details.Name}.");
+            MessageSystem.AddMessage($"Снято: {equipment.Name}.");
             UpdateStats();
         }
+
         public void AddItemToInventory(Item item, int quantity = 1)
         {
             // Проверяем, есть ли уже такой предмет в инвентаре

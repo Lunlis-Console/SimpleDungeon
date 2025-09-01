@@ -2,6 +2,7 @@
 using System;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace SimpleDungeon
 {
@@ -16,12 +17,6 @@ namespace SimpleDungeon
             Console.CursorVisible = false;
 
             ShowMainMenu();
-
-            
-
-
-
-
 
             _player = new Player(0, 100, 100, 0, 100, 1, 0, 0);
             _player.CurrentLocation = World.LocationByID(World.LOCATION_ID_VILLAGE);
@@ -54,109 +49,10 @@ namespace SimpleDungeon
 
                 string cleanedInput = userInput.ToLower();
 
-                ParseInput(cleanedInput);
             }
 
         }
 
-        private static void ParseInput(string input)
-        {
-            if (input.Contains("помощь") || input == "h")
-            {
-                HelpWorld();
-            }
-            else if (input.Contains("север") || input == "с")
-            {
-                MoveNorth();
-
-                //if (_player.CurrentLocation.LocationToNorth == null)
-                //{
-                //    Console.WriteLine("СИСТЕМА: Вы не можете двигаться на север.");
-                //}
-                //else
-                //{
-                //    _player.MoveNorth();
-                //}
-            }
-            else if (input.Contains("восток") || input == "в")
-            {
-                MoveEast();
-
-                //if (_player.CurrentLocation.LocationToEast == null)
-                //{
-                //    Console.WriteLine("СИСТЕМА: Вы не можете двигаться на восток.");
-                //}
-                //else
-                //{
-                //    _player.MoveEast();
-                //}
-            }
-            else if (input.Contains("запад") || input == "з")
-            {
-                MoveWest();
-
-                //if (_player.CurrentLocation.LocationToWest == null)
-                //{
-                //    Console.WriteLine("СИСТЕМА: Вы не можете двигаться на запад.");
-                //}
-                //else
-                //{
-                //    _player.MoveWest();
-                //}
-            }
-            else if (input.Contains("юг") || input == "ю")
-            {
-                MoveSouth();
-
-                //if (_player.CurrentLocation.LocationToSouth == null)
-                //{
-                //    Console.WriteLine("СИСТЕМА: Вы не можете двигаться на юг.");
-                //}
-                //else
-                //{
-                //    _player.MoveSouth();
-                //}
-            }
-            else if (input.Contains("сумка") || input == "s")
-            {
-                _player.DisplayInventory();
-            }
-            else if (input.Contains("смотреть") || input == "l")
-            {
-                _player.LookAround();
-            }
-            else if (input.Contains("атаковать") || input == "a")
-            {
-                StartCombat();
-
-                //string monsterName = input.Replace("атаковать", "").Trim();
-
-                //List<Monster> monsters = _player.CurrentLocation.FindMonsters();
-
-                //foreach (Monster monster in monsters)
-                //{
-                //    if (monster.Name.ToLower().Trim() == monsterName)
-                //    {
-                //        _player.StartCombat(monster);
-                //        break;
-                //    }
-                //}
-
-            }
-            else if (input.Contains("говорить") || input == "t")
-            {
-                TalkToNPC();
-
-                //string npcName = input.Replace("говорить", "").Trim();
-                //_player.TalkTo(npcName);
-            }
-            else
-            {
-                Console.WriteLine("СИСТЕМА: Неизвестная команда. Нажмите H для помощи.");
-                Console.WriteLine("Нажмите любую клавишу чтобы продолжить...");
-                Console.ReadKey();
-            }
-        }
         public static void ProcessKeyInput()
         {
             while (true)
@@ -165,7 +61,7 @@ namespace SimpleDungeon
 
                 ConsoleKeyInfo key = Console.ReadKey();
 
-                switch(key.Key)
+                switch (key.Key)
                 {
                     case ConsoleKey.W:
                         MoveNorth();
@@ -201,7 +97,7 @@ namespace SimpleDungeon
                     case ConsoleKey.J:
                         _player.QuestLog.DisplayQuestLog();
                         break;
-                    case ConsoleKey.M:
+                    case ConsoleKey.Escape:
                         ShowGameMenu();
                         break;
                     case ConsoleKey.F5:
@@ -218,11 +114,11 @@ namespace SimpleDungeon
                             MessageSystem.AddMessage("Быстрое сохранение не найдено!");
                         }
                         break;
-                    case ConsoleKey.Escape:
-                        if (MenuSystem.ConfirmAction("Сохранить игру перед выходом?"))
-                        {
-                            SaveManager.SaveGame(_player, $"save_{DateTime.Now:yyyyMMdd_HHmmss}");
-                        }
+                    //case ConsoleKey.Escape:
+                    //    if (MenuSystem.ConfirmAction("Сохранить игру перед выходом?"))
+                    //    {
+                    //        SaveManager.SaveGame(_player, $"save_{DateTime.Now:yyyyMMdd_HHmmss}");
+                    //    }
                         return;
 
                     default:
@@ -237,7 +133,7 @@ namespace SimpleDungeon
         }
         private static void MoveNorth()
         {
-            if(_player.CurrentLocation.LocationToNorth == null)
+            if (_player.CurrentLocation.LocationToNorth == null)
             {
                 MessageSystem.AddMessage("Вы не можете двигаться на север.");
             }
@@ -286,7 +182,7 @@ namespace SimpleDungeon
         private static void StartCombat()
         {
             var monsters = _player.CurrentLocation.FindMonsters();
-            if(monsters.Count > 0)
+            if (monsters.Count > 0)
             {
                 if (monsters.Count == 1)
                 {
@@ -308,14 +204,14 @@ namespace SimpleDungeon
             }
             else
             {
-                Console.WriteLine("СИСТЕМА: Здесь нет монстров для атаки.");
-                Console.WriteLine("Нажмите любую клавишу чтобы продолжить...");
-                Console.ReadKey();
+                MessageSystem.AddMessage("Здесь нет монстров для атаки.");
+                //Console.WriteLine("Нажмите любую клавишу чтобы продолжить...");
+                //Console.ReadKey();
             }
         }
         private static void TalkToNPC()
         {
-            if(_player.CurrentLocation.NPCsHere.Count > 0)
+            if (_player.CurrentLocation.NPCsHere.Count > 0)
             {
                 if (_player.CurrentLocation.NPCsHere.Count == 1)
                 {
@@ -329,7 +225,7 @@ namespace SimpleDungeon
                         "Выберите для разговора"
                     );
 
-                    if(selectedNPC != null)
+                    if (selectedNPC != null)
                     {
                         _player.TalkTo(selectedNPC.Name);
                     }
@@ -352,20 +248,19 @@ namespace SimpleDungeon
             Console.SetCursorPosition(0, 0);
             MessageSystem.DisplayMessages();
 
-            Console.WriteLine("==========================Статус==========================");
-            Console.WriteLine($"| Уровень: {_player.Level} " +
-                $"| Здоровье: {_player.CurrentHP}/{_player.MaximumHP} " +
-                $"| Опыт: {_player.CurrentEXP}/{_player.MaximumEXP} " +
-                $"| Золото: {_player.Gold} ");
+            //Console.WriteLine("==========================Статус==========================");
+            //Console.WriteLine($"| Уровень: {_player.Level} " +
+            //    $"| Здоровье: {_player.CurrentHP}/{_player.MaximumHP} " +
+            //    $"| Опыт: {_player.CurrentEXP}/{_player.MaximumEXP} " +
+            //    $"| Золото: {_player.Gold} ");
             Console.WriteLine("=========================Окружение========================");
             DisplayCurrentLocation();
             DisplayMonstersAndNPCs();
 
             Console.WriteLine("=========================Действие=========================");
             DisplayAvailabelDirecrions();
-                        
-        }
 
+        }
         private static void DisplayCurrentLocation()
         {
             Console.WriteLine($"Текущаяя локация: {_player.CurrentLocation.Name}");
@@ -427,7 +322,7 @@ namespace SimpleDungeon
         {
             Console.WriteLine("Доступние направления: ");
 
-            if(_player.CurrentLocation.LocationToNorth != null)
+            if (_player.CurrentLocation.LocationToNorth != null)
             {
                 Console.WriteLine("W - Север");
             }
@@ -446,7 +341,6 @@ namespace SimpleDungeon
 
             Console.WriteLine("| C - Характеристики | I - Сумка | L - Осмотреться | F - Атаковать | T - Говорить | H - Помощь |");
         }
-
         private static void ShowMainMenu()
         {
             int selectedIndex = 0;
@@ -458,7 +352,6 @@ namespace SimpleDungeon
                 Console.WriteLine("===================================");
                 Console.WriteLine("          SIMPLE DUNGEON");
                 Console.WriteLine("===================================");
-                Console.WriteLine();
 
                 // Отображаем пункты меню
                 for (int i = 0; i < menuItems.Length; i++)
@@ -466,7 +359,7 @@ namespace SimpleDungeon
                     if (i == selectedIndex)
                     {
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.Write("> ");
+                        Console.Write(">");
                     }
                     else
                     {
@@ -501,7 +394,6 @@ namespace SimpleDungeon
                 }
             }
         }
-
         private static void ExecuteMainMenuChoice(int choice)
         {
             switch (choice)
@@ -520,7 +412,6 @@ namespace SimpleDungeon
                     break;
             }
         }
-
         private static void ShowLoadGameMenu()
         {
             var saves = SaveManager.GetAvailableSaves();
@@ -556,7 +447,6 @@ namespace SimpleDungeon
                 }
             }
         }
-
         private static void StartNewGame()
         {
             _player = new Player(0, 100, 100, 0, 100, 1, 0, 0);
@@ -571,21 +461,25 @@ namespace SimpleDungeon
 
             ProcessKeyInput();
         }
-
         private static void ShowGameMenu()
         {
+
+
             var menuOptions = new List<MenuOption>
-    {
-        new MenuOption("Сохранить игру", () => SaveGameMenu()),
-        new MenuOption("Загрузить игру", () => LoadGameMenu()),
-        new MenuOption("Главное меню", () => {
-            if (MenuSystem.ConfirmAction("Вернуться в главное меню? Несохраненный прогресс будет потерян."))
             {
-                throw new Exception("return_to_main_menu");
-            }
-        }),
-        new MenuOption("Вернуться в игру", () => { })
-    };
+                new MenuOption("Вернуться в игру", () => { }),
+                new MenuOption("Сохранить игру", () => SaveGameMenu()),
+                new MenuOption("Загрузить игру", () => LoadGameMenu()),
+                new MenuOption("Главное меню", () => {
+                    if (MenuSystem.ConfirmAction("Вернуться в главное меню? Несохраненный прогресс будет потерян."))
+                    {
+                        Console.Clear();
+                        ShowMainMenu();
+                        Environment.Exit(0);
+                    }
+                }),
+                
+            };
 
             var selected = MenuSystem.SelectFromList(
                 menuOptions,
@@ -596,7 +490,6 @@ namespace SimpleDungeon
 
             selected?.Action();
         }
-
         private static void SaveGameMenu()
         {
             Console.Clear();
@@ -617,7 +510,6 @@ namespace SimpleDungeon
             Console.WriteLine("Нажмите любую клавишу...");
             Console.ReadKey();
         }
-
         private static void LoadGameMenu()
         {
             var saves = SaveManager.GetAvailableSaves();
@@ -652,7 +544,6 @@ namespace SimpleDungeon
                 }
             }
         }
-
         private class MenuOption
         {
             public string DisplayText { get; }
@@ -664,7 +555,6 @@ namespace SimpleDungeon
                 Action = action;
             }
         }
-
     }
 
 }

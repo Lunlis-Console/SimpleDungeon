@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Engine
@@ -31,7 +32,7 @@ namespace Engine
                     if (i == selectedIndex)
                     {
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.Write("> ");
+                        Console.Write(">");
                     }
                     else
                     {
@@ -112,7 +113,7 @@ namespace Engine
             //Console.ReadKey();
         }
 
-        private static string SelectActionFromList(List<string> actions, string title)
+        public static string SelectActionFromList(List<string> actions, string title)
         {
             if (actions == null || actions.Count == 0)
                 return null;
@@ -138,7 +139,7 @@ namespace Engine
                     if (i == selectedIndex)
                     {
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.Write("> ");
+                        Console.Write(">");
                     }
                     else
                     {
@@ -190,19 +191,28 @@ namespace Engine
             }
         }
 
-        public static InventoryItem SelectItemFromInventoryWithEquipment(
-            List<InventoryItem> inventory,
-            string title,
-            Equipment helmet,
-            Equipment armor,
-            Equipment gloves,
-            Equipment boots,
-            Equipment weapon)
+        public static object SelectItemFromCombinedList(
+    List<object> items,
+    string title,
+    Equipment helmet,
+    Equipment armor,
+    Equipment gloves,
+    Equipment boots,
+    Equipment weapon,
+    int playerGold,
+    int playerDefence,
+    int playerAttack,
+    int playerLevel,
+    int playerCurrentEXP,
+    int playerMaximumEXP,
+    int playerCurrentHP,
+    int playerMaximumHP)
         {
-            if (inventory == null || inventory.Count == 0)
+            if (items == null || items.Count == 0)
                 return null;
-            if(inventory.Count == 1) 
-                return inventory[0];
+
+            if (items.Count == 1)
+                return items[0];
 
             int selectedIndex = 0;
             ConsoleKey key;
@@ -210,48 +220,79 @@ namespace Engine
             do
             {
                 Console.Clear();
-
                 MessageSystem.DisplayMessages();
 
                 Console.WriteLine($"{title}");
 
-                // Отображаем экипированные предметы
+                // Отображение статистики и экипировки
+                int rightColumnStart = Console.WindowWidth - 35;
+                Console.SetCursorPosition(rightColumnStart, 1);
                 Console.WriteLine("======Экипировано======");
+                Console.SetCursorPosition(rightColumnStart, 2);
                 Console.WriteLine($"Оружие: {(weapon?.Name ?? "Пусто")}");
+                Console.SetCursorPosition(rightColumnStart, 3);
                 Console.WriteLine($"Голова: {(helmet?.Name ?? "Пусто")}");
+                Console.SetCursorPosition(rightColumnStart, 4);
                 Console.WriteLine($"Тело: {(armor?.Name ?? "Пусто")}");
+                Console.SetCursorPosition(rightColumnStart, 5);
                 Console.WriteLine($"Руки: {(gloves?.Name ?? "Пусто")}");
+                Console.SetCursorPosition(rightColumnStart, 6);
                 Console.WriteLine($"Ноги: {(boots?.Name ?? "Пусто")}");
+                Console.SetCursorPosition(rightColumnStart, 7);
                 Console.WriteLine("========================");
+                Console.SetCursorPosition(rightColumnStart, 8);
+                Console.WriteLine($"УР: {playerLevel} ОЗ: {playerCurrentHP}/{playerMaximumHP} " +
+                    $"ОП: {playerCurrentEXP}/{playerMaximumEXP}");
+                Console.SetCursorPosition(rightColumnStart, 9);
+                Console.WriteLine($"Атака: {playerAttack}");
+                Console.SetCursorPosition(rightColumnStart, 10);
+                Console.WriteLine($"Защита: {playerDefence}");
 
-                Console.WriteLine("Клавиши 'W' 'S' для выбора, 'E' для подтверждения, 'Q' для выхода");
-                Console.WriteLine();
+                Console.SetCursorPosition(0, 1);
+                Console.WriteLine("=========Сумка=========");
 
-                for (int i = 0; i < inventory.Count; i++)
+                // Отображение предметов
+                for (int i = 0; i < items.Count; i++)
                 {
                     if (i == selectedIndex)
                     {
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.Write("> ");
+                        Console.Write(">");
                     }
                     else
                     {
                         Console.Write("  ");
                     }
 
-                    Console.WriteLine($"{inventory[i].Details.Name} x{inventory[i].Quantity}");
+                    string displayText = items[i] switch
+                    {
+                        InventoryItem invItem => $"{invItem.Details.Name} x{invItem.Quantity}",
+                        EquipmentSlotItem eqItem => $"[Экипировано] {eqItem}",
+                        _ => items[i].ToString()
+                    };
+
+                    Console.WriteLine(displayText);
                     Console.ResetColor();
                 }
+
+                Console.WriteLine("======================");
+                Console.WriteLine($"Золото: {playerGold}");
+                //Console.WriteLine("TAB - переключить на экипированные предметы");
 
                 key = Console.ReadKey(true).Key;
 
                 switch (key)
                 {
                     case ConsoleKey.W:
-                        selectedIndex = (selectedIndex - 1 + inventory.Count) % inventory.Count;
+                        selectedIndex = (selectedIndex - 1 + items.Count) % items.Count;
                         break;
                     case ConsoleKey.S:
-                        selectedIndex = (selectedIndex + 1) % inventory.Count;
+                        selectedIndex = (selectedIndex + 1) % items.Count;
+                        break;
+                    case ConsoleKey.Tab:
+                        // Переключение на экипированные предметы
+                        var equipmentIndex = items.FindIndex(item => item is EquipmentSlotItem);
+                        if (equipmentIndex >= 0) selectedIndex = equipmentIndex;
                         break;
                     case ConsoleKey.Q:
                         return null;
@@ -259,7 +300,25 @@ namespace Engine
 
             } while (key != ConsoleKey.E);
 
-            return inventory[selectedIndex];
+            return items[selectedIndex];
         }
+
+        public class EquipmentSlotItem
+        {
+            public string SlotName { get; }
+            public Equipment Equipment { get; }
+
+            public EquipmentSlotItem(string slotName, Equipment equipment)
+            {
+                SlotName = slotName;
+                Equipment = equipment;
+            }
+
+            public override string ToString()
+            {
+                return $"{SlotName}: {Equipment.Name}";
+            }
+        }
+
     }
 }
