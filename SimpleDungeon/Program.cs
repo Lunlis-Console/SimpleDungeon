@@ -1,5 +1,6 @@
 ﻿using Engine;
 using System;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 
 namespace SimpleDungeon
@@ -11,6 +12,17 @@ namespace SimpleDungeon
 
         public static void Main(string[] args)
         {
+            Console.Title = "Sipmle Dungeon";
+            Console.CursorVisible = false;
+
+            ShowMainMenu();
+
+            
+
+
+
+
+
             _player = new Player(0, 100, 100, 0, 100, 1, 0, 0);
             _player.CurrentLocation = World.LocationByID(World.LOCATION_ID_VILLAGE);
 
@@ -189,8 +201,28 @@ namespace SimpleDungeon
                     case ConsoleKey.J:
                         _player.QuestLog.DisplayQuestLog();
                         break;
+                    case ConsoleKey.M:
+                        ShowGameMenu();
+                        break;
+                    case ConsoleKey.F5:
+                        SaveManager.SaveGame(_player, "quicksave");
+                        break;
+                    case ConsoleKey.F9:
+                        try
+                        {
+                            _player = SaveManager.LoadGame("quicksave");
+                            MessageSystem.AddMessage("Быстрая загрузка выполнена!");
+                        }
+                        catch
+                        {
+                            MessageSystem.AddMessage("Быстрое сохранение не найдено!");
+                        }
+                        break;
                     case ConsoleKey.Escape:
-                        Console.WriteLine("Выход из игры...");
+                        if (MenuSystem.ConfirmAction("Сохранить игру перед выходом?"))
+                        {
+                            SaveManager.SaveGame(_player, $"save_{DateTime.Now:yyyyMMdd_HHmmss}");
+                        }
                         return;
 
                     default:
@@ -414,7 +446,224 @@ namespace SimpleDungeon
 
             Console.WriteLine("| C - Характеристики | I - Сумка | L - Осмотреться | F - Атаковать | T - Говорить | H - Помощь |");
         }
-        
+
+        private static void ShowMainMenu()
+        {
+            int selectedIndex = 0;
+            string[] menuItems = { "Новая игра", "Загрузить игру", "Выход" };
+
+            while (true)
+            {
+                Console.Clear();
+                Console.WriteLine("===================================");
+                Console.WriteLine("          SIMPLE DUNGEON");
+                Console.WriteLine("===================================");
+                Console.WriteLine();
+
+                // Отображаем пункты меню
+                for (int i = 0; i < menuItems.Length; i++)
+                {
+                    if (i == selectedIndex)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Green;
+                        Console.Write("> ");
+                    }
+                    else
+                    {
+                        Console.Write("  ");
+                    }
+
+                    Console.WriteLine(menuItems[i]);
+                    Console.ResetColor();
+                }
+
+                Console.WriteLine("===================================");
+
+                var key = Console.ReadKey(true).Key;
+
+                switch (key)
+                {
+                    case ConsoleKey.W:
+                        selectedIndex = (selectedIndex - 1 + menuItems.Length) % menuItems.Length;
+                        break;
+
+                    case ConsoleKey.S:
+                        selectedIndex = (selectedIndex + 1) % menuItems.Length;
+                        break;
+
+                    case ConsoleKey.E:
+                        ExecuteMainMenuChoice(selectedIndex);
+                        break;
+
+                    case ConsoleKey.Q:
+                        Console.WriteLine("\nВыход из игры...");
+                        return;
+                }
+            }
+        }
+
+        private static void ExecuteMainMenuChoice(int choice)
+        {
+            switch (choice)
+            {
+                case 0: // Новая игра
+                    StartNewGame();
+                    break;
+
+                case 1: // Загрузить игру
+                    ShowLoadGameMenu();
+                    break;
+
+                case 2: // Выход
+                    Console.WriteLine("\nВыход из игры...");
+                    Environment.Exit(0);
+                    break;
+            }
+        }
+
+        private static void ShowLoadGameMenu()
+        {
+            var saves = SaveManager.GetAvailableSaves();
+
+            if (saves.Count == 0)
+            {
+                Console.Clear();
+                Console.WriteLine("Нет доступных сохранений!");
+                Console.WriteLine("Нажмите любую клавишу...");
+                Console.ReadKey();
+                return;
+            }
+
+            var selectedSave = MenuSystem.SelectFromList(
+                saves,
+                save => save,
+                "====== ЗАГРУЗИТЬ ИГРУ ======",
+                "Выберите сохранение для загрузки"
+            );
+
+            if (selectedSave != null)
+            {
+                try
+                {
+                    _player = SaveManager.LoadGame(selectedSave);
+                    MessageSystem.AddMessage($"Игра загружена: {selectedSave}");
+                    ProcessKeyInput();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Ошибка загрузки: {ex.Message}");
+                    Console.ReadKey();
+                }
+            }
+        }
+
+        private static void StartNewGame()
+        {
+            _player = new Player(0, 100, 100, 0, 100, 1, 0, 0);
+            _player.CurrentLocation = World.LocationByID(World.LOCATION_ID_VILLAGE);
+
+            // Стартовые предметы
+            _player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_LEATHER_HELMET), 1));
+            _player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_LEATHER_ARMOR), 1));
+            _player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_LEATHER_GLOVES), 1));
+            _player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_LEATHER_BOOTS), 1));
+            _player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_RUSTY_SWORD), 1));
+
+            ProcessKeyInput();
+        }
+
+        private static void ShowGameMenu()
+        {
+            var menuOptions = new List<MenuOption>
+    {
+        new MenuOption("Сохранить игру", () => SaveGameMenu()),
+        new MenuOption("Загрузить игру", () => LoadGameMenu()),
+        new MenuOption("Главное меню", () => {
+            if (MenuSystem.ConfirmAction("Вернуться в главное меню? Несохраненный прогресс будет потерян."))
+            {
+                throw new Exception("return_to_main_menu");
+            }
+        }),
+        new MenuOption("Вернуться в игру", () => { })
+    };
+
+            var selected = MenuSystem.SelectFromList(
+                menuOptions,
+                opt => opt.DisplayText,
+                "====== МЕНЮ ИГРЫ ======",
+                "Клавиши 'W' 'S' для выбора, 'E' для подтверждения"
+            );
+
+            selected?.Action();
+        }
+
+        private static void SaveGameMenu()
+        {
+            Console.Clear();
+            Console.Write("Введите название сохранения: ");
+            string saveName = Console.ReadLine();
+
+            if (!string.IsNullOrWhiteSpace(saveName))
+            {
+                SaveManager.SaveGame(_player, saveName);
+                Console.WriteLine($"Игра сохранена как: {saveName}");
+            }
+            else
+            {
+                SaveManager.SaveGame(_player, $"save_{DateTime.Now:yyyyMMdd_HHmmss}");
+                Console.WriteLine("Игра сохранена с автоматическим названием");
+            }
+
+            Console.WriteLine("Нажмите любую клавишу...");
+            Console.ReadKey();
+        }
+
+        private static void LoadGameMenu()
+        {
+            var saves = SaveManager.GetAvailableSaves();
+
+            if (saves.Count == 0)
+            {
+                Console.Clear();
+                Console.WriteLine("Нет доступных сохранений!");
+                Console.WriteLine("Нажмите любую клавишу...");
+                Console.ReadKey();
+                return;
+            }
+
+            var selectedSave = MenuSystem.SelectFromList(
+                saves,
+                save => save,
+                "====== ЗАГРУЗИТЬ ИГРУ ======",
+                "Выберите сохранение для загрузки"
+            );
+
+            if (selectedSave != null)
+            {
+                try
+                {
+                    _player = SaveManager.LoadGame(selectedSave);
+                    MessageSystem.AddMessage($"Игра загружена: {selectedSave}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Ошибка загрузки: {ex.Message}");
+                    Console.ReadKey();
+                }
+            }
+        }
+
+        private class MenuOption
+        {
+            public string DisplayText { get; }
+            public Action Action { get; }
+
+            public MenuOption(string displayText, Action action)
+            {
+                DisplayText = displayText;
+                Action = action;
+            }
+        }
 
     }
 
