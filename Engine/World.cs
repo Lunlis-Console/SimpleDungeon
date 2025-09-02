@@ -57,22 +57,22 @@ namespace Engine
                 "Data/Descriptions/rat_meat.txt"));
             Items.Add(new Item(ITEM_ID_SPIDER_SILK, "Паучий шелк", "", ItemType.Stuff, 10, ""));
             Items.Add(new HealingItem(ITEM_ID_WEAK_HEALING_POTION, "Слабое зелье лечения", "", ItemType.Consumable, 25, 10));
-            Items.Add(new Equipment(ITEM_ID_RUSTY_SWORD, "", 5, 0, ItemType.Sword, 5, "Ржавый меч", 
+            Items.Add(new Equipment(ITEM_ID_RUSTY_SWORD, "", 5, 0, 0, ItemType.Sword, 5, "Ржавый меч", 
                 "Data/Descriptions/rusty_sword.txt"));
-            Items.Add(new Equipment(ITEM_ID_IRON_SWORD, "", 10, 0, ItemType.Sword, 10, "Железный меч"));
-            Items.Add(new Equipment(ITEM_ID_LEATHER_HELMET, "", 0, 1, ItemType.Helmet, 10, "Кожаный шлем"));
-            Items.Add(new Equipment(ITEM_ID_LEATHER_ARMOR, "", 0, 2, ItemType.Armor, 10, "Кожаная броня"));
-            Items.Add(new Equipment(ITEM_ID_LEATHER_GLOVES, "", 0, 1, ItemType.Gloves, 10, "Кожаные перчатки"));
-            Items.Add(new Equipment(ITEM_ID_LEATHER_BOOTS, "", 0, 1, ItemType.Boots, 10, "Кожаные сапоги"));
+            Items.Add(new Equipment(ITEM_ID_IRON_SWORD, "", 10, 0, 0, ItemType.Sword, 10, "Железный меч"));
+            Items.Add(new Equipment(ITEM_ID_LEATHER_HELMET, "", 0, 1, 0, ItemType.Helmet, 10, "Кожаный шлем"));
+            Items.Add(new Equipment(ITEM_ID_LEATHER_ARMOR, "", 0, 2, 0, ItemType.Armor, 10, "Кожаная броня"));
+            Items.Add(new Equipment(ITEM_ID_LEATHER_GLOVES, "", 0, 1, 0, ItemType.Gloves, 10, "Кожаные перчатки"));
+            Items.Add(new Equipment(ITEM_ID_LEATHER_BOOTS, "", 0, 1, 0, ItemType.Boots, 10, "Кожаные сапоги"));
         }
 
         private static void PopulateMonsters()
         {
-            Monster rat = new Monster(MONSTER_ID_RAT, "Крыса", 1, 5, 5, 5, 5, 5, 5);
+            Monster rat = new Monster(MONSTER_ID_RAT, "Крыса", 1, 5, 5, 1, 5, 5, 5, 20);
             rat.LootTable.Add(new LootItem(ItemByID(ITEM_ID_RUSTY_SWORD), 75, false));
             rat.LootTable.Add(new LootItem(ItemByID(ITEM_ID_RATS_MEAT), 100, false));
 
-            Monster spider = new Monster(MONSTER_ID_SPIDER, "Паук", 1, 10, 10, 10, 5, 10, 10);
+            Monster spider = new Monster(MONSTER_ID_SPIDER, "Паук", 1, 10, 10, 10, 5, 10, 10, 15);
             spider.LootTable.Add(new LootItem(ItemByID(ITEM_ID_IRON_SWORD), 75, false));
             spider.LootTable.Add(new LootItem(ItemByID(ITEM_ID_SPIDER_SILK), 60, false));
 

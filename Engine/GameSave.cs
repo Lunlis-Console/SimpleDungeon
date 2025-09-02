@@ -22,6 +22,7 @@ namespace Engine
         public int Level { get; set; }
         public int BaseAttack { get; set; }
         public int BaseDefence { get; set; }
+        public int Agility { get; set; }
         public int LocationID { get; set; }
 
         // Инвентарь
@@ -105,6 +106,7 @@ namespace Engine
                 Level = player.Level,
                 BaseAttack = player.BaseAttack,
                 BaseDefence = player.BaseDefence,
+                Agility = player.Agility,
                 LocationID = player.CurrentLocation?.ID ?? World.LOCATION_ID_VILLAGE,
 
                 Inventory = player.Inventory.Items.Select(ii =>
@@ -150,7 +152,7 @@ namespace Engine
             var player = new Player(
                 save.Gold, save.CurrentHP, save.MaximumHP,
                 save.CurrentEXP, save.MaximumEXP, save.Level,
-                save.BaseAttack, save.BaseDefence
+                save.BaseAttack, save.BaseDefence, save.Agility
             );
 
             // Загружаем инвентарь

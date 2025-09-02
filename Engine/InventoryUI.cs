@@ -202,6 +202,7 @@ namespace Engine
     int playerGold,
     int playerDefence,
     int playerAttack,
+    int playerAgility,
     int playerLevel,
     int playerCurrentEXP,
     int playerMaximumEXP,
@@ -247,6 +248,8 @@ namespace Engine
                 Console.WriteLine($"Атака: {playerAttack}");
                 Console.SetCursorPosition(rightColumnStart, 10);
                 Console.WriteLine($"Защита: {playerDefence}");
+                Console.SetCursorPosition(rightColumnStart, 11);
+                Console.WriteLine($"Ловкость: {playerAgility}");
 
                 Console.SetCursorPosition(0, 1);
                 Console.WriteLine("=========Сумка=========");

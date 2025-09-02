@@ -15,8 +15,11 @@ namespace Engine
         public int Level { get; set; }
         public int BaseAttack { get; set; }
         public int BaseDefence { get; set; }
+        public int BaseAgility { get; set; }
         public int Attack => BaseAttack + Inventory.CalculateTotalAttack();
         public int Defence => BaseDefence + Inventory.CalculateTotalDefence();
+        public int Agility => BaseAgility + Inventory.CalculateTotalAgility();
+        public int CurrentSpeed { get; set; }
         public Location CurrentLocation { get; set; }
         public Inventory Inventory { get; private set; }
         public Monster CurrentMonster { get; set; }
@@ -26,7 +29,7 @@ namespace Engine
         public QuestLog QuestLog { get; set; }
 
         public Player(int gold, int currentHP, int maximumHP, int currentEXP, int maximumEXP, int level,
-            int baseAttack, int baseDefence) :
+            int baseAttack, int baseDefence, int agility) :
             base(currentHP, maximumHP)
         {
             Gold = gold;
@@ -35,6 +38,8 @@ namespace Engine
             Level = level;
             BaseAttack = baseAttack;
             BaseDefence = baseDefence;
+            BaseAgility = agility;
+            CurrentSpeed = 0;
             Inventory = new Inventory();
             QuestLog = new QuestLog();
         }
@@ -111,7 +116,7 @@ namespace Engine
                         allItems,
                         "",
                         Inventory.Helmet, Inventory.Armor, Inventory.Gloves, Inventory.Boots, Inventory.Weapon,
-                        Gold, Defence, Attack, Level, CurrentEXP, MaximumEXP, CurrentHP, MaximumHP);
+                        Gold, Defence, Attack, Agility, Level, CurrentEXP, MaximumEXP, CurrentHP, MaximumHP);
 
                     if (selectedItem == null)
                     {

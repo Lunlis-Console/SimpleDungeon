@@ -196,6 +196,19 @@ namespace Engine
             return Weapon?.AttackBonus ?? 0;
         }
 
+        public int CalculateTotalAgility()
+        {
+            int agility = 0;
+
+            if (Helmet != null) agility += Helmet.AgilityBonus;
+            if (Armor != null) agility += Armor.AgilityBonus;
+            if (Gloves != null) agility += Gloves.AgilityBonus;
+            if (Boots != null) agility += Boots.AgilityBonus;
+            if (Weapon != null) agility += Weapon.AgilityBonus;
+
+            return agility;
+        }
+
         public void Clear()
         {
             Items.Clear();

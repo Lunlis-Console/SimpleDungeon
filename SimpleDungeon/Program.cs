@@ -444,7 +444,7 @@ namespace SimpleDungeon
         }
         private static void StartNewGame()
         {
-            _player = new Player(0, 100, 100, 0, 100, 1, 0, 0);
+            _player = new Player(0, 100, 100, 0, 100, 1, 0, 0, 10);
             _player.CurrentLocation = World.LocationByID(World.LOCATION_ID_VILLAGE);
 
             // Стартовые предметы
