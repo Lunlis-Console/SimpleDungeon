@@ -20,14 +20,15 @@ namespace Engine
         public int CurrentEXP { get; set; }
         public int MaximumEXP { get; set; }
         public int Level { get; set; }
-        public int Attack { get; set; }
-        public int Defence { get; set; }
+        public int BaseAttack { get; set; }
+        public int BaseDefence { get; set; }
         public int LocationID { get; set; }
 
         // Инвентарь
         public List<InventoryItemData> Inventory { get; set; }
+        public List<EquipmentItemData> EquippedItems { get; set; }
 
-        // Экипировка
+        // Экипировка (для обратной совместимости)
         public int? EquippedHelmetID { get; set; }
         public int? EquippedArmorID { get; set; }
         public int? EquippedGlovesID { get; set; }
@@ -43,6 +44,7 @@ namespace Engine
         public GameSave()
         {
             Inventory = new List<InventoryItemData>();
+            EquippedItems = new List<EquipmentItemData>();
             CompletedQuests = new List<int>();
             ActiveQuests = new List<int>();
         }
@@ -59,6 +61,20 @@ namespace Engine
         {
             ItemID = itemID;
             Quantity = quantity;
+        }
+    }
+
+    public class EquipmentItemData
+    {
+        public int ItemID { get; set; }
+        public ItemType SlotType { get; set; }
+
+        public EquipmentItemData() { }
+
+        public EquipmentItemData(int itemID, ItemType slotType)
+        {
+            ItemID = itemID;
+            SlotType = slotType;
         }
     }
 
@@ -87,18 +103,22 @@ namespace Engine
                 CurrentEXP = player.CurrentEXP,
                 MaximumEXP = player.MaximumEXP,
                 Level = player.Level,
-                Attack = player.Attack,
-                Defence = player.Defence,
+                BaseAttack = player.BaseAttack,
+                BaseDefence = player.BaseDefence,
                 LocationID = player.CurrentLocation?.ID ?? World.LOCATION_ID_VILLAGE,
 
-                Inventory = player.Inventory.Select(ii =>
+                Inventory = player.Inventory.Items.Select(ii =>
                     new InventoryItemData(ii.Details.ID, ii.Quantity)).ToList(),
 
-                EquippedHelmetID = player.EquipmentHelmet?.ID,
-                EquippedArmorID = player.EquipmentArmor?.ID,
-                EquippedGlovesID = player.EquipmentGloves?.ID,
-                EquippedBootsID = player.EquipmentBoots?.ID,
-                EquippedWeaponID = player.EquipmentWeapon?.ID,
+                EquippedItems = player.Inventory.EquippedItems.Select(ei =>
+                    new EquipmentItemData(ei.Details.ID, ei.Details.Type)).ToList(),
+
+                // Сохраняем также старые поля для обратной совместимости
+                EquippedHelmetID = player.Inventory.Helmet?.ID,
+                EquippedArmorID = player.Inventory.Armor?.ID,
+                EquippedGlovesID = player.Inventory.Gloves?.ID,
+                EquippedBootsID = player.Inventory.Boots?.ID,
+                EquippedWeaponID = player.Inventory.Weapon?.ID,
 
                 CompletedQuests = player.QuestLog.CompletedQuests.Select(q => q.ID).ToList(),
                 ActiveQuests = player.QuestLog.ActiveQuests.Select(q => q.ID).ToList(),
@@ -126,11 +146,11 @@ namespace Engine
             string json = File.ReadAllText(filePath);
             GameSave save = JsonSerializer.Deserialize<GameSave>(json);
 
-            // Создаем игрока
+            // Создаем игрока с базовыми характеристиками
             var player = new Player(
                 save.Gold, save.CurrentHP, save.MaximumHP,
                 save.CurrentEXP, save.MaximumEXP, save.Level,
-                save.Attack, save.Defence
+                save.BaseAttack, save.BaseDefence
             );
 
             // Загружаем инвентарь
@@ -139,23 +159,98 @@ namespace Engine
                 Item item = World.ItemByID(itemData.ItemID);
                 if (item != null)
                 {
-                    player.AddItemToInventory(item, itemData.Quantity);
+                    player.Inventory.AddItem(item, itemData.Quantity);
                 }
             }
 
-            // Загружаем экипировку
-            if (save.EquippedHelmetID.HasValue)
-                player.EquipmentHelmet = (Equipment)World.ItemByID(save.EquippedHelmetID.Value);
-            if (save.EquippedArmorID.HasValue)
-                player.EquipmentArmor = (Equipment)World.ItemByID(save.EquippedArmorID.Value);
-            if (save.EquippedGlovesID.HasValue)
-                player.EquipmentGloves = (Equipment)World.ItemByID(save.EquippedGlovesID.Value);
-            if (save.EquippedBootsID.HasValue)
-                player.EquipmentBoots = (Equipment)World.ItemByID(save.EquippedBootsID.Value);
-            if (save.EquippedWeaponID.HasValue)
-                player.EquipmentWeapon = (Equipment)World.ItemByID(save.EquippedWeaponID.Value);
+            // Загружаем экипировку (новый способ)
+            foreach (var equippedItem in save.EquippedItems)
+            {
+                Equipment equipment = World.ItemByID(equippedItem.ItemID) as Equipment;
+                if (equipment != null)
+                {
+                    // Находим соответствующий предмет в инвентаре
+                    var inventoryItem = player.Inventory.Items
+                        .FirstOrDefault(ii => ii.Details.ID == equippedItem.ItemID);
 
-            player.UpdateStats();
+                    if (inventoryItem != null)
+                    {
+                        player.Inventory.EquipItem(inventoryItem);
+                    }
+                }
+            }
+
+            // Загружаем экипировку (старый способ для обратной совместимости)
+            if (save.EquippedHelmetID.HasValue)
+            {
+                Equipment helmet = World.ItemByID(save.EquippedHelmetID.Value) as Equipment;
+                if (helmet != null)
+                {
+                    var inventoryItem = player.Inventory.Items
+                        .FirstOrDefault(ii => ii.Details.ID == save.EquippedHelmetID.Value);
+                    if (inventoryItem != null)
+                    {
+                        player.Inventory.EquipItem(inventoryItem);
+                    }
+                }
+            }
+
+            // Повторите для других слотов экипировки (Armor, Gloves, Boots, Weapon)
+            if (save.EquippedArmorID.HasValue)
+            {
+                Equipment armor = World.ItemByID(save.EquippedArmorID.Value) as Equipment;
+                if (armor != null)
+                {
+                    var inventoryItem = player.Inventory.Items
+                        .FirstOrDefault(ii => ii.Details.ID == save.EquippedArmorID.Value);
+                    if (inventoryItem != null)
+                    {
+                        player.Inventory.EquipItem(inventoryItem);
+                    }
+                }
+            }
+
+            if (save.EquippedGlovesID.HasValue)
+            {
+                Equipment gloves = World.ItemByID(save.EquippedGlovesID.Value) as Equipment;
+                if (gloves != null)
+                {
+                    var inventoryItem = player.Inventory.Items
+                        .FirstOrDefault(ii => ii.Details.ID == save.EquippedGlovesID.Value);
+                    if (inventoryItem != null)
+                    {
+                        player.Inventory.EquipItem(inventoryItem);
+                    }
+                }
+            }
+
+            if (save.EquippedBootsID.HasValue)
+            {
+                Equipment boots = World.ItemByID(save.EquippedBootsID.Value) as Equipment;
+                if (boots != null)
+                {
+                    var inventoryItem = player.Inventory.Items
+                        .FirstOrDefault(ii => ii.Details.ID == save.EquippedBootsID.Value);
+                    if (inventoryItem != null)
+                    {
+                        player.Inventory.EquipItem(inventoryItem);
+                    }
+                }
+            }
+
+            if (save.EquippedWeaponID.HasValue)
+            {
+                Equipment weapon = World.ItemByID(save.EquippedWeaponID.Value) as Equipment;
+                if (weapon != null)
+                {
+                    var inventoryItem = player.Inventory.Items
+                        .FirstOrDefault(ii => ii.Details.ID == save.EquippedWeaponID.Value);
+                    if (inventoryItem != null)
+                    {
+                        player.Inventory.EquipItem(inventoryItem);
+                    }
+                }
+            }
 
             // Загружаем квесты
             foreach (int questID in save.ActiveQuests)

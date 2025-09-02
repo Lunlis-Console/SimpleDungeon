@@ -99,7 +99,7 @@ namespace Engine
                     DisplayTraderItems(ItemsForSale);
 
                     Console.WriteLine("========ВАШИ ПРЕДМЕТЫ========");
-                    DisplayPlayerItems(player.Inventory, false);
+                    DisplayPlayerItems(player.Inventory.Items, false);
                 }
                 else
                 {
@@ -107,7 +107,7 @@ namespace Engine
                     DisplayTraderItems(ItemsForSale, false);
 
                     Console.WriteLine("========ВАШИ ПРЕДМЕТЫ========");
-                    DisplayPlayerItems(player.Inventory);
+                    DisplayPlayerItems(player.Inventory.Items);
                 }
 
                 Console.WriteLine("'W' и 'S' - Переключить панель торговли");
@@ -142,69 +142,6 @@ namespace Engine
                         systemMessage = "Используйте клавиши для навигации, E для действия, Q для выхода";
                         break;
                 }
-
-                //    for (int i = 0; i < ItemsForSale.Count; i++)
-                //    {
-                //        Console.WriteLine($"{i + 1}. {ItemsForSale[i].Details.Name} - {ItemsForSale[i].Details.Price} " +
-                //            $"золота. (в наличии: {ItemsForSale[i].Quantity})");
-                //    }
-
-                //Console.WriteLine("\n| купить [номер] - выбор товара | продать [название] - продать предмет |");
-                //Console.WriteLine("| сумка - показать сумку | назад - уйти |");
-                //Console.Write(">");
-
-                //string input = Console.ReadLine().ToLower().Trim();
-
-                //if (input == "назад")
-                //{
-                //    Console.Clear();
-                //    Console.WriteLine($"{Name}: Заходи еще!\n");
-                //    trading = false;
-                //}
-                //else if (input == "сумка")
-                //{
-                //    Console.Clear();
-                //    player.DisplayInventory();
-                //    Console.WriteLine($"\n=== Возвращаемся к {Name} ===\n");
-                //    Console.WriteLine("\nНажмите любую кнопку чтобы продолжить...");
-                //    Console.ReadKey();
-
-                //}
-                //else if (input.StartsWith("купить"))
-                //{
-                //    string[] parts = input.Split(' ');
-                //    if (parts.Length < 2)
-                //    {
-                //        Console.WriteLine("СИСТЕМА: Укажите номер товара. Пример: 'купить 1'");
-                //        continue;
-                //    }
-
-                //    if (int.TryParse(parts[1], out int itemIndex) && itemIndex > 0 && itemIndex <= ItemsForSale.Count)
-                //    {
-                //        InventoryItem itemToBuy = ItemsForSale[itemIndex - 1];
-                //        systemMessage = BuyItem(player, itemToBuy);
-                //    }
-                //    else
-                //    {
-                //        systemMessage = "Неверный номер товара.";
-                //    }
-                //}
-                //else if(input.StartsWith("продать"))
-                //{
-                //    string itemName = input.Replace("продать", "").Trim();
-                //    if(string.IsNullOrEmpty(itemName))
-                //    {
-                //        systemMessage = "Укажите название предмета. Пример: 'продать железный меч'";
-                //    }
-                //    else
-                //    {
-                //        systemMessage = SellItem(player, itemName);
-                //    }
-                //}
-                //else
-                //{
-                //    systemMessage = "Неизвестная команда. Используйте 'купить [номер]', 'сумка', 'назад'.";
-                //}
             }
         }
         private void DisplayTraderItems(List<InventoryItem> items, bool highlight = true)
@@ -318,15 +255,15 @@ namespace Engine
         }
         private string SellSelectedItem(Player player)
         {
-            if (player.Inventory.Count == 0)
+            if (player.Inventory.Items.Count == 0)
                 return "У вас нет предметов для продажи!";
 
-            int selectedIndex = SelectItemIndex(player.Inventory, "Выберите предмет для продажи");
+            int selectedIndex = SelectItemIndex(player.Inventory.Items, "Выберите предмет для продажи");
 
             if (selectedIndex == -1)
                 return "";
 
-            InventoryItem itemToSell = player.Inventory[selectedIndex];
+            InventoryItem itemToSell = player.Inventory.Items[selectedIndex];
 
             int quantity = AskForQuantity(itemToSell, "продажи", false);
             if (quantity == 0)
@@ -531,7 +468,7 @@ namespace Engine
             playerItem.Quantity -= quantity;
             if (playerItem.Quantity <= 0)
             {
-                player.Inventory.Remove(playerItem);
+                player.Inventory.RemoveItem(playerItem);
             }
 
             var traderItem = ItemsForSale.FirstOrDefault(ii => ii.Details.ID == playerItem.Details.ID);

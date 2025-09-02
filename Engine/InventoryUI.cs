@@ -179,14 +179,14 @@ namespace Engine
                     item.Quantity -= amount;
                     if (item.Quantity <= 0)
                     {
-                        player.Inventory.Remove(item);
+                        player.Inventory.RemoveItem(item);
                     }
                     Console.WriteLine($"Выброшено {amount} шт. предмета {item.Details.Name}");
                 }
             }
             else
             {
-                player.Inventory.Remove(item);
+                player.Inventory.RemoveItem(item);
                 Console.WriteLine($"Предмет {item.Details.Name} выброшен");
             }
         }

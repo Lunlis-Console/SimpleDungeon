@@ -13,16 +13,12 @@ namespace Engine
         public int CurrentEXP { get; set; }
         public int MaximumEXP { get; set; }
         public int Level { get; set; }
-        public int Attack { get; set; }
-        public int Defence { get; set; }
+        public int BaseAttack { get; set; }
+        public int BaseDefence { get; set; }
+        public int Attack => BaseAttack + Inventory.CalculateTotalAttack();
+        public int Defence => BaseDefence + Inventory.CalculateTotalDefence();
         public Location CurrentLocation { get; set; }
-        public Equipment EquipmentHelmet { get; set; }
-        public Equipment EquipmentArmor { get; set; }
-        public Equipment EquipmentGloves { get; set; }
-        public Equipment EquipmentBoots { get; set; }
-        public Equipment EquipmentWeapon { get; set; }
-        public List<InventoryItem> Inventory { get; set; }
-        public List<EquipmentItem> EquipmentItems { get; set; }
+        public Inventory Inventory { get; private set; }
         public Monster CurrentMonster { get; set; }
         public bool IsInCombat { get; set; }
         public int MonstersKilled { get; set; }
@@ -30,27 +26,17 @@ namespace Engine
         public QuestLog QuestLog { get; set; }
 
         public Player(int gold, int currentHP, int maximumHP, int currentEXP, int maximumEXP, int level,
-            int attack, int defence) :
+            int baseAttack, int baseDefence) :
             base(currentHP, maximumHP)
         {
             Gold = gold;
             CurrentEXP = currentEXP;
             MaximumEXP = maximumEXP;
             Level = level;
-            Attack = attack;
-            Defence = defence;
-
-            Inventory = new List<InventoryItem>();
-
-            EquipmentItems = new List<EquipmentItem>();
-
+            BaseAttack = baseAttack;
+            BaseDefence = baseDefence;
+            Inventory = new Inventory();
             QuestLog = new QuestLog();
-
-            EquipmentHelmet = null;
-            EquipmentArmor = null;
-            EquipmentGloves = null;
-            EquipmentBoots = null;
-
         }
 
         public void MoveTo(Location newLocation)
@@ -91,7 +77,6 @@ namespace Engine
                 MoveTo(CurrentLocation.LocationToSouth);
             }
         }
-
         public void DisplayInventory()
         {
             while (true)
@@ -101,16 +86,15 @@ namespace Engine
 
                 // Создаем объединенный список предметов: инвентарь + экипировка
                 var allItems = new List<object>();
-                //allItems.AddRange(Inventory.Cast<object>());
 
                 // Добавляем экипированные предметы как специальные объекты
-                if (EquipmentHelmet != null) allItems.Add(new EquipmentSlotItem("Надето", EquipmentHelmet));
-                if (EquipmentArmor != null) allItems.Add(new EquipmentSlotItem("Надето", EquipmentArmor));
-                if (EquipmentGloves != null) allItems.Add(new EquipmentSlotItem("Надето", EquipmentGloves));
-                if (EquipmentBoots != null) allItems.Add(new EquipmentSlotItem("Надето", EquipmentBoots));
-                if (EquipmentWeapon != null) allItems.Add(new EquipmentSlotItem("Надето", EquipmentWeapon));
+                if (Inventory.Helmet != null) allItems.Add(new EquipmentSlotItem("Надето", Inventory.Helmet));
+                if (Inventory.Armor != null) allItems.Add(new EquipmentSlotItem("Надето", Inventory.Armor));
+                if (Inventory.Gloves != null) allItems.Add(new EquipmentSlotItem("Надето", Inventory.Gloves));
+                if (Inventory.Boots != null) allItems.Add(new EquipmentSlotItem("Надето", Inventory.Boots));
+                if (Inventory.Weapon != null) allItems.Add(new EquipmentSlotItem("Надето", Inventory.Weapon));
 
-                allItems.AddRange(Inventory.Cast<object>());
+                allItems.AddRange(Inventory.Items.Cast<object>());
 
 
                 if (allItems.Count == 0)
@@ -125,8 +109,8 @@ namespace Engine
                     // Используем новый метод для выбора из объединенного списка
                     var selectedItem = InventoryUI.SelectItemFromCombinedList(
                         allItems,
-                        "Выберите предмет (TAB - переключить на экипировку)",
-                        EquipmentHelmet, EquipmentArmor, EquipmentGloves, EquipmentBoots, EquipmentWeapon,
+                        "",
+                        Inventory.Helmet, Inventory.Armor, Inventory.Gloves, Inventory.Boots, Inventory.Weapon,
                         Gold, Defence, Attack, Level, CurrentEXP, MaximumEXP, CurrentHP, MaximumHP);
 
                     if (selectedItem == null)
@@ -191,160 +175,49 @@ namespace Engine
             Console.WriteLine("\nНажмите любую клавишу чтобы продолжить...");
             Console.ReadKey();
 
-            CombatLoop();
+            CombatEngine combatEngine = new CombatEngine(this, monster);
+            combatEngine.CombatLoop();
+
+            if (!IsInCombat)
+            {
+                CurrentMonster = null;
+            }
         }
+
         public void EquipItem(InventoryItem item)
         {
-            // при добавлении тип предмета, нужно редактировать этот элемент!
-            if(item.Details.Type == ItemType.Stuff || item.Details.Type == ItemType.Consumable)
+            if (Inventory.EquipItem(item))
             {
-                MessageSystem.AddMessage("Это не предмет экипировки!");
-                return;
+                MessageSystem.AddMessage($"Надето: {item.Details.Name}.");
             }
-
-            // Проверяем, есть ли что-то надетое в слоте
-            Equipment currentEquipment = GetEquipmentInSlot(item.Details.Type);
-
-            if (currentEquipment != null)
+            else
             {
-                MessageSystem.AddMessage($"Уже надет предмет {currentEquipment.Name}. Сначала снимите его!");
-                return;
+                MessageSystem.AddMessage("Это не предмет экипировки или слот занят!");
             }
-
-            // Надеваем предмет
-            switch (item.Details.Type)
-            {
-                case ItemType.Helmet:
-                    EquipmentHelmet = (Equipment)item.Details;
-                    break;
-                case ItemType.Armor:
-                    EquipmentArmor = (Equipment)item.Details;
-                    break;
-                case ItemType.Gloves:
-                    EquipmentGloves = (Equipment)item.Details;
-                    break;
-                case ItemType.Boots:
-                    EquipmentBoots = (Equipment)item.Details;
-                    break;
-                case ItemType.Sword:
-                    EquipmentWeapon = (Equipment)item.Details;
-                    break;
-                default:
-                    MessageSystem.AddMessage("Это нельзя надеть.");
-                    return;
-            }
-
-            // Добавляем в список экипировки
-            EquipmentItems.Add(new EquipmentItem((Equipment)item.Details, 1));
-
-            // Удаляем из инвентаря
-            RemoveItemFromInventory(item);
-
-            MessageSystem.AddMessage($"Надето: {item.Details.Name}.");
-            UpdateStats();
         }
-        public void RemoveItemFromInventory(InventoryItem item)
+
+        public void RemoveItemFromInventory(InventoryItem item, int quantity = 1)
         {
-            item.Quantity--;
-            if (item.Quantity <= 0)
-            {
-                Inventory.Remove(item);
-            }
+            Inventory.RemoveItem(item, quantity);
         }
 
         public void UnequipItem(Equipment equipment)
         {
-            if (equipment == null) return;
-
-            // Снимаем предмет
-            switch (equipment.Type)
+            if (Inventory.UnequipItem(equipment))
             {
-                case ItemType.Helmet:
-                    EquipmentHelmet = null;
-                    break;
-                case ItemType.Armor:
-                    EquipmentArmor = null;
-                    break;
-                case ItemType.Gloves:
-                    EquipmentGloves = null;
-                    break;
-                case ItemType.Boots:
-                    EquipmentBoots = null;
-                    break;
-                case ItemType.Sword:
-                    EquipmentWeapon = null;
-                    break;
-                default:
-                    MessageSystem.AddMessage("СИСТЕМА: Неизвестный тип предмета.");
-                    return;
+                MessageSystem.AddMessage($"Снято: {equipment.Name}.");
             }
-
-            // Удаляем из списка экипировки
-            var equipmentItem = EquipmentItems.FirstOrDefault(ei => ei.Details.ID == equipment.ID);
-            if (equipmentItem != null)
+            else
             {
-                EquipmentItems.Remove(equipmentItem);
+                MessageSystem.AddMessage("Не удалось снять предмет.");
             }
-
-            // Добавляем в инвентарь
-            AddItemToInventory(equipment);
-
-            MessageSystem.AddMessage($"Снято: {equipment.Name}.");
-            UpdateStats();
         }
 
         public void AddItemToInventory(Item item, int quantity = 1)
         {
-            // Проверяем, есть ли уже такой предмет в инвентаре
-            InventoryItem existingItem = Inventory.FirstOrDefault(ii => ii.Details.ID == item.ID);
-
-            if (existingItem != null)
-            {
-                existingItem.Quantity += quantity;
-            }
-            else
-            {
-                Inventory.Add(new InventoryItem(item, quantity));
-            }
+            Inventory.AddItem(item, quantity);
         }
-        public void UpdateStats()
-        {
-            Defence =
-                (EquipmentHelmet?.DefenceBonus ?? 0) +
-                (EquipmentArmor?.DefenceBonus ?? 0) +
-                (EquipmentGloves?.DefenceBonus ?? 0) +
-                (EquipmentBoots?.DefenceBonus ?? 0);
-            Attack = (EquipmentWeapon?.AttackBonus ?? 0);
-        }
-        public void HelpInventory()
-        {
-            Console.Clear();
-
-            Console.WriteLine("=================Помощь=================");
-            Console.WriteLine("- надеть <имя предмета> - надеть на себя экипировку.");
-            Console.WriteLine("- снять <имя предмета> - снять с себя экипировку.");
-            Console.WriteLine("- осмотреть <имя предмета> - откроет описание предмета.");
-            Console.WriteLine("");
-            Console.WriteLine("");
-            Console.WriteLine("");
-            Console.WriteLine("========================================");
-
-            Console.WriteLine("\nНажмите любую клавишу, чтобы закрыть описание...");
-            Console.ReadKey();
-            Console.Clear();
-        }
-        public Equipment GetEquipmentInSlot(ItemType type)
-        {
-            return type switch
-            {
-                ItemType.Helmet => EquipmentHelmet,
-                ItemType.Armor => EquipmentArmor,
-                ItemType.Gloves => EquipmentGloves,
-                ItemType.Boots => EquipmentBoots,
-                ItemType.Sword => EquipmentWeapon,
-                _ => null
-            };
-        }
+                
         public void UseItemToHeal(InventoryItem item)
         {
             // Пока проработаны только расходники лечения
@@ -381,149 +254,6 @@ namespace Engine
             RemoveItemFromInventory(item);
             MessageSystem.AddMessage($"Использовано: {item.Details.Name}, восстановлено {healedAmount} ед. здоровья!");
         }
-        public void CombatLoop()
-        {
-            string playerActionMessage = "";
-            string monsterActionMessage = "";
-
-            while (IsInCombat && CurrentHP > 0 && CurrentMonster.CurrentHP > 0)
-            {
-                Console.Clear();
-
-                Console.WriteLine($"======={CurrentMonster.Name}========");
-                Console.WriteLine($"ОЗ: {CurrentMonster.CurrentHP}/{CurrentMonster.MaximumHP} " +
-                    $"| АТК: {CurrentMonster.Attack} | ЗЩТ: {CurrentMonster.Defence}");
-                Console.WriteLine($"====================================");
-
-                if(!string.IsNullOrEmpty(playerActionMessage))
-                {
-                    Console.WriteLine(playerActionMessage);
-                }
-                else
-                {
-                    Console.WriteLine();
-                }
-
-                Console.WriteLine($"------------------------------------");
-
-                if (!string.IsNullOrEmpty(monsterActionMessage))
-                {
-                    Console.WriteLine(monsterActionMessage);
-                }
-                else
-                {
-                    Console.WriteLine();
-                }
-
-                Console.WriteLine($"========Игрок========");
-                Console.WriteLine($"ОЗ: {CurrentHP}/{MaximumHP} " +
-                    $"| АТК: {Attack} | ЗЩТ: {Defence}");
-
-                Console.WriteLine("=========Действия=========");
-                Console.WriteLine("| 1 - атаковать | 2 - заклинание | 3 - защищаться | 4 - бежать |");
-
-                playerActionMessage = "";
-                monsterActionMessage = "";
-
-                ConsoleKeyInfo key = Console.ReadKey(true);
-                Console.WriteLine();
-
-                switch (key.Key)
-                {
-                    case ConsoleKey.D1:
-                    case ConsoleKey.NumPad1:
-                        playerActionMessage = AttackToMonster();
-                        break;
-                    case ConsoleKey.D2:
-                    case ConsoleKey.NumPad2:
-                        //playerActionMessage = SpellToMonster();
-                        break;
-                    case ConsoleKey.D3:
-                    case ConsoleKey.NumPad3:
-                        //playerActionMessage = DefenceToMonster();
-                        break;
-                    case ConsoleKey.D4:
-                    case ConsoleKey.NumPad4:
-                        playerActionMessage = TryToEscape();
-                        if(playerActionMessage.Contains("Вам удалось сбежать!"))
-                        {
-                            IsInCombat = false;
-                            break;
-                        }
-                        break;
-                }
-
-                if(!IsInCombat)
-                {
-                    break;
-                }
-
-                if (IsInCombat && CurrentMonster.CurrentHP > 0)
-                {
-                    monsterActionMessage = MonsterAttack();
-                }
-
-                if (CurrentHP <= 0)
-                {
-                    Console.WriteLine("Вы погибли.");
-                    IsInCombat = false;
-                    Console.WriteLine("\nНажмите любую клавишу чтобы продолжить...");
-                    Console.ReadKey();
-                    Console.Clear();
-                    break;
-                }
-                else if(CurrentMonster.CurrentHP <= 0)
-                {
-                    Console.WriteLine($"{CurrentMonster.Name} побежден!");
-                    RecieveReward(CurrentMonster);
-                    IsInCombat = false;
-                    Console.WriteLine("\nНажмите любую клавишу чтобы продолжить...");
-                    Console.ReadKey();
-                    Console.Clear();
-                }
-            }
-        }
-        public string AttackToMonster()
-        {
-            int damage = Attack + new Random().Next(1, 6) - CurrentMonster.Defence;
-
-            if(damage < 0)
-            {
-                damage = 0;
-            }
-
-            CurrentMonster.CurrentHP -= damage;
-            return $"Вы нанесли {damage} урона по {CurrentMonster.Name}!";
-        }
-        public void SpellToMonster()
-        {
-
-        }
-        public void DefenceToMonster()
-        {
-
-        }
-        public string TryToEscape()
-        {
-            int escapeChance = 30;
-            if(new Random().Next(100) < escapeChance)
-            {
-                IsInCombat = false;
-                Console.Clear();
-                return "Вам удалось сбежать!";
-            }
-            else
-            {
-                return "Вам не удалось сбежать!";
-            }
-        }
-        public string MonsterAttack()
-        {
-            int damage = CurrentMonster.Attack + new Random().Next(1, 4) - Defence;
-
-            CurrentHP -= damage;
-            return $"{CurrentMonster.Name} наносит вам {damage} урона!";
-        }
         public void RecieveReward(Monster monster)
         {
             Gold += monster.RewardGold;
@@ -555,16 +285,14 @@ namespace Engine
         {
             if(CurrentEXP >= MaximumEXP)
             {
-                //int additionalEXP = CurrentEXP - MaximumEXP;
-
                 Level++;
                 CurrentEXP -= MaximumEXP;
                 MaximumEXP = (int)(MaximumEXP * 1.5);
 
                 MaximumHP += 10;
                 CurrentHP = MaximumHP;
-                Attack += 2;
-                Defence += 2;
+                BaseAttack += 2;
+                BaseDefence += 2;
 
                 Console.WriteLine($"Поздравляем! Вы достигли {Level} уровня!");
                 Console.WriteLine("Ваши параметры увеличились!");

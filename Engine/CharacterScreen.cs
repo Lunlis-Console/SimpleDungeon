@@ -54,18 +54,18 @@ namespace Engine
             Console.WriteLine($"Защита: {player.Defence}");
 
             Console.WriteLine("\n-----------------ЭКИПИРОВКА-----------------");
-            DisplayEquipmentSlot("Оружие", player.EquipmentWeapon, player.Attack);
-            DisplayEquipmentSlot("Шлем", player.EquipmentHelmet, player.EquipmentHelmet?.DefenceBonus ?? 0);
-            DisplayEquipmentSlot("Броня", player.EquipmentArmor, player.EquipmentArmor?.DefenceBonus ?? 0);
-            DisplayEquipmentSlot("Перчатки", player.EquipmentGloves, player.EquipmentGloves?.DefenceBonus ?? 0);
-            DisplayEquipmentSlot("Ботинки", player.EquipmentBoots, player.EquipmentBoots?.DefenceBonus ?? 0);
+            DisplayEquipmentSlot("Оружие", player.Inventory.Weapon, player.Attack);
+            DisplayEquipmentSlot("Шлем", player.Inventory.Helmet, player.Inventory.Helmet?.DefenceBonus ?? 0);
+            DisplayEquipmentSlot("Броня", player.Inventory.Armor, player.Inventory.Armor?.DefenceBonus ?? 0);
+            DisplayEquipmentSlot("Перчатки", player.Inventory.Gloves, player.Inventory.Gloves?.DefenceBonus ?? 0);
+            DisplayEquipmentSlot("Ботинки", player.Inventory.Boots, player.Inventory.Boots?.DefenceBonus ?? 0);
 
             Console.WriteLine("\n---------------БОНУСЫ ОТ ЭКИПИРОВКИ---------------");
-            int totalAttackBonus = player.EquipmentWeapon?.AttackBonus ?? 0;
-            int totalDefenceBonus = (player.EquipmentHelmet?.DefenceBonus ?? 0) +
-                                  (player.EquipmentArmor?.DefenceBonus ?? 0) +
-                                  (player.EquipmentGloves?.DefenceBonus ?? 0) +
-                                  (player.EquipmentBoots?.DefenceBonus ?? 0);
+            int totalAttackBonus = player.Inventory.Weapon?.AttackBonus ?? 0;
+            int totalDefenceBonus = (player.Inventory.Helmet?.DefenceBonus ?? 0) +
+                                  (player.Inventory.Armor?.DefenceBonus ?? 0) +
+                                  (player.Inventory.Gloves?.DefenceBonus ?? 0) +
+                                  (player.Inventory.Boots?.DefenceBonus ?? 0);
 
             Console.WriteLine($"Суммарная атака: {player.Attack} (+{totalAttackBonus} от экипировки)");
             Console.WriteLine($"Суммарная защита: {player.Defence} (+{totalDefenceBonus} от экипировки)");

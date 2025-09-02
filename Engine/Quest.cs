@@ -34,7 +34,7 @@ namespace Engine
 
             foreach (var questItem in QuestItems)
             {
-                var playerItem = player.Inventory.Find(ii => ii.Details.ID == questItem.Details.ID);
+                var playerItem = player.Inventory.Items.Find(ii => ii.Details.ID == questItem.Details.ID);
                 if (playerItem == null || playerItem.Quantity < questItem.Quantity)
                     return false;
             }
@@ -59,12 +59,12 @@ namespace Engine
             // Удаление квестовых предметов
             foreach (var questItem in QuestItems)
             {
-                var playerItem = player.Inventory.Find(ii => ii.Details.ID == questItem.Details.ID);
+                var playerItem = player.Inventory.Items.Find(ii => ii.Details.ID == questItem.Details.ID);
                 if (playerItem != null)
                 {
                     playerItem.Quantity -= questItem.Quantity;
                     if (playerItem.Quantity <= 0)
-                        player.Inventory.Remove(playerItem);
+                        player.Inventory.RemoveItem(playerItem);
                 }
             }
 

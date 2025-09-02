@@ -17,39 +17,38 @@ namespace SimpleDungeon
             Console.CursorVisible = false;
 
             ShowMainMenu();
-
-            _player = new Player(0, 100, 100, 0, 100, 1, 0, 0);
-            _player.CurrentLocation = World.LocationByID(World.LOCATION_ID_VILLAGE);
-
-            _player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_LEATHER_HELMET), 10));
-            _player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_LEATHER_ARMOR), 1));
-            _player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_LEATHER_GLOVES), 1));
-            _player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_LEATHER_BOOTS), 1));
-
-            _player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_RATS_MEAT), 10));
-            _player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_RUSTY_SWORD), 10));
-            _player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_IRON_SWORD), 10));
-
             ProcessKeyInput();
 
-            while (true)
-            {
-                DisplayUI();
+            //_player = new Player(0, 100, 100, 0, 100, 1, 0, 0);
+            //_player.CurrentLocation = World.LocationByID(World.LOCATION_ID_VILLAGE);
 
-                Console.Write(">");
+            //_player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_LEATHER_HELMET), 10));
+            //_player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_LEATHER_ARMOR), 1));
+            //_player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_LEATHER_GLOVES), 1));
+            //_player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_LEATHER_BOOTS), 1));
 
-                string userInput = Console.ReadLine();
+            //_player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_RATS_MEAT), 10));
+            //_player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_RUSTY_SWORD), 10));
+            //_player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_IRON_SWORD), 10));
+                        
+            //while (true)
+            //{
+            //    DisplayUI();
 
-                Console.Clear();
+            //    Console.Write(">");
 
-                if (string.IsNullOrWhiteSpace(userInput))
-                {
-                    continue;
-                }
+            //    string userInput = Console.ReadLine();
 
-                string cleanedInput = userInput.ToLower();
+            //    Console.Clear();
 
-            }
+            //    if (string.IsNullOrWhiteSpace(userInput))
+            //    {
+            //        continue;
+            //    }
+
+            //    string cleanedInput = userInput.ToLower();
+
+            //}
 
         }
 
@@ -123,8 +122,8 @@ namespace SimpleDungeon
 
                     default:
                         Console.WriteLine("СИСТЕМА: Неизвестная команда. Нажмите H для помощи.");
-                        Console.WriteLine("Нажмите любую клавишу чтобы продолжить...");
-                        Console.ReadKey();
+                        //Console.WriteLine("Нажмите любую клавишу чтобы продолжить...");
+                        //Console.ReadKey();
                         break;
                 }
 
@@ -241,10 +240,6 @@ namespace SimpleDungeon
         private static void DisplayUI()
         {
             Console.Clear();
-
-            int consoleWidth = Console.WindowWidth;
-            int leftPanelWidth = consoleWidth - 30;
-
             Console.SetCursorPosition(0, 0);
             MessageSystem.DisplayMessages();
 
@@ -453,11 +448,13 @@ namespace SimpleDungeon
             _player.CurrentLocation = World.LocationByID(World.LOCATION_ID_VILLAGE);
 
             // Стартовые предметы
-            _player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_LEATHER_HELMET), 1));
-            _player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_LEATHER_ARMOR), 1));
-            _player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_LEATHER_GLOVES), 1));
-            _player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_LEATHER_BOOTS), 1));
-            _player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_RUSTY_SWORD), 1));
+
+            _player.Inventory.AddItem(World.ItemByID(World.ITEM_ID_LEATHER_HELMET), 1);
+            _player.Inventory.AddItem(World.ItemByID(World.ITEM_ID_SPIDER_SILK), 1);
+            _player.Inventory.AddItem(World.ItemByID(World.ITEM_ID_LEATHER_ARMOR), 1);
+            _player.Inventory.AddItem(World.ItemByID(World.ITEM_ID_LEATHER_GLOVES), 1);
+            _player.Inventory.AddItem(World.ItemByID(World.ITEM_ID_LEATHER_BOOTS), 1);
+            _player.Inventory.AddItem(World.ItemByID(World.ITEM_ID_RUSTY_SWORD), 1);
 
             ProcessKeyInput();
         }
