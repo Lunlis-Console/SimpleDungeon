@@ -543,6 +543,10 @@ namespace Engine
             float percentage = (float)current / max;
             int bars = (int)(20 * percentage);
 
+            // Гарантируем, что bars и emptyBars не будут отрицательными
+            bars = Math.Max(0, Math.Min(bars, 20));
+            int emptyBars = 20 - bars;
+
             Console.Write($"{label}: [");
 
             if (percentage > 0.5f)
@@ -553,7 +557,7 @@ namespace Engine
                 Console.ForegroundColor = ConsoleColor.Red;
 
             Console.Write(new string('█', bars));
-            Console.Write(new string('░', 20 - bars));
+            Console.Write(new string('░', emptyBars));
             Console.ResetColor();
             Console.WriteLine($"] {current}/{max}");
 
@@ -575,13 +579,19 @@ namespace Engine
             {
                 Console.SetCursorPosition(0, line);
 
+                // Ограничиваем current в диапазоне 0-100
+                current = Math.Max(0, Math.Min(current, 100));
                 float percentage = (float)current / 100;
                 int bars = (int)(20 * percentage);
+
+                // Гарантируем, что bars и emptyBars не будут отрицательными
+                bars = Math.Max(0, Math.Min(bars, 20));
+                int emptyBars = 20 - bars;
 
                 Console.Write($"{label}: [");
                 Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.Write(new string('█', bars));
-                Console.Write(new string('░', 20 - bars));
+                Console.Write(new string('░', emptyBars));
                 Console.ResetColor();
                 Console.WriteLine($"] {current}%");
             }

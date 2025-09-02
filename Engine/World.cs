@@ -19,11 +19,19 @@ namespace Engine
         public const int ITEM_ID_IRON_SWORD = 3;
         public const int ITEM_ID_WEAK_HEALING_POTION = 4;
         public const int ITEM_ID_SPIDER_SILK = 5;
-
-        public const int ITEM_ID_LEATHER_HELMET = 4;
-        public const int ITEM_ID_LEATHER_ARMOR = 5;
-        public const int ITEM_ID_LEATHER_GLOVES = 6;
-        public const int ITEM_ID_LEATHER_BOOTS = 7;
+        public const int ITEM_ID_LEATHER_HELMET = 6;
+        public const int ITEM_ID_LEATHER_ARMOR = 7;
+        public const int ITEM_ID_LEATHER_GLOVES = 8;
+        public const int ITEM_ID_LEATHER_BOOTS = 9;
+        public const int ITEM_ID_FAMILY_RING = 10;
+        public const int ITEM_ID_GOLD_RING = 11;
+        public const int ITEM_ID_RICH_AMULET = 12;
+        public const int ITEM_ID_IRON_GREATSWORD = 13;
+        public const int ITEM_ID_IRON_SHIELD = 14;
+        public const int ITEM_ID_IRON_HELMET = 15;
+        public const int ITEM_ID_IRON_ARMOR = 16;
+        public const int ITEM_ID_IRON_GLOVES = 17;
+        public const int ITEM_ID_IRON_BOOTS = 18;
 
         public const int NPC_ID_VILLAGE_TRADER = 1;
         public const int NPC_ID_VILLAGE_ELDER = 2;
@@ -35,6 +43,8 @@ namespace Engine
 
         public const int MONSTER_ID_RAT = 1;
         public const int MONSTER_ID_SPIDER = 2;
+        public const int MONSTER_ID_OLDER_RAT = 3;
+        public const int MONSTER_ID_OLDER_SPIDER = 4;
 
         public const int LOCATION_ID_VILLAGE = 1;
         public const int LOCATION_ID_FIELD_OF_NORTH = 2;
@@ -55,38 +65,77 @@ namespace Engine
         {
             Items.Add(new HealingItem(ITEM_ID_RATS_MEAT, "Крысиное мясо", "Крысиное мясо", ItemType.Consumable, 5, 5, 
                 "Data/Descriptions/rat_meat.txt"));
-            Items.Add(new Item(ITEM_ID_SPIDER_SILK, "Паучий шелк", "", ItemType.Stuff, 10, ""));
             Items.Add(new HealingItem(ITEM_ID_WEAK_HEALING_POTION, "Слабое зелье лечения", "", ItemType.Consumable, 25, 10));
-            Items.Add(new Equipment(ITEM_ID_RUSTY_SWORD, "", 5, 0, 0, ItemType.Sword, 5, "Ржавый меч", 
+
+            Items.Add(new Item(ITEM_ID_SPIDER_SILK, "Паучий шелк", "", ItemType.Stuff, 10, ""));
+
+            
+
+            Items.Add(new Equipment(ITEM_ID_RUSTY_SWORD, "", 10, 0, 10, 0, ItemType.OneHandedWeapon, 5, "Ржавый меч", 
                 "Data/Descriptions/rusty_sword.txt"));
-            Items.Add(new Equipment(ITEM_ID_IRON_SWORD, "", 10, 0, 0, ItemType.Sword, 10, "Железный меч"));
-            Items.Add(new Equipment(ITEM_ID_LEATHER_HELMET, "", 0, 1, 0, ItemType.Helmet, 10, "Кожаный шлем"));
-            Items.Add(new Equipment(ITEM_ID_LEATHER_ARMOR, "", 0, 2, 0, ItemType.Armor, 10, "Кожаная броня"));
-            Items.Add(new Equipment(ITEM_ID_LEATHER_GLOVES, "", 0, 1, 0, ItemType.Gloves, 10, "Кожаные перчатки"));
-            Items.Add(new Equipment(ITEM_ID_LEATHER_BOOTS, "", 0, 1, 0, ItemType.Boots, 10, "Кожаные сапоги"));
+            Items.Add(new Equipment(ITEM_ID_IRON_SWORD, "", 15, 0, 10, 0, ItemType.OneHandedWeapon, 10, "Железный меч"));
+
+            Items.Add(new Equipment(ITEM_ID_IRON_GREATSWORD, "", 25, 0, 0, 0, ItemType.TwoHandedWeapon, 50, "Железный двуручник"));
+
+            Items.Add(new Equipment(ITEM_ID_IRON_SHIELD, "", 0, 10, 0, 0, ItemType.OffHand, 50, "Желеный щит"));
+
+            Items.Add(new Equipment(ITEM_ID_IRON_HELMET, "", 0, 5, 0, 0, ItemType.Helmet, 50, "Железный шлем"));
+            Items.Add(new Equipment(ITEM_ID_IRON_ARMOR, "", 0, 10, 0, 0, ItemType.Armor, 100, "Железная броня"));
+            Items.Add(new Equipment(ITEM_ID_IRON_GLOVES, "", 0, 2, 0, 0, ItemType.Gloves, 40, "Железные перчатки"));
+            Items.Add(new Equipment(ITEM_ID_IRON_BOOTS, "", 0, 2, 0, 0, ItemType.Boots, 40, "Железные перчатки"));
+
+            Items.Add(new Equipment(ITEM_ID_LEATHER_HELMET, "", 0, 1, 0, 0, ItemType.Helmet, 10, "Кожаный шлем"));
+            Items.Add(new Equipment(ITEM_ID_LEATHER_ARMOR, "", 0, 2, 0, 0, ItemType.Armor, 10, "Кожаная броня"));
+            Items.Add(new Equipment(ITEM_ID_LEATHER_GLOVES, "", 0, 1, 0, 0, ItemType.Gloves, 10, "Кожаные перчатки"));
+            Items.Add(new Equipment(ITEM_ID_LEATHER_BOOTS, "", 0, 1, 0, 0, ItemType.Boots, 10, "Кожаные сапоги"));
+
+            Items.Add(new Equipment(ITEM_ID_FAMILY_RING, "", 1, 1, 1, 1, ItemType.Ring, 100, "Фамильное кольцо"));
+            Items.Add(new Equipment(ITEM_ID_GOLD_RING, "", 0, 2, 0, 0, ItemType.Ring, 50, "Золотое кольцо"));
+
+            Items.Add(new Equipment(ITEM_ID_RICH_AMULET, "", 0, 0, 0, 10, ItemType.Amulet, 50, "Дорогое ожерелье"));
+
+
         }
 
         private static void PopulateMonsters()
         {
-            Monster rat = new Monster(MONSTER_ID_RAT, "Крыса", 1, 5, 5, 1, 5, 5, 5, 20);
-            rat.LootTable.Add(new LootItem(ItemByID(ITEM_ID_RUSTY_SWORD), 75, false));
+            Monster rat = new Monster(MONSTER_ID_RAT, "Крыса", 1, 10, 10, 5, 5, 5, 5, 20);
+            rat.LootTable.Add(new LootItem(ItemByID(ITEM_ID_GOLD_RING), 25, false));
             rat.LootTable.Add(new LootItem(ItemByID(ITEM_ID_RATS_MEAT), 100, false));
 
-            Monster spider = new Monster(MONSTER_ID_SPIDER, "Паук", 1, 10, 10, 10, 5, 10, 10, 15);
-            spider.LootTable.Add(new LootItem(ItemByID(ITEM_ID_IRON_SWORD), 75, false));
+            Monster spider = new Monster(MONSTER_ID_SPIDER, "Паук", 1, 25, 25, 10, 5, 10, 10, 15);
+            spider.LootTable.Add(new LootItem(ItemByID(ITEM_ID_RICH_AMULET), 25, false));
+            spider.LootTable.Add(new LootItem(ItemByID(ITEM_ID_SPIDER_SILK), 60, false));
+
+            Monster olderRat = new Monster(MONSTER_ID_OLDER_RAT, "Матерая крыса", 1, 30, 30, 20, 10, 25, 25, 20);
+            olderRat.LootTable.Add(new LootItem(ItemByID(ITEM_ID_FAMILY_RING), 25, false));
+            olderRat.LootTable.Add(new LootItem(ItemByID(ITEM_ID_RATS_MEAT), 100, false));
+            olderRat.LootTable.Add(new LootItem(ItemByID(ITEM_ID_RATS_MEAT), 100, false));
+            olderRat.LootTable.Add(new LootItem(ItemByID(ITEM_ID_RATS_MEAT), 100, false));
+
+            Monster olderSpider = new Monster(MONSTER_ID_OLDER_SPIDER, "Матерый паук", 1, 50, 50, 40, 25, 50, 50, 15);
+            spider.LootTable.Add(new LootItem(ItemByID(ITEM_ID_RICH_AMULET), 25, false));
             spider.LootTable.Add(new LootItem(ItemByID(ITEM_ID_SPIDER_SILK), 60, false));
 
             Monsters.Add(rat);
             Monsters.Add(spider);
+            Monsters.Add(olderRat);
+            Monsters.Add(olderSpider);
         }
 
         private static void PopulateLocations()
         {
             
             List<InventoryItem> villageTraderInventory = new List<InventoryItem>();
-            villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_WEAK_HEALING_POTION), 5));
+            villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_WEAK_HEALING_POTION), 25));
             villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_SWORD), 1));
+            villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_LEATHER_HELMET), 1));
             villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_LEATHER_ARMOR), 1));
+            villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_SHIELD), 1));
+            villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_HELMET), 1));
+            villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_ARMOR), 1));
+            villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_GLOVES), 1));
+            villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_BOOTS), 1));
 
             Trader villageTrader = new Trader(NPC_ID_VILLAGE_TRADER, "Купец Зарубий", "Добро пожаловать в мою лавку, путник!" +
                 " Товары самого высшего качества, для тебя особенная цена!", villageTraderInventory);
@@ -111,6 +160,8 @@ namespace Engine
 
             Monster ratTemplate = MonsterByID(MONSTER_ID_RAT);
             Monster spiderTemplate = MonsterByID(MONSTER_ID_SPIDER);
+            Monster olderSpiderTemplate = MonsterByID(MONSTER_ID_OLDER_SPIDER);
+            Monster olderRatTemplate = MonsterByID(MONSTER_ID_OLDER_RAT);
 
             Traders.Add(villageTrader);
 
@@ -137,7 +188,8 @@ namespace Engine
             {
                 ratTemplate,
                 ratTemplate,
-                ratTemplate
+                ratTemplate,
+                olderRatTemplate
             };
 
             Location fieldOfSouth = new Location(LOCATION_ID_FIELD_OF_SOUTH, "Южная Поляна", "Поляна к югу от деревни " +
@@ -157,7 +209,8 @@ namespace Engine
             {
                 spiderTemplate,
                 spiderTemplate,
-                spiderTemplate
+                spiderTemplate,
+                olderSpiderTemplate
             };
 
             Location fieldOfWest = new Location(LOCATION_ID_FIELD_OF_WEST, "Западная Поляна", "Поляна к западу от деревни " +

@@ -11,15 +11,16 @@ namespace Engine
         public int AttackBonus { get; set; }
         public int DefenceBonus { get; set; }
         public int AgilityBonus { get; set; }
+        public int HealthBonus { get; set; }
 
-        public Equipment(int id, string namePlural, int attackBonus, int defenceBonus, int agilityBonus, 
-            ItemType type, int price, string name, string description = "") :
+        public Equipment(int id, string namePlural, int attackBonus, int defenceBonus, int agilityBonus,
+            int healthBonus, ItemType type, int price, string name, string description = "") :
                 base(id, name, namePlural, type, price, description)
         {
             AttackBonus = attackBonus;
             DefenceBonus = defenceBonus;
             AgilityBonus = agilityBonus;
-
+            HealthBonus = healthBonus;
         }
     }
 }

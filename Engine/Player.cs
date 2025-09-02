@@ -16,9 +16,12 @@ namespace Engine
         public int BaseAttack { get; set; }
         public int BaseDefence { get; set; }
         public int BaseAgility { get; set; }
+        public int BaseMaximumHP { get; set; }
+        public int TotalMaximumHP => BaseMaximumHP + Inventory.CalculateTotalHealth();
         public int Attack => BaseAttack + Inventory.CalculateTotalAttack();
         public int Defence => BaseDefence + Inventory.CalculateTotalDefence();
         public int Agility => BaseAgility + Inventory.CalculateTotalAgility();
+        
         public int CurrentSpeed { get; set; }
         public Location CurrentLocation { get; set; }
         public Inventory Inventory { get; private set; }
@@ -36,12 +39,15 @@ namespace Engine
             CurrentEXP = currentEXP;
             MaximumEXP = maximumEXP;
             Level = level;
+            BaseMaximumHP = maximumHP;
             BaseAttack = baseAttack;
             BaseDefence = baseDefence;
             BaseAgility = agility;
             CurrentSpeed = 0;
             Inventory = new Inventory();
             QuestLog = new QuestLog();
+
+            Inventory.OnEquipmentChanged += OnEquipmentChanged;
         }
 
         public void MoveTo(Location newLocation)
@@ -92,12 +98,16 @@ namespace Engine
                 // Создаем объединенный список предметов: инвентарь + экипировка
                 var allItems = new List<object>();
 
-                // Добавляем экипированные предметы как специальные объекты
-                if (Inventory.Helmet != null) allItems.Add(new EquipmentSlotItem("Надето", Inventory.Helmet));
-                if (Inventory.Armor != null) allItems.Add(new EquipmentSlotItem("Надето", Inventory.Armor));
-                if (Inventory.Gloves != null) allItems.Add(new EquipmentSlotItem("Надето", Inventory.Gloves));
-                if (Inventory.Boots != null) allItems.Add(new EquipmentSlotItem("Надето", Inventory.Boots));
-                if (Inventory.Weapon != null) allItems.Add(new EquipmentSlotItem("Надето", Inventory.Weapon));
+                // Добавляем экипированные предметы
+                if (Inventory.Helmet != null) allItems.Add(new EquipmentSlotItem("Шлем", Inventory.Helmet));
+                if (Inventory.Armor != null) allItems.Add(new EquipmentSlotItem("Броня", Inventory.Armor));
+                if (Inventory.Gloves != null) allItems.Add(new EquipmentSlotItem("Перчатки", Inventory.Gloves));
+                if (Inventory.Boots != null) allItems.Add(new EquipmentSlotItem("Ботинки", Inventory.Boots));
+                if (Inventory.MainHand != null) allItems.Add(new EquipmentSlotItem("Основная рука", Inventory.MainHand));
+                if (Inventory.OffHand != null) allItems.Add(new EquipmentSlotItem("Вторая рука", Inventory.OffHand));
+                if (Inventory.Amulet != null) allItems.Add(new EquipmentSlotItem("Амулет", Inventory.Amulet));
+                if (Inventory.Ring1 != null) allItems.Add(new EquipmentSlotItem("Кольцо 1", Inventory.Ring1));
+                if (Inventory.Ring2 != null) allItems.Add(new EquipmentSlotItem("Кольцо 2", Inventory.Ring2));
 
                 allItems.AddRange(Inventory.Items.Cast<object>());
 
@@ -115,7 +125,16 @@ namespace Engine
                     var selectedItem = InventoryUI.SelectItemFromCombinedList(
                         allItems,
                         "",
-                        Inventory.Helmet, Inventory.Armor, Inventory.Gloves, Inventory.Boots, Inventory.Weapon,
+                        Inventory.MainHand, 
+                        Inventory.OffHand,
+                        Inventory.Helmet,    // Было: Inventory.Amulet
+                        Inventory.Armor,     // Было: Inventory.Ring1
+                        Inventory.Gloves,    // Было: Inventory.Ring2
+                        Inventory.Boots,     // Было: Inventory.Helmet
+                        Inventory.Weapon,    // Было: Inventory.Armor
+                        Inventory.Amulet,    // Было: Inventory.Gloves
+                        Inventory.Ring1,     // Было: Inventory.Boots
+                        Inventory.Ring2,     // Было: Inventory.Weapon
                         Gold, Defence, Attack, Agility, Level, CurrentEXP, MaximumEXP, CurrentHP, MaximumHP);
 
                     if (selectedItem == null)
@@ -294,8 +313,8 @@ namespace Engine
                 CurrentEXP -= MaximumEXP;
                 MaximumEXP = (int)(MaximumEXP * 1.5);
 
-                MaximumHP += 10;
-                CurrentHP = MaximumHP;
+                BaseMaximumHP += 10;
+                CurrentHP = TotalMaximumHP;
                 BaseAttack += 2;
                 BaseDefence += 2;
 
@@ -303,6 +322,22 @@ namespace Engine
                 Console.WriteLine("Ваши параметры увеличились!");
             }
         }
+
+        // Добавляем метод для корректировки CurrentHP при изменении MaximumHP
+        public void AdjustHPAfterEquipmentChange()
+        {
+            if (CurrentHP > TotalMaximumHP)
+            {
+                CurrentHP = TotalMaximumHP;
+            }
+        }
+
+        private void OnEquipmentChanged()
+        {
+            // Корректируем HP при изменении экипировки
+            AdjustHPAfterEquipmentChange();
+        }
+
         public void LookAround()
         {
             Console.WriteLine("Вы осматриваетесь вокруг...");
@@ -322,5 +357,7 @@ namespace Engine
                 MessageSystem.AddMessage("СИСТЕМА: Здесь нет такого человека.");
             }
         }
+
+
     }
 }

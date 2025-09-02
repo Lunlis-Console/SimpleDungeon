@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net.NetworkInformation;
 
 namespace Engine
 {
@@ -194,11 +195,16 @@ namespace Engine
         public static object SelectItemFromCombinedList(
     List<object> items,
     string title,
+    Equipment mainHand,
+    Equipment offHand,
     Equipment helmet,
     Equipment armor,
     Equipment gloves,
     Equipment boots,
     Equipment weapon,
+    Equipment amulet,
+    Equipment ring1,
+    Equipment ring2,
     int playerGold,
     int playerDefence,
     int playerAttack,
@@ -230,25 +236,34 @@ namespace Engine
                 Console.SetCursorPosition(rightColumnStart, 1);
                 Console.WriteLine("======Экипировано======");
                 Console.SetCursorPosition(rightColumnStart, 2);
-                Console.WriteLine($"Оружие: {(weapon?.Name ?? "Пусто")}");
+                Console.WriteLine($"Основная рука: {(mainHand?.Name ?? "Пусто")}");
                 Console.SetCursorPosition(rightColumnStart, 3);
-                Console.WriteLine($"Голова: {(helmet?.Name ?? "Пусто")}");
+                Console.WriteLine($"Вторая рука: {(offHand?.Name ?? "Пусто")}");
                 Console.SetCursorPosition(rightColumnStart, 4);
-                Console.WriteLine($"Тело: {(armor?.Name ?? "Пусто")}");
+                Console.WriteLine($"Шлем: {(helmet?.Name ?? "Пусто")}");
                 Console.SetCursorPosition(rightColumnStart, 5);
-                Console.WriteLine($"Руки: {(gloves?.Name ?? "Пусто")}");
+                Console.WriteLine($"Броня: {(armor?.Name ?? "Пусто")}");
                 Console.SetCursorPosition(rightColumnStart, 6);
-                Console.WriteLine($"Ноги: {(boots?.Name ?? "Пусто")}");
+                Console.WriteLine($"Перчатки: {(gloves?.Name ?? "Пусто")}");
                 Console.SetCursorPosition(rightColumnStart, 7);
-                Console.WriteLine("========================");
+                Console.WriteLine($"Ботинки: {(boots?.Name ?? "Пусто")}");
                 Console.SetCursorPosition(rightColumnStart, 8);
+                Console.WriteLine($"Амулет: {(amulet?.Name ?? "Пусто")}");
+                Console.SetCursorPosition(rightColumnStart, 9);
+                Console.WriteLine($"Кольцо 1: {(ring1?.Name ?? "Пусто")}");
+                Console.SetCursorPosition(rightColumnStart, 10);
+                Console.WriteLine($"Кольцо 2: {(ring2?.Name ?? "Пусто")}");
+
+                Console.SetCursorPosition(rightColumnStart, 11);
+                Console.WriteLine("========================");
+                Console.SetCursorPosition(rightColumnStart, 12);
                 Console.WriteLine($"УР: {playerLevel} ОЗ: {playerCurrentHP}/{playerMaximumHP} " +
                     $"ОП: {playerCurrentEXP}/{playerMaximumEXP}");
-                Console.SetCursorPosition(rightColumnStart, 9);
+                Console.SetCursorPosition(rightColumnStart, 13);
                 Console.WriteLine($"Атака: {playerAttack}");
-                Console.SetCursorPosition(rightColumnStart, 10);
+                Console.SetCursorPosition(rightColumnStart, 14);
                 Console.WriteLine($"Защита: {playerDefence}");
-                Console.SetCursorPosition(rightColumnStart, 11);
+                Console.SetCursorPosition(rightColumnStart, 15);
                 Console.WriteLine($"Ловкость: {playerAgility}");
 
                 Console.SetCursorPosition(0, 1);

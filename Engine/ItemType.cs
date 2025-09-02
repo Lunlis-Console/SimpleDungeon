@@ -13,7 +13,13 @@ namespace Engine
         Armor,
         Gloves,
         Boots,
-        Sword,
+        OneHandedWeapon,  // Одноручное оружие
+        TwoHandedWeapon,  // Двуручное оружие
+        OffHand,          // Щит или оружие для второй руки
+        // Аксессуары
+        Amulet,
+        Ring,
+        //Sword,
         Consumable
     }
 }

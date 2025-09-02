@@ -332,11 +332,15 @@ namespace Engine
         {
             return type switch
             {
+                ItemType.OneHandedWeapon => "Одноручное оружие",
+                ItemType.TwoHandedWeapon => "Двуручное оружие",
+                ItemType.OffHand => "Вспомогательное",
                 ItemType.Helmet => "Шлем",
                 ItemType.Armor => "Броня",
                 ItemType.Gloves => "Перчатки",
                 ItemType.Boots => "Ботинки",
-                ItemType.Sword => "Оружие",
+                ItemType.Amulet => "Амулет",
+                ItemType.Ring => "Кольцо",
                 ItemType.Consumable => "Расходник",
                 ItemType.Stuff => "Прочее",
                 _ => "Неизвестно"
