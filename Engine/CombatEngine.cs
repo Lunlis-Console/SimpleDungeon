@@ -211,7 +211,7 @@ namespace Engine
 
             // === МОНСТР ===
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"======={Monster.Name}========");
+            Console.WriteLine($"=======[{Monster.Name}][{Monster.Level}]========");
             Console.ResetColor();
 
             DrawHealthBar(Monster.CurrentHP, Monster.MaximumHP, 20);
@@ -228,7 +228,7 @@ namespace Engine
 
             // === ИГРОК ===
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"========Игрок========");
+            Console.WriteLine($"========[Игрок][{Player.Level}]========");
             Console.ResetColor();
 
             DrawHealthBar(Player.CurrentHP, Player.MaximumHP, 20);
@@ -251,6 +251,9 @@ namespace Engine
             float percentage = (float)current / max;
             int bars = (int)(length * percentage);
 
+            // Форматируем числа с выравниванием
+            string healthText = $"{current}/{max}";
+
             Console.Write("Здоровье: [");
 
             // Цвет health bar в зависимости от процентов HP
@@ -264,7 +267,9 @@ namespace Engine
             Console.Write(new string('█', bars));
             Console.Write(new string('░', length - bars));
             Console.ResetColor();
-            Console.WriteLine($"] {current}/{max}");
+
+            // ИСПРАВЛЕНИЕ: Выравнивание текста здоровья
+            Console.WriteLine($"] {healthText}");
         }
 
         private void ProcessPlayerInput()
@@ -454,13 +459,18 @@ namespace Engine
             Console.WriteLine($"======={Monster.Name}========");
             Console.ResetColor();
 
-            Console.Write("Здоровье: [");
-            Console.Write(new string(' ', 20));
-            Console.WriteLine($"] {Monster.CurrentHP}/{Monster.MaximumHP}");
+            DrawHealthBar(Monster.CurrentHP, Monster.MaximumHP, 20);
 
-            Console.Write("Скорость: [");
-            Console.Write(new string(' ', 20));
-            Console.WriteLine("] 0%");
+            //Console.Write("Здоровье: [");
+            //Console.Write(new string(' ', 20));
+            //Console.WriteLine($"] {Monster.CurrentHP}/{Monster.MaximumHP}");
+
+            monsterSpeedLine = Console.CursorTop;
+            DrawSpeedBar(0, 20); // Начинаем с 0%
+
+            //Console.Write("Скорость: [");
+            //Console.Write(new string(' ', 20));
+            //Console.WriteLine("] 0%");
 
             Console.WriteLine($"АТК: {Monster.Attack} | ЗЩТ: {Monster.Defence} | ЛОВ: {Monster.Agility}");
             Console.WriteLine("====================================");
@@ -480,13 +490,18 @@ namespace Engine
             Console.WriteLine($"========Игрок========");
             Console.ResetColor();
 
-            Console.Write("Здоровье: [");
-            Console.Write(new string(' ', 20));
-            Console.WriteLine($"] {Player.CurrentHP}/{Player.MaximumHP}");
+            DrawHealthBar(Player.CurrentHP, Player.MaximumHP, 20);
 
-            Console.Write("Скорость: [");
-            Console.Write(new string(' ', 20));
-            Console.WriteLine("] 0%");
+            //Console.Write("Здоровье: [");
+            //Console.Write(new string(' ', 20));
+            //Console.WriteLine($"] {Player.CurrentHP}/{Player.MaximumHP}");
+
+            playerSpeedLine = Console.CursorTop;
+            DrawSpeedBar(0, 20); // Начинаем с 0%
+
+            //Console.Write("Скорость: [");
+            //Console.Write(new string(' ', 20));
+            //Console.WriteLine("] 0%");
 
             Console.WriteLine($"АТК: {Player.Attack} | ЗЩТ: {Player.Defence} | ЛОВ: {Player.Agility}");
 
@@ -539,6 +554,10 @@ namespace Engine
 
             Console.SetCursorPosition(0, line);
 
+            // ОЧИСТКА СТРОКИ
+            Console.Write(new string(' ', Console.WindowWidth));
+            Console.SetCursorPosition(0, line);
+
             current = Math.Max(current, 0);
             float percentage = (float)current / max;
             int bars = (int)(20 * percentage);
@@ -546,6 +565,9 @@ namespace Engine
             // Гарантируем, что bars и emptyBars не будут отрицательными
             bars = Math.Max(0, Math.Min(bars, 20));
             int emptyBars = 20 - bars;
+
+            // Форматируем текст здоровья
+            string healthText = $"{current}/{max}";
 
             Console.Write($"{label}: [");
 
@@ -559,7 +581,9 @@ namespace Engine
             Console.Write(new string('█', bars));
             Console.Write(new string('░', emptyBars));
             Console.ResetColor();
-            Console.WriteLine($"] {current}/{max}");
+
+            // ИСПРАВЛЕНИЕ: Используем форматированный текст
+            Console.WriteLine($"] {healthText}");
 
             Console.SetCursorPosition(originalLeft, originalTop);
         }
@@ -579,6 +603,10 @@ namespace Engine
             {
                 Console.SetCursorPosition(0, line);
 
+                // ОЧИСТКА СТРОКИ перед отрисовкой
+                Console.Write(new string(' ', Console.WindowWidth));
+                Console.SetCursorPosition(0, line);
+
                 // Ограничиваем current в диапазоне 0-100
                 current = Math.Max(0, Math.Min(current, 100));
                 float percentage = (float)current / 100;
@@ -593,7 +621,9 @@ namespace Engine
                 Console.Write(new string('█', bars));
                 Console.Write(new string('░', emptyBars));
                 Console.ResetColor();
-                Console.WriteLine($"] {current}%");
+
+                // ИСПРАВЛЕНИЕ: Убрать лишний символ процента
+                Console.WriteLine($"] {current}%"); // БЫЛО: {current}%%
             }
             catch (ArgumentOutOfRangeException)
             {
