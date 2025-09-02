@@ -135,7 +135,7 @@ namespace Engine
                         Inventory.Amulet,    // Было: Inventory.Gloves
                         Inventory.Ring1,     // Было: Inventory.Boots
                         Inventory.Ring2,     // Было: Inventory.Weapon
-                        Gold, Defence, Attack, Agility, Level, CurrentEXP, MaximumEXP, CurrentHP, MaximumHP);
+                        Gold, Defence, Attack, Agility, Level, CurrentEXP, MaximumEXP, CurrentHP, TotalMaximumHP);
 
                     if (selectedItem == null)
                     {

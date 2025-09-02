@@ -213,7 +213,7 @@ namespace Engine
     int playerCurrentEXP,
     int playerMaximumEXP,
     int playerCurrentHP,
-    int playerMaximumHP)
+    int playerTotalMaximumHP)
         {
             if (items == null || items.Count == 0)
                 return null;
@@ -257,7 +257,7 @@ namespace Engine
                 Console.SetCursorPosition(rightColumnStart, 11);
                 Console.WriteLine("========================");
                 Console.SetCursorPosition(rightColumnStart, 12);
-                Console.WriteLine($"УР: {playerLevel} ОЗ: {playerCurrentHP}/{playerMaximumHP} " +
+                Console.WriteLine($"УР: {playerLevel} ОЗ: {playerCurrentHP}/{playerTotalMaximumHP} " +
                     $"ОП: {playerCurrentEXP}/{playerMaximumEXP}");
                 Console.SetCursorPosition(rightColumnStart, 13);
                 Console.WriteLine($"Атака: {playerAttack}");

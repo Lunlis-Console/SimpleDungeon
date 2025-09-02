@@ -81,7 +81,7 @@ namespace Engine
                     MonsterTurn();
                     UpdateCombatLog();
                     UpdateHealthBar(Monster.CurrentHP, Monster.MaximumHP, MonsterHealthLine, "Здоровье");
-                    UpdateHealthBar(Player.CurrentHP, Player.MaximumHP, PlayerHealthLine, "Здоровье");
+                    UpdateHealthBar(Player.CurrentHP, Player.TotalMaximumHP, PlayerHealthLine, "Здоровье");
                     Monster.CurrentSpeed = 0;
 
                     if (Player.CurrentHP <= 0 || Monster.CurrentHP <= 0) break;
@@ -111,7 +111,7 @@ namespace Engine
                     ProcessPlayerInput();
                     UpdateCombatLog();
                     UpdateHealthBar(Monster.CurrentHP, Monster.MaximumHP, MonsterHealthLine, "Здоровье");
-                    UpdateHealthBar(Player.CurrentHP, Player.MaximumHP, PlayerHealthLine, "Здоровье");
+                    UpdateHealthBar(Player.CurrentHP, Player.TotalMaximumHP, PlayerHealthLine, "Здоровье");
                     Player.CurrentSpeed = 0;
 
                     if (!Player.IsInCombat || Monster.CurrentHP <= 0 || Player.CurrentHP <= 0) break;
@@ -231,7 +231,7 @@ namespace Engine
             Console.WriteLine($"========[Игрок][{Player.Level}]========");
             Console.ResetColor();
 
-            DrawHealthBar(Player.CurrentHP, Player.MaximumHP, 20);
+            DrawHealthBar(Player.CurrentHP, Player.TotalMaximumHP, 20);
             // Запоминаем позицию шкалы скорости игрока
             playerSpeedLine = Console.CursorTop;
             DrawSpeedBar(Player.CurrentSpeed, 20);
@@ -247,9 +247,15 @@ namespace Engine
         {
             // Защита от отрицательных значений
             current = Math.Max(current, 0);
+            max = Math.Max(max, 1); // Защита от деления на ноль
 
             float percentage = (float)current / max;
             int bars = (int)(length * percentage);
+
+            // Гарантируем, что bars и emptyBars не будут отрицательными
+            bars = Math.Max(0, Math.Min(bars, length));
+            int emptyBars = length - bars;
+            emptyBars = Math.Max(0, emptyBars); // Дополнительная защита
 
             // Форматируем числа с выравниванием
             string healthText = $"{current}/{max}";
@@ -265,10 +271,9 @@ namespace Engine
                 Console.ForegroundColor = ConsoleColor.Red;
 
             Console.Write(new string('█', bars));
-            Console.Write(new string('░', length - bars));
+            Console.Write(new string('░', emptyBars));
             Console.ResetColor();
 
-            // ИСПРАВЛЕНИЕ: Выравнивание текста здоровья
             Console.WriteLine($"] {healthText}");
         }
 
@@ -411,7 +416,9 @@ namespace Engine
             // Выводим сообщения в прямом порядке - первые снизу, новые сверху
             foreach (var message in _combatLog)
             {
+                Console.ForegroundColor = GetMessageColor(message);
                 Console.WriteLine($" {message}");
+                Console.ResetColor();
             }
 
             Console.WriteLine("════════════════════════════════════");
@@ -456,7 +463,7 @@ namespace Engine
 
             // === МОНСТР ===
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"======={Monster.Name}========");
+            Console.WriteLine($"=======[{Monster.Name}][{Monster.Level}]========");
             Console.ResetColor();
 
             DrawHealthBar(Monster.CurrentHP, Monster.MaximumHP, 20);
@@ -487,10 +494,10 @@ namespace Engine
 
             // === ИГРОК ===
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"========Игрок========");
+            Console.WriteLine($"========[Игрок][{Player.Level}]========");
             Console.ResetColor();
 
-            DrawHealthBar(Player.CurrentHP, Player.MaximumHP, 20);
+            DrawHealthBar(Player.CurrentHP, Player.TotalMaximumHP, 20);
 
             //Console.Write("Здоровье: [");
             //Console.Write(new string(' ', 20));
@@ -549,43 +556,67 @@ namespace Engine
 
         private void UpdateHealthBar(int current, int max, int line, string label)
         {
+            if (line < 0 || line >= Console.BufferHeight)
+            {
+                return;
+            }
+
             int originalLeft = Console.CursorLeft;
             int originalTop = Console.CursorTop;
 
-            Console.SetCursorPosition(0, line);
+            try
+            {
+                Console.SetCursorPosition(0, line);
 
-            // ОЧИСТКА СТРОКИ
-            Console.Write(new string(' ', Console.WindowWidth));
-            Console.SetCursorPosition(0, line);
+                // ОЧИСТКА СТРОКИ
+                Console.Write(new string(' ', Console.WindowWidth));
+                Console.SetCursorPosition(0, line);
 
-            current = Math.Max(current, 0);
-            float percentage = (float)current / max;
-            int bars = (int)(20 * percentage);
+                // Защита от отрицательных значений
+                current = Math.Max(current, 0);
+                max = Math.Max(max, 1); // Защита от деления на ноль
 
-            // Гарантируем, что bars и emptyBars не будут отрицательными
-            bars = Math.Max(0, Math.Min(bars, 20));
-            int emptyBars = 20 - bars;
+                float percentage = (float)current / max;
+                int bars = (int)(20 * percentage);
 
-            // Форматируем текст здоровья
-            string healthText = $"{current}/{max}";
+                // Гарантируем, что bars и emptyBars не будут отрицательными
+                bars = Math.Max(0, Math.Min(bars, 20));
+                int emptyBars = 20 - bars;
+                emptyBars = Math.Max(0, emptyBars); // Дополнительная защита
 
-            Console.Write($"{label}: [");
+                // Форматируем текст здоровья
+                string healthText = $"{current}/{max}";
 
-            if (percentage > 0.5f)
-                Console.ForegroundColor = ConsoleColor.Green;
-            else if (percentage > 0.25f)
-                Console.ForegroundColor = ConsoleColor.Yellow;
-            else
-                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write($"{label}: [");
 
-            Console.Write(new string('█', bars));
-            Console.Write(new string('░', emptyBars));
-            Console.ResetColor();
+                if (percentage > 0.5f)
+                    Console.ForegroundColor = ConsoleColor.Green;
+                else if (percentage > 0.25f)
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                else
+                    Console.ForegroundColor = ConsoleColor.Red;
 
-            // ИСПРАВЛЕНИЕ: Используем форматированный текст
-            Console.WriteLine($"] {healthText}");
+                Console.Write(new string('█', bars));
+                Console.Write(new string('░', emptyBars));
+                Console.ResetColor();
 
-            Console.SetCursorPosition(originalLeft, originalTop);
+                Console.WriteLine($"] {healthText}");
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                // Игнорируем ошибку позиционирования
+            }
+            finally
+            {
+                try
+                {
+                    Console.SetCursorPosition(originalLeft, originalTop);
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    Console.SetCursorPosition(0, 0);
+                }
+            }
         }
 
         private void UpdateSpeedBar(int current, int line, string label)
@@ -656,14 +687,32 @@ namespace Engine
                 Console.Write(new string(' ', Console.WindowWidth));
             }
 
-            // Выводим новые сообщения
+            // Выводим новые сообщения с цветом
             for (int i = 0; i < _combatLog.Count; i++)
             {
                 Console.SetCursorPosition(0, CombatLogStartLine + i);
+                Console.ForegroundColor = GetMessageColor(_combatLog[i]);
                 Console.Write($" {_combatLog[i]}");
+                Console.ResetColor();
             }
 
             Console.SetCursorPosition(originalLeft, originalTop);
+        }
+
+        private ConsoleColor GetMessageColor(string message)
+        {
+            if (message.Contains("Вы ") || message.Contains("Вы достигли"))
+                return ConsoleColor.Green;
+            else if (message.Contains(Monster.Name) || message.Contains("КРИТИЧЕСКИЙ УДАР"))
+                return ConsoleColor.Red;
+            else if (message.Contains("ХОД") || message.Contains("===="))
+                return ConsoleColor.Yellow;
+            else if (message.Contains("Добыча") || message.Contains("Получено"))
+                return ConsoleColor.Cyan;
+            else if (message.Contains("побежден") || message.Contains("побеждён"))
+                return ConsoleColor.Magenta;
+            else
+                return ConsoleColor.Gray;
         }
     }
 }

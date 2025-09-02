@@ -63,37 +63,52 @@ namespace Engine
 
         private static void PopulateItems()
         {
-            Items.Add(new HealingItem(ITEM_ID_RATS_MEAT, "Крысиное мясо", "Крысиное мясо", ItemType.Consumable, 5, 5, 
+            PopulateConsumables();
+            PopulateMaterials();
+            PopulateWeapons();
+            PopulateArmor();
+            PopulateJewelry();
+        }
+
+        private static void PopulateConsumables()
+        {
+            Items.Add(new HealingItem(ITEM_ID_RATS_MEAT, "Крысиное мясо", "Крысиное мясо", ItemType.Consumable, 5, 5,
                 "Data/Descriptions/rat_meat.txt"));
             Items.Add(new HealingItem(ITEM_ID_WEAK_HEALING_POTION, "Слабое зелье лечения", "", ItemType.Consumable, 25, 10));
+        }
+        private static void PopulateWeapons()
+        {
+            AddWeapon(ITEM_ID_RUSTY_SWORD, "Ржавый меч", 10, 10, ItemType.OneHandedWeapon);
+            AddWeapon(ITEM_ID_IRON_SWORD, "Железный меч", 15, 10, ItemType.OneHandedWeapon);
 
-            Items.Add(new Item(ITEM_ID_SPIDER_SILK, "Паучий шелк", "", ItemType.Stuff, 10, ""));
+            AddWeapon(ITEM_ID_IRON_GREATSWORD, "Железный двуручник", 25, 100,ItemType.TwoHandedWeapon);
+        }
+        
 
-            
+        private static void PopulateArmor()
+        {
+            AddArmor(ITEM_ID_IRON_SHIELD, "Желеный щит", 10, 50, ItemType.OffHand);
 
-            Items.Add(new Equipment(ITEM_ID_RUSTY_SWORD, "", 10, 0, 10, 0, ItemType.OneHandedWeapon, 5, "Ржавый меч", 
-                "Data/Descriptions/rusty_sword.txt"));
-            Items.Add(new Equipment(ITEM_ID_IRON_SWORD, "", 15, 0, 10, 0, ItemType.OneHandedWeapon, 10, "Железный меч"));
+            AddArmor(ITEM_ID_IRON_HELMET, "Железный шлем", 5, 50, ItemType.Helmet);
+            AddArmor(ITEM_ID_IRON_ARMOR, "Железная броня", 10, 100, ItemType.Armor);
+            AddArmor(ITEM_ID_IRON_GLOVES, "Железные перчатки", 2, 40, ItemType.Gloves);
+            AddArmor(ITEM_ID_IRON_BOOTS, "Железные перчатки", 2, 40, ItemType.Boots);
 
-            Items.Add(new Equipment(ITEM_ID_IRON_GREATSWORD, "", 25, 0, 0, 0, ItemType.TwoHandedWeapon, 50, "Железный двуручник"));
-
-            Items.Add(new Equipment(ITEM_ID_IRON_SHIELD, "", 0, 10, 0, 0, ItemType.OffHand, 50, "Желеный щит"));
-
-            Items.Add(new Equipment(ITEM_ID_IRON_HELMET, "", 0, 5, 0, 0, ItemType.Helmet, 50, "Железный шлем"));
-            Items.Add(new Equipment(ITEM_ID_IRON_ARMOR, "", 0, 10, 0, 0, ItemType.Armor, 100, "Железная броня"));
-            Items.Add(new Equipment(ITEM_ID_IRON_GLOVES, "", 0, 2, 0, 0, ItemType.Gloves, 40, "Железные перчатки"));
-            Items.Add(new Equipment(ITEM_ID_IRON_BOOTS, "", 0, 2, 0, 0, ItemType.Boots, 40, "Железные перчатки"));
-
-            Items.Add(new Equipment(ITEM_ID_LEATHER_HELMET, "", 0, 1, 0, 0, ItemType.Helmet, 10, "Кожаный шлем"));
-            Items.Add(new Equipment(ITEM_ID_LEATHER_ARMOR, "", 0, 2, 0, 0, ItemType.Armor, 10, "Кожаная броня"));
-            Items.Add(new Equipment(ITEM_ID_LEATHER_GLOVES, "", 0, 1, 0, 0, ItemType.Gloves, 10, "Кожаные перчатки"));
-            Items.Add(new Equipment(ITEM_ID_LEATHER_BOOTS, "", 0, 1, 0, 0, ItemType.Boots, 10, "Кожаные сапоги"));
-
+            AddArmor(ITEM_ID_LEATHER_HELMET, "Кожаный шлем", 1, 10, ItemType.Helmet);
+            AddArmor(ITEM_ID_LEATHER_ARMOR, "Кожаная броня", 2, 10, ItemType.Armor);
+            AddArmor(ITEM_ID_LEATHER_GLOVES, "Кожаные перчатки", 1, 10, ItemType.Gloves);
+            AddArmor(ITEM_ID_LEATHER_BOOTS, "Кожаные сапоги", 1, 10, ItemType.Boots);
+        }
+        private static void PopulateJewelry()
+        {
             Items.Add(new Equipment(ITEM_ID_FAMILY_RING, "", 1, 1, 1, 1, ItemType.Ring, 100, "Фамильное кольцо"));
             Items.Add(new Equipment(ITEM_ID_GOLD_RING, "", 0, 2, 0, 0, ItemType.Ring, 50, "Золотое кольцо"));
 
             Items.Add(new Equipment(ITEM_ID_RICH_AMULET, "", 0, 0, 0, 10, ItemType.Amulet, 50, "Дорогое ожерелье"));
-
+        }
+        private static void PopulateMaterials()
+        {
+            Items.Add(new Item(ITEM_ID_SPIDER_SILK, "Паучий шелк", "", ItemType.Stuff, 10, ""));
 
         }
 
@@ -136,6 +151,7 @@ namespace Engine
             villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_ARMOR), 1));
             villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_GLOVES), 1));
             villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_BOOTS), 1));
+            villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_GREATSWORD), 1));
 
             Trader villageTrader = new Trader(NPC_ID_VILLAGE_TRADER, "Купец Зарубий", "Добро пожаловать в мою лавку, путник!" +
                 " Товары самого высшего качества, для тебя особенная цена!", villageTraderInventory);
@@ -254,6 +270,7 @@ namespace Engine
             Quests.Add(spiderSilk);
         }
 
+
         public static Item ItemByID(int id)
         {
             foreach(Item item in Items)
@@ -296,6 +313,15 @@ namespace Engine
         public static Quest QuestByID(int id)
         {
             return Quests.FirstOrDefault(q => q.ID == id);
+        }
+
+        private static void AddWeapon(int id, string name, int attack, int price, ItemType type = ItemType.OneHandedWeapon)
+        {
+            Items.Add(new Equipment(id, "", attack, 0, 10, 0, type, price, name));
+        }
+        private static void AddArmor(int id, string name, int defence, int price, ItemType type)
+        {
+            Items.Add(new Equipment(id, "", 0, defence, 0, 0, type, price, name));
         }
     }
 }
