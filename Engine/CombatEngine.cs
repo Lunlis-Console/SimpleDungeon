@@ -38,7 +38,7 @@ namespace Engine
 
         private const int TurnStatusLine = 0;
         private const int TurnNumberLine = 1;
-        private const int MonsterHealthLine = 4;
+        private const int MonsterHealthLine = 3;
         private const int MonsterSpeedLine = 5;
         private const int CombatLogStartLine = 9;
         private const int PlayerHealthLine = 21;
@@ -61,6 +61,8 @@ namespace Engine
             AddToCombatLog($"=== ХОД {_currentTurn} ===");
             UpdateCombatLog();
 
+            System.Threading.Thread.Sleep(250);
+
             while (Player.IsInCombat && Player.CurrentHP > 0 && Monster.CurrentHP > 0)
             {
                 UpdateSpeedMeters();
@@ -72,46 +74,59 @@ namespace Engine
 
                 if (Monster.CurrentSpeed >= 100)
                 {
+                    // ЗАДЕРЖКА ПЕРЕД ДЕЙСТВИЕМ МОНСТРА
+                    UpdateTurnStatus(); // "ХОД МОНСТРА"
+                    System.Threading.Thread.Sleep(250);
+
                     MonsterTurn();
                     UpdateCombatLog();
                     UpdateHealthBar(Monster.CurrentHP, Monster.MaximumHP, MonsterHealthLine, "Здоровье");
                     UpdateHealthBar(Player.CurrentHP, Player.MaximumHP, PlayerHealthLine, "Здоровье");
                     Monster.CurrentSpeed = 0;
 
+                    if (Player.CurrentHP <= 0 || Monster.CurrentHP <= 0) break;
+
                     if (!playerIsSlower)
                     {
+                        System.Threading.Thread.Sleep(250);
                         _currentTurn++;
                         UpdateTurnNumber();
                         AddToCombatLog($"=== ХОД {_currentTurn} ===");
                         UpdateCombatLog();
+                        System.Threading.Thread.Sleep(250);
                     }
 
-                    if (Player.CurrentHP <= 0) break;
-                    System.Threading.Thread.Sleep(1000);
+                    System.Threading.Thread.Sleep(250);
                 }
                 else if (Player.CurrentSpeed >= 100)
                 {
-                    UpdateTurnStatus(); // Обновляем статус перед ходом игрока
+
+                    // ОЧИЩАЕМ БУФЕР ВВОДА ОТ ВСЕХ НАКОПЛЕННЫХ НАЖАТИЙ
+                    while (Console.KeyAvailable)
+                    {
+                        Console.ReadKey(true);
+                    }
+
+                    UpdateTurnStatus(); // "ВАШ ХОД" (без задержки - ждем ввода игрока)
                     ProcessPlayerInput();
                     UpdateCombatLog();
                     UpdateHealthBar(Monster.CurrentHP, Monster.MaximumHP, MonsterHealthLine, "Здоровье");
                     UpdateHealthBar(Player.CurrentHP, Player.MaximumHP, PlayerHealthLine, "Здоровье");
                     Player.CurrentSpeed = 0;
 
+                    if (!Player.IsInCombat || Monster.CurrentHP <= 0 || Player.CurrentHP <= 0) break;
+
                     if (playerIsSlower)
                     {
+                        System.Threading.Thread.Sleep(250);
                         _currentTurn++;
                         UpdateTurnNumber();
                         AddToCombatLog($"=== ХОД {_currentTurn} ===");
                         UpdateCombatLog();
+                        System.Threading.Thread.Sleep(250);
                     }
 
-                    System.Threading.Thread.Sleep(1000);
-                    if (!Player.IsInCombat || Monster.CurrentHP <= 0 || Player.CurrentHP <= 0) break;
-                }
-                else
-                {
-                    System.Threading.Thread.Sleep(100);
+                    System.Threading.Thread.Sleep(250);
                 }
             }
 
@@ -119,8 +134,43 @@ namespace Engine
             if (Monster.CurrentHP <= 0)
             {
                 Monster.CurrentHP = 0;
-                Player.RecieveReward(Monster);
-                MessageSystem.AddMessage($"{Monster.Name} побежден!");
+
+                // ДОБАВЛЯЕМ ИНФОРМАЦИЮ О ПОБЕДЕ В ЛОГ
+                AddToCombatLog($"{Monster.Name} побежден!");
+
+                // ДОБАВЛЯЕМ ИНФОРМАЦИЮ О НАГРАДЕ В ЛОГ
+                AddToCombatLog($"Получено: {Monster.RewardGold} золота и {Monster.RewardEXP} опыта!");
+
+                // ОБРАБАТЫВАЕМ ДОБЫЧУ
+                List<Item> loot = Monster.GetLoot();
+                if (loot.Count > 0)
+                {
+                    AddToCombatLog("Добыча:");
+                    foreach (Item item in loot)
+                    {
+                        Player.AddItemToInventory(item);
+                        AddToCombatLog($"- {item.Name}");
+                    }
+                }
+                else
+                {
+                    AddToCombatLog("Добыча: ничего");
+                }
+
+                // НАЧИСЛЯЕМ НАГРАДУ (но без вывода в консоль)
+                Player.Gold += Monster.RewardGold;
+                Player.CurrentEXP += Monster.RewardEXP;
+                Player.MonstersKilled++;
+
+                // ПРОВЕРЯЕМ ПОВЫШЕНИЕ УРОВНЯ
+                int oldLevel = Player.Level;
+                Player.CheckLevelUp();
+                if (Player.Level > oldLevel)
+                {
+                    AddToCombatLog($"Вы достигли {Player.Level} уровня!");
+                }
+
+                UpdateCombatLog(); // ОБНОВЛЯЕМ ОТОБРАЖЕНИЕ ЛОГА
                 Player.IsInCombat = false;
 
                 Console.WriteLine("Нажмите любую клавишу, чтобы продолжить...");
@@ -217,21 +267,6 @@ namespace Engine
             Console.WriteLine($"] {current}/{max}");
         }
 
-        //private void RenderCombatState()
-        //{
-        //    Console.Clear();
-        //    Console.WriteLine($"======={Monster.Name}========");
-        //    Console.WriteLine($"ОЗ: {Monster.CurrentHP}/{Monster.MaximumHP} | АТК: {Monster.Attack} | ЗЩТ: {Monster.Defence}");
-        //    Console.WriteLine($"====================================");
-        //    Console.WriteLine(string.IsNullOrEmpty(PlayerActionMessage) ? "" : PlayerActionMessage);
-        //    Console.WriteLine($"------------------------------------");
-        //    Console.WriteLine(string.IsNullOrEmpty(MonsterActionMessage) ? "" : MonsterActionMessage);
-        //    Console.WriteLine($"========Игрок========");
-        //    Console.WriteLine($"ОЗ: {Player.CurrentHP}/{Player.MaximumHP} | АТК: {Player.Attack} | ЗЩТ: {Player.Defence}");
-        //    Console.WriteLine("=========Действия=========");
-        //    Console.WriteLine("| 1 - атаковать | 2 - заклинание | 3 - защищаться | 4 - бежать |");
-        //}
-
         private void ProcessPlayerInput()
         {
             ConsoleKeyInfo key = Console.ReadKey(true);
@@ -294,15 +329,6 @@ namespace Engine
             return resultMessage;
         }
 
-        //private string PlayerAttack()
-        //{
-        //    int damage = Player.Attack + new Random().Next(1, 6) - Monster.Defence;
-        //    damage = Math.Max(damage, 0); // Урон не может быть отрицательным
-
-        //    Monster.CurrentHP -= damage;
-        //    return $"Вы нанесли {damage} урона по {Monster.Name}!";
-        //}
-
         private string TryToEscape()
         {
             int baseEscapeChance = 30;
@@ -323,20 +349,6 @@ namespace Engine
                 return escapeMessage;
             }
         }
-
-        //private string TryToEscape()
-        //{
-        //    int escapeChance = 30;
-        //    if (new Random().Next(100) < escapeChance)
-        //    {
-        //        Player.IsInCombat = false;
-        //        return "Вам удалось сбежать!";
-        //    }
-        //    else
-        //    {
-        //        return "Вам не удалось сбежать!";
-        //    }
-        //}
 
         private void MonsterTurn()
         {
@@ -369,15 +381,6 @@ namespace Engine
             AddToCombatLog(resultMessage);
             return resultMessage;
         }
-
-        //private string MonsterAttack()
-        //{
-        //    int damage = Monster.Attack + new Random().Next(1, 4) - Player.Defence;
-        //    damage = Math.Max(damage, 0); // Урон не может быть отрицательным
-
-        //    Player.CurrentHP -= damage;
-        //    return $"{Monster.Name} наносит вам {damage} урона!";
-        //}
 
         private void AddToCombatLog(string message)
         {
@@ -432,11 +435,12 @@ namespace Engine
             Console.ResetColor();
             Console.WriteLine($"] {current}%");
         }
-
-        
-
+                
         private void RenderStaticCombatLayout()
         {
+            monsterSpeedLine = 4; // Установите соответствующие значения
+            playerSpeedLine = 22;
+
             Console.Clear();
 
             // === ИНФОРМАЦИЯ О ТЕКУЩЕМ СОСТОЯНИИ ХОДА ===
@@ -491,25 +495,6 @@ namespace Engine
             Console.WriteLine("| 1 - атаковать | 2 - заклинание |");
             Console.WriteLine("| 3 - защищаться | 4 - бежать |");
         }
-        private void UpdateSpeedBarsOnly()
-        {
-            if (monsterSpeedLine == -1 || playerSpeedLine == -1)
-                return; // Позиции еще не определены
-
-            int originalLeft = Console.CursorLeft;
-            int originalTop = Console.CursorTop;
-
-            // Обновляем шкалу скорости монстра
-            Console.SetCursorPosition(0, monsterSpeedLine);
-            DrawSpeedBar(Monster.CurrentSpeed, 20);
-
-            // Обновляем шкалу скорости игрока
-            Console.SetCursorPosition(0, playerSpeedLine);
-            DrawSpeedBar(Player.CurrentSpeed, 20);
-
-            // Возвращаем курсор
-            Console.SetCursorPosition(originalLeft, originalTop);
-        }
 
         // Обновляем методы для использования фиксированных позиций
         private void UpdateTurnStatus()
@@ -525,7 +510,7 @@ namespace Engine
             else if (Monster.CurrentSpeed >= 100)
                 Console.Write($"=== ХОД {Monster.Name.ToUpper()} ===");
             else
-                Console.Write("=== НАПОЛНЕНИЕ ШКАЛЫ СКОРОСТI ===");
+                Console.Write("=== НАПОЛНЕНИЕ ШКАЛЫ СКОРОСТИ ===");
 
             // Очищаем оставшуюся часть строки
             Console.Write(new string(' ', Console.WindowWidth - Console.CursorLeft));
