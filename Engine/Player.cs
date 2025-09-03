@@ -165,7 +165,7 @@ namespace Engine
             switch (selectedAction)
             {
                 case "Снять":
-                    UnequipItem(equipment);
+                    UnequipItem(equipment); // Теперь используется значение по умолчанию addToInventory = true
                     break;
                 case "Осмотреть":
                     equipment.Read();

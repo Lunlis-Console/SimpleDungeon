@@ -98,56 +98,79 @@ namespace Engine
             Equipment equipment = inventoryItem.Details as Equipment;
             if (equipment == null) return false;
 
-            // Проверяем специальные условия для двуручного оружия
+            // Сохраняем ссылки на предметы, которые будем снимать
+            Equipment itemToUnequip = null;
+            string unequipMessage = "";
+
+            // Автоматическое снятие конфликтующей экипировки
             if (equipment.Type == ItemType.TwoHandedWeapon)
             {
-                // Нельзя надеть двуручное оружие, если вторая рука занята
+                // Если вторая рука занята - автоматически снимаем
                 if (OffHand != null)
                 {
-                    MessageSystem.AddMessage("Сначала снимите предмет со второй руки!");
-                    return false;
+                    itemToUnequip = OffHand;
+                    unequipMessage = $"Снято: {OffHand.Name} (конфликт с двуручным оружием)";
                 }
             }
             else if (equipment.Type == ItemType.OffHand)
             {
-                // Нельзя надеть щит/второе оружие, если надето двуручное оружие
+                // Если надето двуручное оружие - автоматически снимаем
                 if (MainHand != null && MainHand.Type == ItemType.TwoHandedWeapon)
                 {
-                    MessageSystem.AddMessage("Сначала снимите двуручное оружие!");
-                    return false;
+                    itemToUnequip = MainHand;
+                    unequipMessage = $"Снято: {MainHand.Name} (конфликт со щитом)";
+                }
+            }
+            else if (equipment.Type == ItemType.OneHandedWeapon)
+            {
+                // Если надето двуручное оружие - автоматически снимаем
+                if (MainHand != null && MainHand.Type == ItemType.TwoHandedWeapon)
+                {
+                    itemToUnequip = MainHand;
+                    unequipMessage = $"Снято: {MainHand.Name} (конфликт с одноручным оружием)";
                 }
             }
 
-            // Проверяем, есть ли что-то надетое в слоте
-            Equipment currentEquipment = GetEquipmentInSlot(equipment.Type);
-            if (currentEquipment != null)
+            // Снимаем конфликтующий предмет ДО того, как будем обращаться к его свойствам
+            if (itemToUnequip != null)
             {
-                // Для колец проверяем оба слота
-                if (equipment.Type == ItemType.Ring)
+                UnequipItem(itemToUnequip, true);
+                MessageSystem.AddMessage(unequipMessage);
+            }
+
+            // Для колец обрабатываем отдельно, так как слотов два
+            if (equipment.Type == ItemType.Ring)
+            {
+                // Если есть свободный слот для кольца, надеваем в него
+                if (Ring1 == null)
                 {
-                    if (Ring1 == null)
-                    {
-                        Ring1 = equipment;
-                    }
-                    else if (Ring2 == null)
-                    {
-                        Ring2 = equipment;
-                    }
-                    else
-                    {
-                        MessageSystem.AddMessage("Оба кольца заняты!");
-                        return false;
-                    }
+                    Ring1 = equipment;
+                }
+                else if (Ring2 == null)
+                {
+                    Ring2 = equipment;
                 }
                 else
                 {
-                    MessageSystem.AddMessage("Этот слот уже занят!");
-                    return false;
+                    // Если оба слота заняты, предлагаем заменить одно из колец
+                    // Для простоты заменяем первое кольцо
+                    UnequipItem(Ring1, true);
+                    Ring1 = equipment;
                 }
             }
             else
             {
-                // Надеваем предмет в соответствующий слот
+                // Для всех остальных типов экипировки
+                // Получаем текущий предмет в этом слоте
+                Equipment currentEquipment = GetEquipmentInSlot(equipment.Type);
+
+                // Если в слоте уже что-то есть, снимаем это
+                if (currentEquipment != null)
+                {
+                    UnequipItem(currentEquipment, true);
+                }
+
+                // Надеваем новый предмет в соответствующий слот
                 switch (equipment.Type)
                 {
                     case ItemType.Helmet:
@@ -172,23 +195,21 @@ namespace Engine
                     case ItemType.Amulet:
                         Amulet = equipment;
                         break;
-                    case ItemType.Ring:
-                        if (Ring1 == null) Ring1 = equipment;
-                        else if (Ring2 == null) Ring2 = equipment;
-                        break;
                     default:
                         return false;
                 }
             }
 
-            EquippedItems.Add(new EquipmentItem(equipment, 1));
+            // Удаляем новый предмет из инвентаря
             RemoveItem(inventoryItem, 1);
+
+            // Добавляем его в список экипированных
+            EquippedItems.Add(new EquipmentItem(equipment, 1));
 
             OnEquipmentChanged?.Invoke();
             return true;
         }
-
-        public bool UnequipItem(Equipment equipment)
+        public bool UnequipItem(Equipment equipment, bool addToInventory = true)
         {
             if (equipment == null) return false;
 
@@ -240,7 +261,11 @@ namespace Engine
                 EquippedItems.Remove(equipmentItem);
             }
 
-            AddItem(equipment, 1);
+            // Добавляем в инвентарь только если нужно
+            if (addToInventory)
+            {
+                AddItem(equipment, 1);
+            }
 
             OnEquipmentChanged?.Invoke();
             return true;
