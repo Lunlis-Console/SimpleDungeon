@@ -13,8 +13,9 @@ namespace Engine
         public List<QuestItem> QuestItems { get; set; }
         public List<InventoryItem> RewardItems { get; set; }
         public bool IsCompleted { get; set; }
+        public NPC QuestGiver { get; set; } // Новое свойство
 
-        public Quest(int id, string name, string description, int rewardEXP, int rewardGold)
+        public Quest(int id, string name, string description, int rewardEXP, int rewardGold, NPC questGiver = null)
         {
             ID = id;
             Name = name;
@@ -24,6 +25,7 @@ namespace Engine
             QuestItems = new List<QuestItem>();
             RewardItems = new List<InventoryItem>();
             IsCompleted = false;
+            QuestGiver = questGiver;
         }
 
         public bool CheckCompletion(Player player)

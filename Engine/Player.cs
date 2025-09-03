@@ -31,6 +31,11 @@ namespace Engine
         public int QuestsCompleted { get; set; }
         public QuestLog QuestLog { get; set; }
 
+        // Добавляем новые свойства
+        public List<Title> UnlockedTitles { get; set; }
+        public Title ActiveTitle { get; set; }
+        public Dictionary<string, int> MonstersKilledByType { get; set; }
+
         public Player(int gold, int currentHP, int maximumHP, int currentEXP, int maximumEXP, int level,
             int baseAttack, int baseDefence, int agility, Attributes attributes = null) :
             base(currentHP, maximumHP)
@@ -46,6 +51,11 @@ namespace Engine
             CurrentSpeed = 0;
             Inventory = new Inventory();
             QuestLog = new QuestLog();
+            UnlockedTitles = new List<Title>();
+            MonstersKilledByType = new Dictionary<string, int>();
+            ActiveTitle = null;
+
+            EvasionChance = 5 + (Attributes.Dexterity / 2);
 
             Inventory.OnEquipmentChanged += OnEquipmentChanged;
         }
@@ -375,5 +385,91 @@ namespace Engine
             return roll >= difficulty;
         }
 
+        // Метод для получения количества убитых монстров по типу
+        public int GetMonstersKilled(string monsterType)
+        {
+            if (MonstersKilledByType.ContainsKey(monsterType))
+                return MonstersKilledByType[monsterType];
+            return 0;
+        }
+
+        // Метод для увеличения счетчика убийств монстров
+        public void AddMonsterKill(string monsterType)
+        {
+            if (MonstersKilledByType.ContainsKey(monsterType))
+                MonstersKilledByType[monsterType]++;
+            else
+                MonstersKilledByType[monsterType] = 1;
+
+            CheckTitleUnlocks();
+        }
+
+        // Проверка разблокировки титулов
+        public void CheckTitleUnlocks()
+        {
+            foreach (var title in World.Titles)
+            {
+                if (!title.IsUnlocked && title.CheckRequirements(this))
+                {
+                    title.IsUnlocked = true;
+                    UnlockedTitles.Add(title);
+                    MessageSystem.AddMessage($"Разблокирован новый титул: {title.Name}!");
+                }
+            }
+        }
+
+        // Активация титула
+        public void ActivateTitle(Title title)
+        {
+            if (UnlockedTitles.Contains(title))
+            {
+                ActiveTitle = title;
+                title.IsActive = true;
+                MessageSystem.AddMessage($"Активирован титул: {title.Name}");
+            }
+        }
+
+        // Деактивация титула
+        public void DeactivateTitle()
+        {
+            if (ActiveTitle != null)
+            {
+                ActiveTitle.IsActive = false;
+                MessageSystem.AddMessage($"Титул {ActiveTitle.Name} деактивирован");
+                ActiveTitle = null;
+            }
+        }
+
+        // Получение бонуса против конкретного типа монстра
+        public int GetBonusAgainstMonster(Monster monster)
+        {
+            if (ActiveTitle != null &&
+                !string.IsNullOrEmpty(ActiveTitle.BonusAgainstType) &&
+                monster.Name.Contains(ActiveTitle.BonusAgainstType))
+            {
+                return ActiveTitle.BonusAgainstAmount;
+            }
+            return 0;
+        }
+
+        // Модифицируем метод получения урона для учета бонусов титула
+        public int GetTotalAttack(Monster targetMonster = null)
+        {
+            int bonus = 0;
+
+            if (ActiveTitle != null)
+            {
+                bonus += ActiveTitle.AttackBonus;
+
+                // Бонус против конкретного типа монстра
+                if (targetMonster != null && !string.IsNullOrEmpty(ActiveTitle.BonusAgainstType) &&
+                    targetMonster.Name.Contains(ActiveTitle.BonusAgainstType))
+                {
+                    bonus += (int)(Attack * ActiveTitle.BonusAgainstAmount / 100f);
+                }
+            }
+
+            return Attack + bonus;
+        }
     }
 }

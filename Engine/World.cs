@@ -13,6 +13,7 @@ namespace Engine
         public static readonly List<Location> Locations = new List<Location>();
         public static readonly List<Trader> Traders = new List<Trader>();
         public static readonly List<Quest> Quests = new List<Quest>();
+        public static readonly List<Title> Titles = new List<Title>();
 
         public const int ITEM_ID_RATS_MEAT = 1;
         public const int ITEM_ID_RUSTY_SWORD = 2;
@@ -52,13 +53,20 @@ namespace Engine
         public const int LOCATION_ID_FIELD_OF_EAST = 4;
         public const int LOCATION_ID_FIELD_OF_WEST = 5;
 
+        public const int TITLE_ID_RAT_SLAYER = 1;
+        public const int TITLE_ID_SPIDER_HUNTER = 2;
+        public const int TITLE_ID_EXPERIENCED_ADVENTURER = 3;
+
         static World()
         {
             PopulateItems();
             PopulateMonsters();
             PopulateQuests();
             PopulateLocations();
-            
+            PopulateTitles();
+
+
+
         }
 
         private static void PopulateItems()
@@ -153,7 +161,6 @@ namespace Engine
 
         private static void PopulateLocations()
         {
-            
             List<InventoryItem> villageTraderInventory = new List<InventoryItem>();
             villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_WEAK_HEALING_POTION), 25));
             villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_SWORD), 1));
@@ -169,23 +176,17 @@ namespace Engine
             Trader villageTrader = new Trader(NPC_ID_VILLAGE_TRADER, "Купец Зарубий", "Добро пожаловать в мою лавку, путник!" +
                 " Товары самого высшего качества, для тебя особенная цена!", villageTraderInventory);
 
-            // 1. Старейшина деревни - дает квест на крыс
-            NPC villageElder = new NPC(NPC_ID_VILLAGE_ELDER, "Старейшина",
-                "Добро пожаловать в нашу деревню, путник! Нам нужна твоя помощь.");
-            villageElder.AddQuest(QuestByID(QUEST_ID_RAT_HUNT));
+            // Получаем NPC из квестов (они уже созданы в PopulateQuests с квестами)
+            NPC villageElder = Quests.First(q => q.ID == QUEST_ID_RAT_HUNT).QuestGiver;
+            NPC craftsman = Quests.First(q => q.ID == QUEST_ID_SPIDER_SILK).QuestGiver;
 
-            // 2. Местный ремесленник - дает квест на паучий шелк
-            NPC craftsman = new NPC(NPC_ID_VILLAGE_CRAFTSMAN, "Ремесленник",
-                "Приветствую! Ищу качественные материалы для своих изделий.");
-            craftsman.AddQuest(QuestByID(QUEST_ID_SPIDER_SILK));
+            // Обновляем приветствия для NPC из квестов
+            villageElder.Greeting = "Добро пожаловать в нашу деревню, путник! Нам нужна твоя помощь.";
+            craftsman.Greeting = "Приветствую! Ищу качественные материалы для своих изделий.";
 
-            // 3. Охотник - может давать оба квеста
+            // 3. Охотник - может давать оба квеста (создаем нового, т.к. он не дает квестов)
             NPC hunter = new NPC(NPC_ID_VILLAGE_HUNTER, "Охотник",
                 "Эй, ищешь работу? У меня есть пара заданий для смельчака.");
-            hunter.AddQuest(QuestByID(QUEST_ID_RAT_HUNT));
-            hunter.AddQuest(QuestByID(QUEST_ID_SPIDER_SILK));
-
-
 
             Monster ratTemplate = MonsterByID(MONSTER_ID_RAT);
             Monster spiderTemplate = MonsterByID(MONSTER_ID_SPIDER);
@@ -193,7 +194,6 @@ namespace Engine
             Monster olderRatTemplate = MonsterByID(MONSTER_ID_OLDER_RAT);
 
             Traders.Add(villageTrader);
-
 
             Location village = new Location(LOCATION_ID_VILLAGE, "Деревня", "Здесь вы родились, тут безопасно.",
                 null, false);
@@ -251,7 +251,7 @@ namespace Engine
             village.LocationToWest = fieldOfWest;
 
             fieldOfNorth.LocationToSouth = village;
-            
+
             fieldOfSouth.LocationToNorth = village;
 
             fieldOfEast.LocationToWest = village;
@@ -264,25 +264,47 @@ namespace Engine
             Locations.Add(fieldOfEast);
             Locations.Add(fieldOfWest);
         }
-        
         private static void PopulateQuests()
         {
+            // Сначала создаем NPC (локально)
+            NPC villageElder = new NPC(NPC_ID_VILLAGE_ELDER, "Старейшина", "Приветствие");
+            NPC craftsman = new NPC(NPC_ID_VILLAGE_CRAFTSMAN, "Ремесленник", "Приветствие");
+
             // Квест на охоту на крыс
             Quest ratHunt = new Quest(QUEST_ID_RAT_HUNT, "Охота на крыс",
-                "Избавь деревню от надоедливых крыс.Принеси 5 кусков крысиного мяса.", 50, 25);
+                "Избавь деревню от надоедливых крыс. Принеси 5 кусков крысиного мяса.", 50, 25, villageElder);
             ratHunt.QuestItems.Add(new QuestItem(ItemByID(ITEM_ID_RATS_MEAT), 5));
             ratHunt.RewardItems.Add(new InventoryItem(ItemByID(ITEM_ID_WEAK_HEALING_POTION), 5));
+            villageElder.AddQuest(ratHunt);
 
             // Квест на паутину
             Quest spiderSilk = new Quest(QUEST_ID_SPIDER_SILK, "Шелк паука",
-            "Собери 3 паучьих шелка для местного ремесленника.", 75, 100);
+                "Собери 3 паучьих шелка для местного ремесленника.", 75, 100, craftsman);
             spiderSilk.QuestItems.Add(new QuestItem(ItemByID(ITEM_ID_SPIDER_SILK), 3));
             spiderSilk.RewardItems.Add(new InventoryItem(ItemByID(ITEM_ID_WEAK_HEALING_POTION), 10));
+            craftsman.AddQuest(spiderSilk);
 
             Quests.Add(ratHunt);
             Quests.Add(spiderSilk);
         }
 
+        private static void PopulateTitles()
+        {
+            // Истребитель крыс - бонус против крыс
+            Titles.Add(new Title(TITLE_ID_RAT_SLAYER, "Истребитель Крыс",
+                "Убийца 50 крыс", "MonsterKill", "Rat", 50,
+                bonusAgainstType: "Rat", bonusAgainstAmount: 25));
+
+            // Охотник на пауков - бонус против пауков
+            Titles.Add(new Title(TITLE_ID_SPIDER_HUNTER, "Охотник на Пауков",
+                "Убийца 30 пауков", "MonsterKill", "Spider", 30,
+                bonusAgainstType: "Spider", bonusAgainstAmount: 20));
+
+            // Опытный искатель приключений - общий бонус
+            Titles.Add(new Title(TITLE_ID_EXPERIENCED_ADVENTURER, "Опытный Искатель Приключений",
+                "Убийца 100 монстров", "TotalMonstersKilled", "", 100,
+                attackBonus: 2, defenceBonus: 2, healthBonus: 10));
+        }
 
         public static Item ItemByID(int id)
         {
@@ -326,6 +348,22 @@ namespace Engine
         public static Quest QuestByID(int id)
         {
             return Quests.FirstOrDefault(q => q.ID == id);
+        }
+
+        public static NPC NPCByID(int id)
+        {
+            // Ищем NPC среди всех NPC в локациях
+            foreach (var location in Locations)
+            {
+                var npc = location.NPCsHere.FirstOrDefault(n => n.ID == id);
+                if (npc != null) return npc;
+            }
+            return null;
+        }
+
+        public static Title TitleByID(int id)
+        {
+            return Titles.FirstOrDefault(t => t.ID == id);
         }
 
         private static void AddWeapon(int id, string name, int attack, int price, ItemType type = ItemType.OneHandedWeapon)

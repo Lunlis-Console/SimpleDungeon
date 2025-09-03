@@ -1,6 +1,6 @@
 ﻿namespace Engine
 {
-    public class NPC
+    public class NPC : IInteractable
     {
         public int ID { get; set; }
         public string Name { get; set; }
@@ -27,59 +27,97 @@
             }
         }
 
+        // Новый метод Talk - просто начинает разговор
         public virtual void Talk(Player player)
         {
-            bool interacting = true;
+            // Создаем список опций с действиями
+            var menuOptions = new List<MenuOption>();
 
-            while (interacting)
+            // Доступные квесты (еще не взятые)
+            var availableQuests = QuestsToGive?
+                .Where(q => !player.QuestLog.ActiveQuests.Contains(q) &&
+                           !player.QuestLog.CompletedQuests.Contains(q))
+                .ToList() ?? new List<Quest>();
+
+            foreach (var quest in availableQuests)
             {
-                // Создаем список опций с действиями
-                var menuOptions = new List<MenuOption>();
+                menuOptions.Add(new MenuOption($"Квест: {quest.Name}", () => OfferQuest(player, quest)));
+            }
 
-                // Доступные квесты
-                var availableQuests = QuestsToGive?
-                    .Where(q => !player.QuestLog.ActiveQuests.Contains(q) &&
-                               !player.QuestLog.CompletedQuests.Contains(q))
-                    .ToList() ?? new List<Quest>();
+            // Активные квесты (уже взятые, но еще не завершенные)
+            var activeQuests = QuestsToGive?
+                .Where(q => player.QuestLog.ActiveQuests.Contains(q) &&
+                           !player.QuestLog.CompletedQuests.Contains(q) &&
+                           !q.CheckCompletion(player)) // Исключаем готовые к сдаче
+                .ToList() ?? new List<Quest>();
 
-                foreach (var quest in availableQuests)
-                {
-                    menuOptions.Add(new MenuOption($"Квест: {quest.Name}", () => OfferQuest(player, quest)));
-                }
+            foreach (var quest in activeQuests)
+            {
+                menuOptions.Add(new MenuOption($"Квест: {quest.Name} ?", () => ShowQuestProgress(player, quest)));
+            }
 
-                // Квесты для сдачи
-                var completableQuests = player.QuestLog.ActiveQuests?
-                    .Where(q => q.CheckCompletion(player))
-                    .ToList() ?? new List<Quest>();
+            // Квесты для сдачи (готовые к завершению)
+            var completableQuests = player.QuestLog.ActiveQuests?
+                .Where(q => q.CheckCompletion(player))
+                .ToList() ?? new List<Quest>();
 
-                foreach (var quest in completableQuests)
-                {
-                    menuOptions.Add(new MenuOption($"Сдать: {quest.Name} ✓", () => CompleteQuest(player, quest)));
-                }
+            foreach (var quest in completableQuests)
+            {
+                menuOptions.Add(new MenuOption($"Сдать: {quest.Name} ✓", () => CompleteQuest(player, quest)));
+            }
 
-                // Стандартные опции
-                menuOptions.Add(new MenuOption("Поговорить", () => HaveConversation()));
-                menuOptions.Add(new MenuOption("Уйти", () => { interacting = false; }));
+            // Стандартные опции
+            menuOptions.Add(new MenuOption("Уйти", () => { }));
 
-                // Используем MenuSystem для выбора
-                var selectedOption = MenuSystem.SelectFromList(
-                    menuOptions,
-                    opt => opt.DisplayText,
-                    $"======{Name}======\n{Greeting}",
-                    "Клавиши 'W' 'S' для выбора, 'E' для подтверждения"
-                );
+            // Используем MenuSystem для выбора
+            var selectedOption = MenuSystem.SelectFromList(
+                menuOptions,
+                opt => opt.DisplayText,
+                $"======{Name}======\n{Greeting}",
+                "Клавиши 'W' 'S' для выбора, 'E' для подтверждения"
+            );
 
-                if (selectedOption != null)
-                {
-                    selectedOption.Action(); // Вызываем действие выбранной опции
-                }
-                else
-                {
-                    interacting = false;
-                }
+            if (selectedOption != null)
+            {
+                selectedOption.Action(); // Вызываем действие выбранной опции
             }
         }
+        protected virtual void ShowQuestProgress(Player player, Quest quest)
+        {
+            Console.Clear();
+            Console.WriteLine($"======{quest.Name}======");
+            Console.WriteLine($"{quest.Description}");
 
+            // Добавляем информацию о квестодателе
+            if (quest.QuestGiver != null)
+            {
+                Console.WriteLine($"\nКвестодатель: {quest.QuestGiver.Name}");
+            }
+
+            Console.WriteLine("\nПрогресс:");
+            foreach (var questItem in quest.QuestItems)
+            {
+                var playerItem = player.Inventory.Items.Find(ii => ii.Details.ID == questItem.Details.ID);
+                int currentQuantity = playerItem?.Quantity ?? 0;
+                string status = currentQuantity >= questItem.Quantity ? "✓" : $"{currentQuantity}/{questItem.Quantity}";
+
+                Console.WriteLine($"• {questItem.Details.Name}: {status}");
+            }
+
+            Console.WriteLine($"\nНаграда: {quest.RewardEXP} опыта, {quest.RewardGold} золота");
+
+            if (quest.RewardItems.Count > 0)
+            {
+                Console.WriteLine("Предметы:");
+                foreach (var item in quest.RewardItems)
+                {
+                    Console.WriteLine($"• {item.Details.Name} x{item.Quantity}");
+                }
+            }
+
+            Console.WriteLine("\nНажмите любую клавишу чтобы вернуться...");
+            Console.ReadKey();
+        }
         protected virtual void HaveConversation()
         {
             Console.Clear();
@@ -90,6 +128,16 @@
 
         protected virtual void OfferQuest(Player player, Quest quest)
         {
+            // Проверяем, не взят ли уже этот квест у другого NPC
+            if (player.QuestLog.ActiveQuests.Any(q => q.ID == quest.ID) ||
+                player.QuestLog.CompletedQuests.Any(q => q.ID == quest.ID))
+            {
+                Console.WriteLine($"{Name}: Извини, но я слышал, ты уже взял это задание у кого-то другого.");
+                Console.WriteLine("\nНажмите любую клавишу чтобы продолжить...");
+                Console.ReadKey();
+                return;
+            }
+
             var menuOptions = new List<MenuOption>
     {
         new MenuOption("Принять квест", () =>
@@ -107,7 +155,7 @@
             var selectedOption = MenuSystem.SelectFromList(
                 menuOptions,
                 opt => opt.DisplayText,
-                $"======{quest.Name}======\n{quest.Description}\n\nЗадание:\n{GetQuestObjectives(quest)}\n\nНаграда: {quest.RewardEXP} опыта, {quest.RewardGold} золota\n{GetQuestRewards(quest)}",
+                $"======{quest.Name}======\n{quest.Description}\n\nЗадание:\n{GetQuestObjectives(quest)}\n\nНаграда: {quest.RewardEXP} опыта, {quest.RewardGold} золота\n{GetQuestRewards(quest)}",
                 "Клавиши 'W' 'S' для выбора, 'E' для подтверждения"
             );
 
@@ -115,7 +163,6 @@
             Console.WriteLine("\nНажмите любую клавишу чтобы продолжить...");
             Console.ReadKey();
         }
-
         // Вспомогательные методы для форматирования
         private string GetQuestObjectives(Quest quest)
         {
@@ -174,5 +221,103 @@
             }
         }
 
+        // ... остальной код класса NPC ...
+
+        // Реализация расширенного интерфейса IInteractable
+        public List<string> GetAvailableActions(Player player)
+        {
+            var actions = new List<string> { "Поговорить", "Осмотреть" };
+            return actions;
+        }
+
+        public void ExecuteAction(Player player, string action)
+        {
+            switch (action)
+            {
+                case "Поговорить":
+                    this.Talk(player); // Теперь это просто показывает меню один раз
+                    break;
+                case "Осмотреть":
+                    Examine(player);
+                    break;
+                default:
+                    MessageSystem.AddMessage("Неизвестное действие.");
+                    break;
+            }
+        }
+
+        // Новый метод для осмотра NPC
+        // Новый метод для осмотра NPC
+        private void Examine(Player player)
+        {
+            bool isExamining = true;
+
+            while (isExamining)
+            {
+                Console.Clear();
+                Console.WriteLine($"============ ОСМОТР: {Name} ============");
+                Console.WriteLine("Это житель деревни.");
+
+                // Проверяем ВСЕ квесты, которые есть у NPC
+                if (QuestsToGive?.Count > 0)
+                {
+                    // Доступные квесты (еще не взятые)
+                    var availableQuests = QuestsToGive
+                        .Where(q => !player.QuestLog.ActiveQuests.Contains(q) &&
+                                   !player.QuestLog.CompletedQuests.Contains(q))
+                        .ToList();
+
+                    // Активные квесты (уже взятые, но еще не завершенные)
+                    var activeQuests = QuestsToGive
+                        .Where(q => player.QuestLog.ActiveQuests.Contains(q) &&
+                                   !player.QuestLog.CompletedQuests.Contains(q))
+                        .ToList();
+
+                    // Завершенные квесты (уже сданные)
+                    var completedQuests = QuestsToGive
+                        .Where(q => player.QuestLog.CompletedQuests.Contains(q))
+                        .ToList();
+
+                    if (availableQuests.Count > 0)
+                    {
+                        Console.WriteLine("\nПохоже, у этого человека есть для вас дело.");
+                        Console.WriteLine($"Доступные квесты: {availableQuests.Count}");
+                        foreach (var quest in availableQuests)
+                        {
+                            Console.WriteLine($"  • {quest.Name}");
+                        }
+                    }
+
+                    if (activeQuests.Count > 0)
+                    {
+                        Console.WriteLine("\nУ вас есть активные задания от этого человека.");
+                        Console.WriteLine($"Активные квесты: {activeQuests.Count}");
+                        foreach (var quest in activeQuests)
+                        {
+                            Console.WriteLine($"  • {quest.Name} ?");
+                        }
+                    }
+
+                    if (completedQuests.Count > 0)
+                    {
+                        Console.WriteLine("\nВы уже выполнили задания этого человека.");
+                        Console.WriteLine($"Завершенные квесты: {completedQuests.Count}");
+                        foreach (var quest in completedQuests)
+                        {
+                            Console.WriteLine($"  • {quest.Name} ✓");
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("\nУ этого человека нет для вас заданий.");
+                }
+
+                Console.WriteLine("\n[Нажмите любую клавишу чтобы вернуться к выбору действия...]");
+                Console.ReadKey();
+
+                isExamining = false;
+            }
+        }
     }
 }

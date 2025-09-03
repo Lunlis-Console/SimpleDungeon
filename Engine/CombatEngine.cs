@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using static DisplayUtilities;
 using static ConsoleOperations;
+using static DisplayUtilities;
 
 namespace Engine
 {
@@ -163,6 +165,7 @@ namespace Engine
                 Player.Gold += Monster.RewardGold;
                 Player.CurrentEXP += Monster.RewardEXP;
                 Player.MonstersKilled++;
+                Player.AddMonsterKill(Monster.Name);
 
                 // ПРОВЕРЯЕМ ПОВЫШЕНИЕ УРОВНЯ
                 int oldLevel = Player.Level;
@@ -245,46 +248,55 @@ namespace Engine
             Console.WriteLine("| 3 - защищаться | 4 - бежать |");
         }
 
-  
+
 
         private void ProcessPlayerInput()
         {
-            ConsoleKeyInfo key = Console.ReadKey(true);
+            ConsoleKeyInfo key;
+            bool validInput = false;
 
-            switch (key.Key)
+            while (!validInput)
             {
-                case ConsoleKey.D1:
-                case ConsoleKey.NumPad1:
-                    PlayerActionMessage = PlayerAttack();
-                    break;
-                case ConsoleKey.D2:
-                case ConsoleKey.NumPad2:
-                    //PlayerActionMessage = PlayerSpell();
-                    PlayerActionMessage = "Заклинания пока не реализованы!";
-                    AddToCombatLog(PlayerActionMessage);
-                    break;
-                case ConsoleKey.D3:
-                case ConsoleKey.NumPad3:
-                    //PlayerActionMessage = PlayerDefend();
-                    PlayerActionMessage = "Защита пока не реализована!";
-                    AddToCombatLog(PlayerActionMessage);
-                    break;
-                case ConsoleKey.D4:
-                case ConsoleKey.NumPad4:
-                    PlayerActionMessage = TryToEscape();
-                    break;
-                default:
-                    PlayerActionMessage = "Неизвестная команда!";
-                    AddToCombatLog(PlayerActionMessage);
-                    break;
+                key = Console.ReadKey(true);
 
+                switch (key.Key)
+                {
+                    case ConsoleKey.D1:
+                    case ConsoleKey.NumPad1:
+                        PlayerActionMessage = PlayerAttack();
+                        validInput = true;
+                        break;
+                    case ConsoleKey.D2:
+                    case ConsoleKey.NumPad2:
+                        //PlayerActionMessage = PlayerSpell();
+                        PlayerActionMessage = "Заклинания пока не реализованы!";
+                        AddToCombatLog(PlayerActionMessage);
+                        validInput = true;
+                        break;
+                    case ConsoleKey.D3:
+                    case ConsoleKey.NumPad3:
+                        //PlayerActionMessage = PlayerDefend();
+                        PlayerActionMessage = "Защита пока не реализована!";
+                        AddToCombatLog(PlayerActionMessage);
+                        validInput = true;
+                        break;
+                    case ConsoleKey.D4:
+                    case ConsoleKey.NumPad4:
+                        PlayerActionMessage = TryToEscape();
+                        validInput = true;
+                        break;
+                    default:
+                        // Неверный ввод - просто продолжаем ждать правильную клавишу
+                        // Можно добавить звуковой сигнал или визуальную подсказку
+                        //Console.Beep(300, 100); // Короткий звуковой сигнал
+                        break;
+                }
             }
-
         }
-
         private string PlayerAttack()
         {
             _actionCounter++;
+            Random random = new Random(); // Создаем один экземпляр Random для всего метода
 
             // Шанс промаха 10%
             if (new Random().Next(100) < 10)
@@ -294,7 +306,15 @@ namespace Engine
                 return message;
             }
 
-            int baseDamage = Player.Attack + new Random().Next(1, 6);
+            // 2. НОВОЕ: Проверка на уклонение противником
+            if (random.Next(100) < Monster.EvasionChance)
+            {
+                string message = $"[Действие {_actionCounter}] {Monster.Name} ловко уклонился от вашей атаки!";
+                AddToCombatLog(message);
+                return message;
+            }
+
+            int baseDamage = Player.GetTotalAttack(Monster) + new Random().Next(1, 6);
             bool isCritical = new Random().Next(100) < 5;
             if (isCritical) baseDamage = (int)(baseDamage * 1.5f);
 
@@ -338,11 +358,20 @@ namespace Engine
         private string MonsterAttack()
         {
             _actionCounter++;
+            Random random = new Random(); // Создаем один экземпляр Random для всего метода
 
             // Шанс промаха 10%
             if (new Random().Next(100) < 10)
             {
                 string message = $"[Действие {_actionCounter}] {Monster.Name} промахивается!";
+                AddToCombatLog(message);
+                return message;
+            }
+
+            // 2. НОВОЕ: Проверка на уклонение игроком
+            if (random.Next(100) < Player.EvasionChance)
+            {
+                string message = $"[Действие {_actionCounter}] Вы уверенно уворачиваетесь от атаки {Monster.Name}!";
                 AddToCombatLog(message);
                 return message;
             }
@@ -424,7 +453,7 @@ namespace Engine
             DrawHealthBar(Monster.CurrentHP, Monster.MaximumHP, 20);
             monsterSpeedLine = Console.CursorTop;
             DrawSpeedBar(0, 20);
-            DrawStatBlock(Monster.Attack, Monster.Defence, Monster.Agility);
+            DrawStatBlock(Monster.Attack, Monster.Defence, Monster.Agility, Monster.EvasionChance);
             Console.WriteLine("====================================");
 
             // === БОЕВОЙ ЛОГ ===
@@ -445,7 +474,7 @@ namespace Engine
             DrawHealthBar(Player.CurrentHP, Player.TotalMaximumHP, 20);
             playerSpeedLine = Console.CursorTop;
             DrawSpeedBar(0, 20);
-            DrawStatBlock(Player.Attack, Player.Defence, Player.Agility);
+            DrawStatBlock(Player.Attack, Player.Defence, Player.Agility, Player.EvasionChance);
 
             // === ДЕЙСТВИЯ ===
             Console.WriteLine("=========Действия=========");
@@ -538,5 +567,6 @@ namespace Engine
             else
                 return ConsoleColor.Gray;
         }
+
     }
 }

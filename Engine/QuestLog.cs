@@ -79,13 +79,19 @@ namespace Engine
             Console.WriteLine($"======{quest.Name}======");
             Console.WriteLine($"{quest.Description}");
 
+            // Добавляем информацию о квестодателе
+            if (quest.QuestGiver != null)
+            {
+                Console.WriteLine($"\nКвестодатель: {quest.QuestGiver.Name}");
+            }
+
             Console.WriteLine("\nЗадание:");
             foreach (var item in quest.QuestItems)
             {
                 Console.WriteLine($"• {item.Details.Name}: {item.Quantity} шт.");
             }
 
-            Console.WriteLine($"\nНаграда: {quest.RewardEXP} опыта, {quest.RewardGold} золota");
+            Console.WriteLine($"\nНаграда: {quest.RewardEXP} опыта, {quest.RewardGold} золота");
 
             if (quest.RewardItems.Count > 0)
             {
@@ -100,7 +106,6 @@ namespace Engine
             Console.WriteLine("\nНажмите любую клавишу чтобы вернуться...");
             Console.ReadKey();
         }
-
         // Остальные методы остаются без изменений...
 
         private class MenuOption
@@ -114,5 +119,7 @@ namespace Engine
                 Action = action;
             }
         }
+
+
     }
 }

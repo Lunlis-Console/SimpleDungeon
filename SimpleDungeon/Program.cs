@@ -19,37 +19,6 @@ namespace SimpleDungeon
             ShowMainMenu();
             ProcessKeyInput();
 
-            //_player = new Player(0, 100, 100, 0, 100, 1, 0, 0);
-            //_player.CurrentLocation = World.LocationByID(World.LOCATION_ID_VILLAGE);
-
-            //_player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_LEATHER_HELMET), 10));
-            //_player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_LEATHER_ARMOR), 1));
-            //_player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_LEATHER_GLOVES), 1));
-            //_player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_LEATHER_BOOTS), 1));
-
-            //_player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_RATS_MEAT), 10));
-            //_player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_RUSTY_SWORD), 10));
-            //_player.Inventory.Add(new InventoryItem(World.ItemByID(World.ITEM_ID_IRON_SWORD), 10));
-                        
-            //while (true)
-            //{
-            //    DisplayUI();
-
-            //    Console.Write(">");
-
-            //    string userInput = Console.ReadLine();
-
-            //    Console.Clear();
-
-            //    if (string.IsNullOrWhiteSpace(userInput))
-            //    {
-            //        continue;
-            //    }
-
-            //    string cleanedInput = userInput.ToLower();
-
-            //}
-
         }
 
         public static void ProcessKeyInput()
@@ -81,11 +50,8 @@ namespace SimpleDungeon
                         _player.LookAround();
                         Console.Clear();
                         break;
-                    case ConsoleKey.F:
-                        StartCombat();
-                        break;
-                    case ConsoleKey.T:
-                        TalkToNPC();
+                    case ConsoleKey.E:
+                        InteractWithWorld();
                         break;
                     case ConsoleKey.H:
                         HelpWorld();
@@ -334,7 +300,7 @@ namespace SimpleDungeon
                 Console.WriteLine("D - Восток");
             }
 
-            Console.WriteLine("| C - Характеристики | I - Сумка | L - Осмотреться | F - Атаковать | T - Говорить | H - Помощь |");
+            Console.WriteLine("| C - Характеристики | I - Сумка | J - Журнал | L - Осмотреться | E - Взаимодействовать | H - Помощь |");
         }
         private static void ShowMainMenu()
         {
@@ -550,6 +516,116 @@ namespace SimpleDungeon
             {
                 DisplayText = displayText;
                 Action = action;
+            }
+        }
+
+        private static void InteractWithWorld()
+        {
+            // 1. Собираем все объекты для взаимодействия в текущей локации
+            var worldEntities = new List<WorldEntity>();
+
+            // Добавляем монстров
+            var monstersHere = _player.CurrentLocation.FindMonsters();
+            foreach (var monster in monstersHere)
+            {
+                worldEntities.Add(new WorldEntity(monster, EntityType.Monster, $"{monster.Name} [Ур. {monster.Level}]"));
+            }
+
+            // Добавляем NPC
+            foreach (var npc in _player.CurrentLocation.NPCsHere)
+            {
+                worldEntities.Add(new WorldEntity(npc, EntityType.NPC, npc.Name));
+            }
+
+            // 2. Если не с чем взаимодействовать, выходим
+            if (worldEntities.Count == 0)
+            {
+                MessageSystem.AddMessage("Здесь не с чем взаимодействовать.");
+                return;
+            }
+
+            // 3. Используем MenuSystem для выбора цели
+            var selectedWorldEntity = MenuSystem.SelectFromList(
+                worldEntities,
+                entity =>
+                {
+                    // Раскрашиваем и форматируем разные типы сущностей
+                    switch (entity.Type)
+                    {
+                        case EntityType.Monster:
+                            return $"{entity.DisplayName} (Монстр)";
+                        case EntityType.NPC:
+                            return $"{entity.DisplayName} (Житель)";
+                        case EntityType.Chest:
+                            return $"{entity.DisplayName} (Сундук)";
+                        case EntityType.Door:
+                            return $"{entity.DisplayName} (Дверь)";
+                        default:
+                            return entity.DisplayName;
+                    }
+                },
+                "ВЫБЕРИТЕ ЦЕЛЬ",
+                "Клавиши 'W' 'S' для выбора, 'E' - взаимодействовать, 'Q' - отмена"
+            );
+
+            // 4. Если сущность выбрана, переходим к меню действий для нее
+            if (selectedWorldEntity != null)
+            {
+                InteractWithEntity(selectedWorldEntity);
+            }
+        }
+        private static void InteractWithEntity(WorldEntity worldEntity)
+        {
+            bool continueInteraction = true;
+
+            while (continueInteraction)
+            {
+                Console.Clear();
+                MessageSystem.DisplayMessages();
+
+                // Получаем доступные действия для выбранной сущности
+                var actions = worldEntity.Entity.GetAvailableActions(_player);
+
+                // Показываем меню выбора действия
+                var selectedAction = MenuSystem.SelectFromList(
+                    actions,
+                    action => action,
+                    $"ВЗАИМОДЕЙСТВИЕ: {worldEntity.Entity.Name}",
+                    "Клавиши 'W' 'S' для выбора, 'E' - выполнить, 'Q' - назад"
+                );
+
+                if (selectedAction != null)
+                {
+                    // Выполняем выбранное действие
+                    worldEntity.Entity.ExecuteAction(_player, selectedAction);
+
+                    // Определяем, нужно ли продолжать взаимодействие после этого действия
+                    switch (selectedAction)
+                    {
+                        case "Уйти":
+                        case "Атаковать":
+                            // Выходим из взаимодействия после атаки или ухода
+                            continueInteraction = false;
+                            break;
+
+                        case "Осмотреть":
+                        case "Поговорить":
+                            // После осмотра или разговора продолжаем взаимодействие
+                            // (показываем меню действий снова)
+                            continueInteraction = true;
+                            break;
+
+                        default:
+                            // Для других действий по умолчанию продолжаем взаимодействие
+                            continueInteraction = true;
+                            break;
+                    }
+                }
+                else
+                {
+                    // Если игрок нажал Q/Отмена - выходим из взаимодействия
+                    continueInteraction = false;
+                }
             }
         }
     }

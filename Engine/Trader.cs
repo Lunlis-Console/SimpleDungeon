@@ -18,58 +18,51 @@ namespace Engine
             ItemsForSale = itemsForSale ?? new List<InventoryItem>();
         }
 
+        // Trader теперь будет использовать базовую реализацию NPC, но с дополнительными опциями
         public override void Talk(Player player)
         {
-            bool interacting = true;
+            // Создаем список опций с действиями
+            var menuOptions = new List<MenuOption>();
 
-            while (interacting)
+            // Торговля - добавляем как первую опцию
+            menuOptions.Add(new MenuOption("Торговать", () => StartTrade(player)));
+
+            // Доступные квесты
+            var availableQuests = QuestsToGive?
+                .Where(q => !player.QuestLog.ActiveQuests.Contains(q) &&
+                           !player.QuestLog.CompletedQuests.Contains(q))
+                .ToList() ?? new List<Quest>();
+
+            foreach (var quest in availableQuests)
             {
-                // Собираем опции меню
-                var menuOptions = new List<MenuOption>();
+                menuOptions.Add(new MenuOption($"Квест: {quest.Name}", () => OfferQuest(player, quest)));
+            }
 
-                // Торговля
-                menuOptions.Add(new MenuOption("Торговать", () => StartTrade(player)));
+            // Квесты для сдачи
+            var completableQuests = player.QuestLog.ActiveQuests?
+                .Where(q => q.CheckCompletion(player))
+                .ToList() ?? new List<Quest>();
 
-                // Разговор
-                menuOptions.Add(new MenuOption("Поговорить", () => HaveConversation()));
+            foreach (var quest in completableQuests)
+            {
+                menuOptions.Add(new MenuOption($"Сдать: {quest.Name} ✓", () => CompleteQuest(player, quest)));
+            }
 
-                // Доступные квесты
-                var availableQuests = QuestsToGive.Where(q =>
-                    !player.QuestLog.ActiveQuests.Contains(q) &&
-                    !player.QuestLog.CompletedQuests.Contains(q)).ToList();
+            // Стандартные опции
+            menuOptions.Add(new MenuOption("Поговорить", () => HaveConversation()));
+            menuOptions.Add(new MenuOption("Уйти", () => { }));
 
-                foreach (var quest in availableQuests)
-                {
-                    menuOptions.Add(new MenuOption($"Квест: {quest.Name}", () => OfferQuest(player, quest)));
-                }
+            // Используем MenuSystem для выбора
+            var selectedOption = MenuSystem.SelectFromList(
+                menuOptions,
+                opt => opt.DisplayText,
+                $"======{Name}======\n{Greeting}\nЗолото: {player.Gold}",
+                "Клавиши 'W' 'S' для выбора, 'E' для подтверждения"
+            );
 
-                // Квесты для сдачи
-                var completableQuests = player.QuestLog.ActiveQuests.Where(q =>
-                    q.CheckCompletion(player)).ToList();
-
-                foreach (var quest in completableQuests)
-                {
-                    menuOptions.Add(new MenuOption($"Сдать: {quest.Name} ✓", () => CompleteQuest(player, quest)));
-                }
-
-                menuOptions.Add(new MenuOption("Уйти", () => { interacting = false; }));
-
-                // Используем MenuSystem для выбора
-                var selectedOption = MenuSystem.SelectFromList(
-                    menuOptions,
-                    opt => opt.DisplayText,
-                    $"======{Name}======\n{Greeting}\nЗолото: {player.Gold}",
-                    "Клавиши 'W' 'S' для выбора, 'E' для подтверждения"
-                );
-
-                if (selectedOption != null)
-                {
-                    selectedOption.Action();
-                }
-                else
-                {
-                    interacting = false;
-                }
+            if (selectedOption != null)
+            {
+                selectedOption.Action(); // Вызываем действие выбранной опции
             }
         }
         public void StartTrade(Player player)

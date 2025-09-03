@@ -44,9 +44,9 @@
         Console.WriteLine($"] {current}%");
     }
 
-    public static void DrawStatBlock(int attack, int defence, int agility)
+    public static void DrawStatBlock(int attack, int defence, int agility, int evasionChance)
     {
-        Console.WriteLine($"АТК: {attack} | ЗЩТ: {defence} | ЛОВ: {agility}");
+        Console.WriteLine($"АТК: {attack} | ЗЩТ: {defence} | ЛОВ: {agility} | УКЛ: {evasionChance}%");
     }
 
     public static void DrawHeader(string text, ConsoleColor color = ConsoleColor.Yellow)
