@@ -20,6 +20,7 @@ namespace Engine
         Amulet,
         Ring,
         //Sword,
-        Consumable
+        Consumable,
+        Quest
     }
 }

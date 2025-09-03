@@ -17,19 +17,67 @@ namespace SimpleDungeon
             Console.CursorVisible = false;
 
             ShowMainMenu();
+
+
             ProcessKeyInput();
 
         }
 
+        private static bool _needsRedraw = true;
         public static void ProcessKeyInput()
         {
             while (true)
             {
-                DisplayUI();
+                bool keyProcessed = false;
 
-                ConsoleKeyInfo key = Console.ReadKey();
+                // Быстрая проверка ввода
+                while (Console.KeyAvailable)
+                {
+                    keyProcessed = true;
+                    var keyInfo = Console.ReadKey(true);
 
-                switch (key.Key)
+                    if (keyInfo.Key == ConsoleKey.F3)
+                    {
+                        DebugConsole.Toggle();
+                        Console.Clear();
+                        if (!DebugConsole.IsVisible)
+                        {
+                            DisplayUI();
+                        }
+                        break;
+                    }
+
+                    if (!DebugConsole.IsVisible)
+                    {
+                        ProcessGameKey(keyInfo.Key);
+                        Console.Clear();
+                        DisplayUI();
+                        break;
+                    }
+                    else
+                    {
+                        // Передаем ввод в дебаг-консоль с символом
+                        DebugConsole.HandleKey(keyInfo.Key, keyInfo.KeyChar);
+                        break;
+                    }
+                }
+
+                // Отрисовка дебаг-консоли если видна
+                if (DebugConsole.IsVisible)
+                {
+                    DebugConsole.Update();
+                }
+
+                // Небольшая пауза только если не было обработки ввода
+                if (!keyProcessed)
+                {
+                    Thread.Sleep(DebugConsole.IsVisible ? 1 : 10);
+                }
+            }
+        }
+        private static void ProcessGameKey(ConsoleKey key)
+        {
+            switch (key)
                 {
                     case ConsoleKey.W:
                         MoveNorth();
@@ -48,7 +96,7 @@ namespace SimpleDungeon
                         break;
                     case ConsoleKey.L:
                         _player.LookAround();
-                        Console.Clear();
+                        //Console.Clear();
                         break;
                     case ConsoleKey.E:
                         InteractWithWorld();
@@ -93,9 +141,9 @@ namespace SimpleDungeon
                         break;
                 }
 
-                Console.Clear();
-            }
+                //Console.Clear();
         }
+
         private static void MoveNorth()
         {
             if (_player.CurrentLocation.LocationToNorth == null)
@@ -106,6 +154,7 @@ namespace SimpleDungeon
             {
                 _player.MoveNorth();
                 MessageSystem.AddMessage($"Вы переместились в {_player.CurrentLocation.Name}");
+                _needsRedraw = true;
             }
         }
         private static void MoveEast()
@@ -118,6 +167,7 @@ namespace SimpleDungeon
             {
                 _player.MoveEast();
                 MessageSystem.AddMessage($"Вы переместились в {_player.CurrentLocation.Name}");
+                _needsRedraw = true;
             }
         }
         private static void MoveWest()
@@ -130,6 +180,7 @@ namespace SimpleDungeon
             {
                 _player.MoveWest();
                 MessageSystem.AddMessage($"Вы переместились в {_player.CurrentLocation.Name}");
+                _needsRedraw = true;
             }
         }
         private static void MoveSouth()
@@ -142,6 +193,7 @@ namespace SimpleDungeon
             {
                 _player.MoveSouth();
                 MessageSystem.AddMessage($"Вы переместились в {_player.CurrentLocation.Name}");
+                _needsRedraw = true;
             }
         }
         private static void StartCombat()
@@ -205,8 +257,13 @@ namespace SimpleDungeon
         }
         private static void DisplayUI()
         {
-            Console.Clear();
             Console.SetCursorPosition(0, 0);
+
+            // СБРАСЫВАЕМ ЦВЕТА ПЕРЕД ОТРИСОВКОЙ
+            Console.ResetColor();
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.BackgroundColor = ConsoleColor.Black;
+
             MessageSystem.DisplayMessages();
 
             Console.WriteLine("=========================Окружение========================");
@@ -218,6 +275,9 @@ namespace SimpleDungeon
 
             Console.WriteLine("=========================Действие=========================");
             DisplayAvailabelDirecrions();
+
+            // СБРАСЫВАЕМ ЦВЕТА ПОСЛЕ ОТРИСОВКИ
+            Console.ResetColor();
         }
         private static void DisplayCurrentLocation()
         {

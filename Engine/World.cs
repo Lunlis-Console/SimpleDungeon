@@ -64,15 +64,40 @@ namespace Engine
 
         static World()
         {
-            PopulateItems();
-            PopulateMonsters();
-            PopulateQuests();
-            PopulateLocations();
-          
-            PopulateTitles();
+            try
+            {
+                DebugConsole.Log("DEBUG: World initialization started");
 
+                PopulateItems();
+                DebugConsole.Log("DEBUG: Items populated");
 
+                PopulateMonsters();
+                DebugConsole.Log("DEBUG: Monsters populated");
 
+                PopulateQuests();
+                DebugConsole.Log("DEBUG: Quests populated");
+
+                PopulateLocations();
+                DebugConsole.Log("DEBUG: Locations populated");
+
+                PopulateTitles();
+                DebugConsole.Log("DEBUG: Titles populated");
+
+                PopulateQuestItems();
+                DebugConsole.Log("DEBUG: Titles populated");
+
+                // Проверка после инициализации
+                Trader trader = TraderByID(NPC_ID_VILLAGE_TRADER);
+                if (trader != null)
+                {
+                    DebugConsole.Log($"DEBUG: Final check - Trader has {trader.QuestsToGive?.Count ?? 0} quests");
+                }
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.Log($"DEBUG: Initialization failed: {ex}");
+                throw;
+            }
         }
 
         private static void PopulateItems()
@@ -124,6 +149,17 @@ namespace Engine
         {
             Items.Add(new Item(ITEM_ID_SPIDER_SILK, "Паучий шелк", "", ItemType.Stuff, 10, ""));
 
+
+
+        }
+
+        private static void PopulateQuestItems()
+        {
+            // Создаем ящики как служебные предметы для квестов
+            Items.Add(new Item(ITEM_ID_CRATE, "Ящик с товарами", "Потерянный ящик торговца", ItemType.Quest, 0, ""));
+            Items.Add(new Item(ITEM_ID_CRATE2, "Ящик с инструментами", "Потерянный ящик торговца", ItemType.Quest, 0, ""));
+            Items.Add(new Item(ITEM_ID_CRATE3, "Ящик с припасами", "Потерянный ящик торговца", ItemType.Quest, 0, ""));
+            Items.Add(new Item(ITEM_ID_CRATE4, "Ящик с украшениями", "Потерянный ящик торговца", ItemType.Quest, 0, ""));
         }
 
         private static void PopulateMonsters()
@@ -171,6 +207,12 @@ namespace Engine
 
 
             Trader villageTrader = TraderByID(NPC_ID_VILLAGE_TRADER);
+            if (villageTrader == null)
+            {
+                villageTrader = new Trader(NPC_ID_VILLAGE_TRADER, "Купец Зарубий",
+                    "Добро пожаловать в мою лавку!");
+                Traders.Add(villageTrader);
+            }
 
             // ДОБАВЬТЕ ПРОВЕРКУ НА NULL
             if (villageTrader == null)
@@ -309,6 +351,13 @@ namespace Engine
                 Traders.Add(trader);
             }
 
+            //if (trader == null)
+            //{
+            //    trader = new Trader(NPC_ID_VILLAGE_TRADER, "Купец Зарубий",
+            //        "Добро пожаловать в мою лавку, путник! Товары самого высшего качества!");
+            //    Traders.Add(trader);
+            //}
+
             // Квест на сбор ящиков
             var crateQuest = new CollectibleQuest(
                 QUEST_ID_LOST_CRATES,
@@ -324,6 +373,9 @@ namespace Engine
                 }
             );
 
+            DebugConsole.Log($"Created quest: {crateQuest.Name}, ID: {crateQuest.ID}");
+            DebugConsole.Log($"QuestGiver: {crateQuest.QuestGiver?.Name ?? "NULL"}");
+
             // Настраиваем места спавна
             crateQuest.SpawnLocations.AddRange(new[]
             {
@@ -332,6 +384,11 @@ namespace Engine
         new CollectibleSpawn(LOCATION_ID_FIELD_OF_EAST, ITEM_ID_CRATE3),
         new CollectibleSpawn(LOCATION_ID_FIELD_OF_WEST, ITEM_ID_CRATE4)
     });
+
+            DebugConsole.Log($"Item CRATE exists: {ItemByID(ITEM_ID_CRATE) != null}");
+            DebugConsole.Log($"Item CRATE2 exists: {ItemByID(ITEM_ID_CRATE2) != null}");
+            DebugConsole.Log($"Item CRATE3 exists: {ItemByID(ITEM_ID_CRATE3) != null}");
+            DebugConsole.Log($"Item CRATE4 exists: {ItemByID(ITEM_ID_CRATE4) != null}");
 
             // ДОБАВЛЯЕМ КОЛБЭК ЗДЕСЬ - после создания квеста
             crateQuest.OnQuestComplete = (player) =>
@@ -347,6 +404,8 @@ namespace Engine
             };
 
             trader.AddQuest(crateQuest);
+            DebugConsole.Log($"Added quest '{crateQuest.Name}' to trader {trader.Name}");
+            DebugConsole.Log($"Trader now has {trader.QuestsToGive?.Count ?? 0} quests");
             Quests.Add(crateQuest);
 
             // УБЕРИТЕ ЭТУ СТРОКУ - торговец уже добавлен выше

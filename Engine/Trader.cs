@@ -12,6 +12,7 @@ namespace Engine
         public List<InventoryItem> ItemsForSale { get; set; }
         public int Gold { get; set; } = 1000;
 
+
         public Trader(int id, string name, string greeting, List<InventoryItem> itemsForSale = null) :
             base(id, name, greeting)
         {
@@ -21,6 +22,26 @@ namespace Engine
         //Trader теперь будет использовать базовую реализацию NPC, но с дополнительными опциями
         public override void Talk(Player player)
         {
+            DebugConsole.Log($"=== TRADER TALK START ===");
+            DebugConsole.Log($"Trader: {Name}, ID: {ID}");
+            DebugConsole.Log($"QuestsToGive is null: {QuestsToGive == null}");
+            DebugConsole.Log($"Quests count: {QuestsToGive?.Count ?? 0}");
+
+            if (QuestsToGive != null)
+            {
+                foreach (var quest in QuestsToGive)
+                {
+                    DebugConsole.Log($"- {quest.Name} (ID: {quest.ID}, Completed: {quest.IsCompleted})");
+
+                    // Проверяем условия видимости
+                    bool isActive = player.QuestLog.ActiveQuests.Contains(quest);
+                    bool isCompleted = player.QuestLog.CompletedQuests.Contains(quest);
+                    bool canComplete = quest.CheckCompletion(player);
+
+                    DebugConsole.Log($"  Active: {isActive}, Completed: {isCompleted}, CanComplete: {canComplete}");
+                }
+            }
+
             // Создаем список опций с действиями
             var menuOptions = new List<MenuOption>();
 
@@ -33,8 +54,10 @@ namespace Engine
                            !player.QuestLog.CompletedQuests.Contains(q))
                 .ToList() ?? new List<Quest>();
 
+            DebugConsole.Log($"Available quests: {availableQuests.Count}");
             foreach (var quest in availableQuests)
             {
+                DebugConsole.Log($"Available: {quest.Name}");
                 menuOptions.Add(new MenuOption($"Квест: {quest.Name}", () => OfferQuest(player, quest)));
             }
 
@@ -45,8 +68,10 @@ namespace Engine
                            !q.CheckCompletion(player)) // Исключаем готовые к сдаче
                 .ToList() ?? new List<Quest>();
 
+            DebugConsole.Log($"Active quests: {activeQuests.Count}");
             foreach (var quest in activeQuests)
             {
+                DebugConsole.Log($"Active: {quest.Name}");
                 menuOptions.Add(new MenuOption($"Квест: {quest.Name} ?", () => ShowQuestProgress(player, quest)));
             }
 
@@ -55,14 +80,18 @@ namespace Engine
                 .Where(q => q.CheckCompletion(player))
                 .ToList() ?? new List<Quest>();
 
+            DebugConsole.Log($"Completable quests: {completableQuests.Count}");
             foreach (var quest in completableQuests)
             {
+                DebugConsole.Log($"Completable: {quest.Name}");
                 menuOptions.Add(new MenuOption($"Сдать: {quest.Name} ✓", () => CompleteQuest(player, quest)));
             }
 
             // Стандартные опции
             menuOptions.Add(new MenuOption("Поговорить", () => HaveConversation()));
             menuOptions.Add(new MenuOption("Уйти", () => { }));
+
+            DebugConsole.Log($"Total menu options: {menuOptions.Count}");
 
             // Используем MenuSystem для выбора
             var selectedOption = MenuSystem.SelectFromList(
@@ -77,7 +106,6 @@ namespace Engine
                 selectedOption.Action(); // Вызываем действие выбранной опции
             }
         }
-
         // Добавляем метод для обычного разговора
         protected override void HaveConversation()
         {

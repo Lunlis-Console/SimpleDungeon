@@ -128,10 +128,13 @@
 
         protected virtual void OfferQuest(Player player, Quest quest)
         {
+            DebugConsole.Log($"Offering quest: {quest.Name}");
+
             // Проверяем, не взят ли уже этот квест у другого NPC
             if (player.QuestLog.ActiveQuests.Any(q => q.ID == quest.ID) ||
                 player.QuestLog.CompletedQuests.Any(q => q.ID == quest.ID))
             {
+                DebugConsole.Log($"Quest already taken or completed!");
                 Console.WriteLine($"{Name}: Извини, но я слышал, ты уже взял это задание у кого-то другого.");
                 Console.WriteLine("\nНажмите любую клавишу чтобы продолжить...");
                 Console.ReadKey();
