@@ -33,6 +33,10 @@ namespace Engine
         public const int ITEM_ID_IRON_ARMOR = 16;
         public const int ITEM_ID_IRON_GLOVES = 17;
         public const int ITEM_ID_IRON_BOOTS = 18;
+        public const int ITEM_ID_CRATE = 19;
+        public const int ITEM_ID_CRATE2 = 20;
+        public const int ITEM_ID_CRATE3 = 21;
+        public const int ITEM_ID_CRATE4 = 22;
 
         public const int NPC_ID_VILLAGE_TRADER = 1;
         public const int NPC_ID_VILLAGE_ELDER = 2;
@@ -41,6 +45,7 @@ namespace Engine
 
         public const int QUEST_ID_RAT_HUNT = 1;
         public const int QUEST_ID_SPIDER_SILK = 2;
+        public const int QUEST_ID_LOST_CRATES = 3;
 
         public const int MONSTER_ID_RAT = 1;
         public const int MONSTER_ID_SPIDER = 2;
@@ -284,6 +289,49 @@ namespace Engine
             spiderSilk.RewardItems.Add(new InventoryItem(ItemByID(ITEM_ID_WEAK_HEALING_POTION), 10));
             craftsman.AddQuest(spiderSilk);
 
+
+            // Квест на сбор ящиков для торговца
+            var trader = (Trader)NPCByID(NPC_ID_VILLAGE_TRADER);
+
+            var crateQuest = new CollectibleQuest(
+                QUEST_ID_LOST_CRATES,
+                "Потерянные ящики",
+                "Торговец потерял 4 ящика с товарами. Помоги найти их!",
+                100, 200, trader,
+                new List<QuestItem>
+                {
+            new QuestItem(ItemByID(ITEM_ID_CRATE), 1),
+            new QuestItem(ItemByID(ITEM_ID_CRATE2), 1),
+            new QuestItem(ItemByID(ITEM_ID_CRATE3), 1),
+            new QuestItem(ItemByID(ITEM_ID_CRATE4), 1)
+                }
+            );
+
+            // Настраиваем места спавна
+            crateQuest.SpawnLocations.AddRange(new[]
+            {
+                new CollectibleSpawn(LOCATION_ID_FIELD_OF_NORTH, ITEM_ID_CRATE),
+                new CollectibleSpawn(LOCATION_ID_FIELD_OF_SOUTH, ITEM_ID_CRATE2),
+                new CollectibleSpawn(LOCATION_ID_FIELD_OF_EAST, ITEM_ID_CRATE3),
+                new CollectibleSpawn(LOCATION_ID_FIELD_OF_WEST, ITEM_ID_CRATE4)
+            });
+
+            // ДОБАВЛЯЕМ КОЛБЭК ЗДЕСЬ - после создания квеста
+            crateQuest.OnQuestComplete = (player) =>
+            {
+                var questTrader = (Trader)crateQuest.QuestGiver;
+
+                // Расширяем ассортимент
+                questTrader.ItemsForSale.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_GREATSWORD), 1));
+                questTrader.ItemsForSale.Add(new InventoryItem(ItemByID(ITEM_ID_RICH_AMULET), 1));
+                questTrader.Gold += 500;
+
+                MessageSystem.AddMessage("Ассортимент торговца расширился!");
+            };
+
+            trader.AddQuest(crateQuest);
+            Quests.Add(crateQuest);
+
             Quests.Add(ratHunt);
             Quests.Add(spiderSilk);
         }
@@ -374,5 +422,7 @@ namespace Engine
         {
             Items.Add(new Equipment(id, "", 0, defence, 0, 0, type, price, name));
         }
+
+
     }
 }

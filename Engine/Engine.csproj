@@ -12,6 +12,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="C:\Users\mrili\Desktop\Alisa\WorldEntity.txt" Link="WorldEntity.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="Data\Descriptions\rat_meat.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

@@ -224,21 +224,21 @@
         // ... остальной код класса NPC ...
 
         // Реализация расширенного интерфейса IInteractable
-        public List<string> GetAvailableActions(Player player)
+        public virtual List<string> GetAvailableActions(Player player)
         {
             var actions = new List<string> { "Поговорить", "Осмотреть" };
             return actions;
         }
 
-        public void ExecuteAction(Player player, string action)
+        public virtual void ExecuteAction(Player player, string action)
         {
             switch (action)
             {
                 case "Поговорить":
-                    this.Talk(player); // Теперь это просто показывает меню один раз
+                    this.Talk(player);
                     break;
                 case "Осмотреть":
-                    Examine(player);
+                    OnExamine(player);
                     break;
                 default:
                     MessageSystem.AddMessage("Неизвестное действие.");
@@ -318,6 +318,11 @@
 
                 isExamining = false;
             }
+        }
+
+        protected virtual void OnExamine(Player player)
+        {
+            Examine(player); // Вызываем приватный метод
         }
     }
 }

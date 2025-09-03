@@ -21,6 +21,7 @@ namespace Engine
         public Location LocationToWest { get; set; }
         public List<Monster> MonsterTamplates { get; set; }
         public bool ScaleMonstersToPlayerLevel {  get; set; }
+        public List<InventoryItem> GroundItems { get; set; } = new List<InventoryItem>();
 
 
         public Location(int id, string name, string description, List<Monster> monsterTamplates = null,
@@ -78,6 +79,18 @@ namespace Engine
             int maxLevel = playerLevel + 1;
 
             return random.Next(minLevel, maxLevel + 1);
+        }
+
+        // Метод для отображения предметов на локации
+        public string GetGroundItemsDescription()
+        {
+            if (GroundItems.Count == 0) return "";
+
+            var items = GroundItems
+                .GroupBy(item => item.Details.Name)
+                .Select(group => $"{group.Key} x{group.Sum(item => item.Quantity)}");
+
+            return "На земле: " + string.Join(", ", items);
         }
     }
 }

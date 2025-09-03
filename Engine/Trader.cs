@@ -18,7 +18,7 @@ namespace Engine
             ItemsForSale = itemsForSale ?? new List<InventoryItem>();
         }
 
-        // Trader теперь будет использовать базовую реализацию NPC, но с дополнительными опциями
+        //Trader теперь будет использовать базовую реализацию NPC, но с дополнительными опциями
         public override void Talk(Player player)
         {
             // Создаем список опций с действиями
@@ -38,7 +38,19 @@ namespace Engine
                 menuOptions.Add(new MenuOption($"Квест: {quest.Name}", () => OfferQuest(player, quest)));
             }
 
-            // Квесты для сдачи
+            // Активные квесты (уже взятые, но еще не завершенные)
+            var activeQuests = QuestsToGive?
+                .Where(q => player.QuestLog.ActiveQuests.Contains(q) &&
+                           !player.QuestLog.CompletedQuests.Contains(q) &&
+                           !q.CheckCompletion(player)) // Исключаем готовые к сдаче
+                .ToList() ?? new List<Quest>();
+
+            foreach (var quest in activeQuests)
+            {
+                menuOptions.Add(new MenuOption($"Квест: {quest.Name} ?", () => ShowQuestProgress(player, quest)));
+            }
+
+            // Квесты для сдачи (готовые к завершению)
             var completableQuests = player.QuestLog.ActiveQuests?
                 .Where(q => q.CheckCompletion(player))
                 .ToList() ?? new List<Quest>();
@@ -65,17 +77,28 @@ namespace Engine
                 selectedOption.Action(); // Вызываем действие выбранной опции
             }
         }
+
+        // Добавляем метод для обычного разговора
+        protected override void HaveConversation()
+        {
+            Console.Clear();
+            Console.WriteLine($"{Name}: {Greeting}");
+            Console.WriteLine("\nНажмите любую клавишу чтобы продолжить...");
+            Console.ReadKey();
+        }
+
+        // Остальной код класса Trader остается без изменений
         public void StartTrade(Player player)
         {
             bool trading = true;
             string systemMessage = "";
             bool viewingTraderItems = true;
-            
+
             while (trading)
             {
                 Console.Clear();
 
-                if(!string.IsNullOrEmpty(systemMessage))
+                if (!string.IsNullOrEmpty(systemMessage))
                 {
                     Console.WriteLine($"СИСТЕМА: {systemMessage}");
                     systemMessage = "";
@@ -85,8 +108,8 @@ namespace Engine
                 Console.WriteLine($"{Greeting}");
                 Console.WriteLine($"\nВаше золото: {player.Gold}");
                 Console.WriteLine($"Золото торговца: {Gold}\n");
-                
-                if(viewingTraderItems)
+
+                if (viewingTraderItems)
                 {
                     Console.WriteLine("=======ТОВАРЫ ТОРГОВЦА=======");
                     DisplayTraderItems(ItemsForSale);
@@ -109,14 +132,14 @@ namespace Engine
 
                 var key = Console.ReadKey(true).Key;
 
-                switch(key)
+                switch (key)
                 {
                     case ConsoleKey.W:
                     case ConsoleKey.S:
                         viewingTraderItems = !viewingTraderItems;
                         break;
                     case ConsoleKey.E:
-                        if(viewingTraderItems)
+                        if (viewingTraderItems)
                         {
                             systemMessage = BuySelectedItem(player);
                         }
@@ -137,6 +160,78 @@ namespace Engine
                 }
             }
         }
+        //public void StartTrade(Player player)
+        //{
+        //    bool trading = true;
+        //    string systemMessage = "";
+        //    bool viewingTraderItems = true;
+            
+        //    while (trading)
+        //    {
+        //        Console.Clear();
+
+        //        if(!string.IsNullOrEmpty(systemMessage))
+        //        {
+        //            Console.WriteLine($"СИСТЕМА: {systemMessage}");
+        //            systemMessage = "";
+        //        }
+
+        //        Console.WriteLine($"======{Name}======");
+        //        Console.WriteLine($"{Greeting}");
+        //        Console.WriteLine($"\nВаше золото: {player.Gold}");
+        //        Console.WriteLine($"Золото торговца: {Gold}\n");
+                
+        //        if(viewingTraderItems)
+        //        {
+        //            Console.WriteLine("=======ТОВАРЫ ТОРГОВЦА=======");
+        //            DisplayTraderItems(ItemsForSale);
+
+        //            Console.WriteLine("========ВАШИ ПРЕДМЕТЫ========");
+        //            DisplayPlayerItems(player.Inventory.Items, false);
+        //        }
+        //        else
+        //        {
+        //            Console.WriteLine("=======ТОВАРЫ ТОРГОВЦА=======");
+        //            DisplayTraderItems(ItemsForSale, false);
+
+        //            Console.WriteLine("========ВАШИ ПРЕДМЕТЫ========");
+        //            DisplayPlayerItems(player.Inventory.Items);
+        //        }
+
+        //        Console.WriteLine("'W' и 'S' - Переключить панель торговли");
+        //        Console.WriteLine("'E' - купить/продать 'Q' - уйти");
+        //        Console.WriteLine(">");
+
+        //        var key = Console.ReadKey(true).Key;
+
+        //        switch(key)
+        //        {
+        //            case ConsoleKey.W:
+        //            case ConsoleKey.S:
+        //                viewingTraderItems = !viewingTraderItems;
+        //                break;
+        //            case ConsoleKey.E:
+        //                if(viewingTraderItems)
+        //                {
+        //                    systemMessage = BuySelectedItem(player);
+        //                }
+        //                else
+        //                {
+        //                    systemMessage = SellSelectedItem(player);
+        //                }
+        //                break;
+        //            case ConsoleKey.Q:
+        //                trading = false;
+        //                Console.Clear();
+        //                Console.WriteLine($"{Name}: Заходи еще!");
+        //                break;
+
+        //            default:
+        //                systemMessage = "Используйте клавиши для навигации, E для действия, Q для выхода";
+        //                break;
+        //        }
+        //    }
+        //}
         private void DisplayTraderItems(List<InventoryItem> items, bool highlight = true)
         {
             if(items.Count == 0)
@@ -480,5 +575,31 @@ namespace Engine
 
             return $"Вы продали {quantity} шт. {playerItem.Details.Name} за {totalPrice} золота.";
         }
+
+        public override List<string> GetAvailableActions(Player player)
+        {
+            var actions = new List<string> { "Поговорить", "Осмотреть", "Торговать" };
+            return actions;
+        }
+
+        public override void ExecuteAction(Player player, string action)
+        {
+            switch (action)
+            {
+                case "Поговорить":
+                    HaveConversation(); // Простой разговор
+                    break;
+                case "Осмотреть":
+                    OnExamine(player); // Осмотр
+                    break;
+                case "Торговать":
+                    StartTrade(player); // Торговля
+                    break;
+                default:
+                    MessageSystem.AddMessage("Неизвестное действие.");
+                    break;
+            }
+        }
+
     }
 }

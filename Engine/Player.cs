@@ -62,13 +62,32 @@ namespace Engine
 
         public void MoveTo(Location newLocation)
         {
-            if(newLocation != null)
+            if (newLocation != null)
             {
                 newLocation.SpawnMonsters(Level);
+
+                // Автоматически спавним предметы для активных квестов на сбор
+                foreach (var quest in QuestLog.ActiveQuests.OfType<CollectibleQuest>())
+                {
+                    if (!quest.IsItemsSpawned)
+                    {
+                        quest.SpawnCollectibles();
+                    }
+                }
+
                 MessageSystem.ClearMessages();
             }
-
             CurrentLocation = newLocation;
+        }
+
+        // При завершении квеста убираем предметы
+        public void CompleteQuest(Quest quest)
+        {
+            if (quest is CollectibleQuest collectibleQuest)
+            {
+                collectibleQuest.DespawnCollectibles();
+            }
+            // ... остальная логика завершения квеста
         }
         public void MoveNorth()
         {

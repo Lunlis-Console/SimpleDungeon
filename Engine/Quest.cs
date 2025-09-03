@@ -14,6 +14,7 @@ namespace Engine
         public List<InventoryItem> RewardItems { get; set; }
         public bool IsCompleted { get; set; }
         public NPC QuestGiver { get; set; } // Новое свойство
+        public Action<Player> OnQuestComplete { get; set; }
 
         public Quest(int id, string name, string description, int rewardEXP, int rewardGold, NPC questGiver = null)
         {
@@ -47,6 +48,8 @@ namespace Engine
         {
             if (!CheckCompletion(player)) return;
 
+            
+
             // Выдача наград
             player.Gold += RewardGold;
             player.CurrentEXP += RewardEXP;
@@ -70,6 +73,7 @@ namespace Engine
                 }
             }
 
+            OnQuestComplete?.Invoke(player);
             IsCompleted = true;
             MessageSystem.AddMessage($"Квест '{Name}' завершен!");
         }

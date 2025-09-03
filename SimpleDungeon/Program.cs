@@ -84,7 +84,7 @@ namespace SimpleDungeon
                     //    {
                     //        SaveManager.SaveGame(_player, $"save_{DateTime.Now:yyyyMMdd_HHmmss}");
                     //    }
-                        return;
+                        //return;
 
                     default:
                         Console.WriteLine("СИСТЕМА: Неизвестная команда. Нажмите H для помощи.");
@@ -209,18 +209,15 @@ namespace SimpleDungeon
             Console.SetCursorPosition(0, 0);
             MessageSystem.DisplayMessages();
 
-            //Console.WriteLine("==========================Статус==========================");
-            //Console.WriteLine($"| Уровень: {_player.Level} " +
-            //    $"| Здоровье: {_player.CurrentHP}/{_player.MaximumHP} " +
-            //    $"| Опыт: {_player.CurrentEXP}/{_player.MaximumEXP} " +
-            //    $"| Золото: {_player.Gold} ");
             Console.WriteLine("=========================Окружение========================");
             DisplayCurrentLocation();
             DisplayMonstersAndNPCs();
 
+            // ДОБАВЛЯЕМ ОТОБРАЖЕНИЕ ПРЕДМЕТОВ НА ЗЕМЛЕ
+            DisplayGroundItems();
+
             Console.WriteLine("=========================Действие=========================");
             DisplayAvailabelDirecrions();
-
         }
         private static void DisplayCurrentLocation()
         {
@@ -260,6 +257,20 @@ namespace SimpleDungeon
             //{
             //    Console.WriteLine("\nЖители: отсутствуют");
             //}
+        }
+
+        private static void DisplayGroundItems()
+        {
+            var groundItems = _player.CurrentLocation.GroundItems;
+            if (groundItems.Count > 0)
+            {
+                Console.WriteLine("\nПредметы на земле:");
+                foreach (var item in groundItems.GroupBy(i => i.Details.ID))
+                {
+                    var firstItem = item.First();
+                    Console.WriteLine($"- {firstItem.Details.Name} x{item.Sum(i => i.Quantity)}");
+                }
+            }
         }
         private static void HelpWorld()
         {
@@ -537,6 +548,12 @@ namespace SimpleDungeon
                 worldEntities.Add(new WorldEntity(npc, EntityType.NPC, npc.Name));
             }
 
+            // ДОБАВЛЯЕМ ПРЕДМЕТЫ НА ЗЕМЛЕ
+            foreach (var item in _player.CurrentLocation.GroundItems)
+            {
+                worldEntities.Add(new WorldEntity(item, EntityType.Item, $"{item.Details.Name}"));
+            }
+
             // 2. Если не с чем взаимодействовать, выходим
             if (worldEntities.Count == 0)
             {
@@ -544,18 +561,19 @@ namespace SimpleDungeon
                 return;
             }
 
-            // 3. Используем MenuSystem для выбора цели
+            // 3. Используем MenuSystem для выбора цели - ВОТ ЗДЕСЬ ВСТАВЛЯЕМ КОД:
             var selectedWorldEntity = MenuSystem.SelectFromList(
                 worldEntities,
                 entity =>
                 {
-                    // Раскрашиваем и форматируем разные типы сущностей
                     switch (entity.Type)
                     {
                         case EntityType.Monster:
                             return $"{entity.DisplayName} (Монстр)";
                         case EntityType.NPC:
                             return $"{entity.DisplayName} (Житель)";
+                        case EntityType.Item:
+                            return $"📦 {entity.DisplayName} (Предмет)"; // Добавляем иконку
                         case EntityType.Chest:
                             return $"{entity.DisplayName} (Сундук)";
                         case EntityType.Door:
@@ -576,6 +594,13 @@ namespace SimpleDungeon
         }
         private static void InteractWithEntity(WorldEntity worldEntity)
         {
+            // Если это предмет на земле
+            if (worldEntity.Entity is InventoryItem groundItem)
+            {
+                PickUpItem(groundItem);
+                return;
+            }
+
             bool continueInteraction = true;
 
             while (continueInteraction)
@@ -584,50 +609,150 @@ namespace SimpleDungeon
                 MessageSystem.DisplayMessages();
 
                 // Получаем доступные действия для выбранной сущности
-                var actions = worldEntity.Entity.GetAvailableActions(_player);
+                List<string> actions;
+                string entityName;
+
+                // ОБРАБАТЫВАЕМ РАЗНЫЕ ТИПЫ СУЩНОСТЕЙ
+                if (worldEntity.Entity is IInteractable interactable)
+                {
+                    actions = interactable.GetAvailableActions(_player);
+                    entityName = interactable.Name;
+                }
+                else if (worldEntity.Entity is InventoryItem item)
+                {
+                    // Для предметов создаем специальные действия
+                    actions = new List<string> { "Подобрать", "Осмотреть", "Назад" };
+                    entityName = item.Details.Name;
+                }
+                else
+                {
+                    MessageSystem.AddMessage("Нельзя взаимодействовать с этим объектом.");
+                    return;
+                }
 
                 // Показываем меню выбора действия
                 var selectedAction = MenuSystem.SelectFromList(
                     actions,
                     action => action,
-                    $"ВЗАИМОДЕЙСТВИЕ: {worldEntity.Entity.Name}",
+                    $"ВЗАИМОДЕЙСТВИЕ: {entityName}",
                     "Клавиши 'W' 'S' для выбора, 'E' - выполнить, 'Q' - назад"
                 );
 
                 if (selectedAction != null)
                 {
-                    // Выполняем выбранное действие
-                    worldEntity.Entity.ExecuteAction(_player, selectedAction);
-
-                    // Определяем, нужно ли продолжать взаимодействие после этого действия
-                    switch (selectedAction)
+                    // ОБРАБАТЫВАЕМ ВЫБРАННОЕ ДЕЙСТВИЕ
+                    if (worldEntity.Entity is IInteractable interactableEntity)
                     {
-                        case "Уйти":
-                        case "Атаковать":
-                            // Выходим из взаимодействия после атаки или ухода
-                            continueInteraction = false;
-                            break;
+                        // Для NPC, монстров и других взаимодействующих объектов
+                        interactableEntity.ExecuteAction(_player, selectedAction);
 
-                        case "Осмотреть":
-                        case "Поговорить":
-                            // После осмотра или разговора продолжаем взаимодействие
-                            // (показываем меню действий снова)
-                            continueInteraction = true;
-                            break;
-
-                        default:
-                            // Для других действий по умолчанию продолжаем взаимодействие
-                            continueInteraction = true;
-                            break;
+                        // Определяем, нужно ли продолжать взаимодействие
+                        switch (selectedAction)
+                        {
+                            case "Уйти":
+                            case "Атаковать":
+                                continueInteraction = false;
+                                break;
+                            case "Осмотреть":
+                            case "Поговорить":
+                            case "Торговать":
+                                continueInteraction = true;
+                                break;
+                            default:
+                                continueInteraction = true;
+                                break;
+                        }
+                    }
+                    else if (worldEntity.Entity is InventoryItem itemEntity)
+                    {
+                        // Для предметов на земле
+                        HandleItemAction(itemEntity, selectedAction, ref continueInteraction);
                     }
                 }
                 else
                 {
-                    // Если игрок нажал Q/Отмена - выходим из взаимодействия
                     continueInteraction = false;
                 }
             }
         }
+
+        // НОВЫЙ МЕТОД ДЛЯ ОБРАБОТКИ ДЕЙСТВИЙ С ПРЕДМЕТАМИ
+        private static void HandleItemAction(InventoryItem item, string action, ref bool continueInteraction)
+        {
+            switch (action)
+            {
+                case "Подобрать":
+                    _player.AddItemToInventory(item.Details, item.Quantity);
+                    _player.CurrentLocation.GroundItems.Remove(item);
+                    CheckQuestItemPickup(item.Details, item.Quantity);
+                    MessageSystem.AddMessage($"Вы подобрали: {item.Details.Name} x{item.Quantity}");
+                    continueInteraction = false;
+                    break;
+
+                case "Осмотреть":
+                    item.Details.Read();
+                    Console.WriteLine("\nНажмите любую клавишу...");
+                    Console.ReadKey();
+                    continueInteraction = true; // Продолжаем взаимодействие
+                    break;
+
+                case "Назад":
+                    continueInteraction = false;
+                    break;
+            }
+        }        // НОВЫЙ МЕТОД ДЛЯ ПОДБОРА ПРЕДМЕТОВ
+        private static void PickUpItem(InventoryItem item)
+        {
+            Console.Clear();
+            Console.WriteLine($"Вы нашли: {item.Details.Name} x{item.Quantity}");
+
+            var actions = new List<string> { "Подобрать", "Осмотреть", "Оставить" };
+            var selectedAction = MenuSystem.SelectFromList(
+                actions,
+                action => action,
+                $"ВЗАИМОДЕЙСТВИЕ: {item.Details.Name}",
+                "Выберите действие"
+            );
+
+            switch (selectedAction)
+            {
+                case "Подобрать":
+                    _player.AddItemToInventory(item.Details, item.Quantity);
+                    _player.CurrentLocation.GroundItems.Remove(item);
+
+                    // Проверяем квестовые предметы
+                    CheckQuestItemPickup(item.Details, item.Quantity);
+
+                    MessageSystem.AddMessage($"Вы подобрали: {item.Details.Name} x{item.Quantity}");
+                    break;
+
+                case "Осмотреть":
+                    item.Details.Read();
+                    Console.WriteLine("\nНажмите любую клавишу...");
+                    Console.ReadKey();
+                    PickUpItem(item); // Возвращаемся к выбору действия
+                    break;
+
+                case "Оставить":
+                    MessageSystem.AddMessage($"Вы оставили {item.Details.Name} на земле");
+                    break;
+            }
+        }
+
+        // Метод для проверки квестовых предметов
+        private static void CheckQuestItemPickup(Item item, int quantity)
+        {
+            foreach (var quest in _player.QuestLog.ActiveQuests)
+            {
+                var questItem = quest.QuestItems.FirstOrDefault(qi => qi.Details.ID == item.ID);
+                if (questItem != null)
+                {
+                    MessageSystem.AddMessage($"Найден предмет для квеста: {quest.Name}");
+                }
+            }
+        }
+
+
     }
 
 }

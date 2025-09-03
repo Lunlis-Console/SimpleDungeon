@@ -10,9 +10,8 @@ namespace Engine
     {
         Monster,
         NPC,
+        Item,
         Chest,
-        Door,
-        Container
-        // ... другие типы можно добавить в будущем ...
+        Door
     }
 }
