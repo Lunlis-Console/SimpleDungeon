@@ -10,11 +10,13 @@ namespace Engine
     {
         public int CurrentHP { get; set; }
         public int MaximumHP { get; set; }
+        public Attributes Attributes { get; set; }
 
-        public LivingCreature(int currentHP, int maximumHP)
+        public LivingCreature(int currentHP, int maximumHP, Attributes attributes = null)
         {
             CurrentHP = currentHP;
             MaximumHP = maximumHP;
+            Attributes = attributes ?? new Attributes();
         }
     }
 }

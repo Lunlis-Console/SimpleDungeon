@@ -18,10 +18,10 @@ namespace Engine
         public int BaseAgility { get; set; }
         public int BaseMaximumHP { get; set; }
         public int TotalMaximumHP => BaseMaximumHP + Inventory.CalculateTotalHealth();
-        public int Attack => BaseAttack + Inventory.CalculateTotalAttack();
-        public int Defence => BaseDefence + Inventory.CalculateTotalDefence();
-        public int Agility => BaseAgility + Inventory.CalculateTotalAgility();
-        
+        public int Attack => BaseAttack + Inventory.CalculateTotalAttack() + (Attributes.Strength / 2);
+        public int Defence => BaseDefence + Inventory.CalculateTotalDefence() + (Attributes.Constitution / 2);
+        public int Agility => BaseAgility + Inventory.CalculateTotalAgility() + Attributes.Dexterity;
+
         public int CurrentSpeed { get; set; }
         public Location CurrentLocation { get; set; }
         public Inventory Inventory { get; private set; }
@@ -32,7 +32,7 @@ namespace Engine
         public QuestLog QuestLog { get; set; }
 
         public Player(int gold, int currentHP, int maximumHP, int currentEXP, int maximumEXP, int level,
-            int baseAttack, int baseDefence, int agility) :
+            int baseAttack, int baseDefence, int agility, Attributes attributes = null) :
             base(currentHP, maximumHP)
         {
             Gold = gold;
@@ -357,7 +357,23 @@ namespace Engine
                 MessageSystem.AddMessage("СИСТЕМА: Здесь нет такого человека.");
             }
         }
+        public bool CheckSkill(int difficulty, string attribute, int bonus = 0)
+        {
+            int attributeValue = attribute.ToLower() switch
+            {
+                "strength" => Attributes.Strength,
+                "constitution" => Attributes.Constitution,
+                "dexterity" => Attributes.Dexterity,
+                "intelligence" => Attributes.Intelligence,
+                "wisdom" => Attributes.Wisdom,
+                "charisma" => Attributes.Charisma,
+                _ => 10
+            };
 
+            Random random = new Random();
+            int roll = random.Next(1, 21) + attributeValue + bonus;
+            return roll >= difficulty;
+        }
 
     }
 }

@@ -114,21 +114,34 @@ namespace Engine
 
         private static void PopulateMonsters()
         {
-            Monster rat = new Monster(MONSTER_ID_RAT, "Крыса", 1, 10, 10, 5, 5, 5, 5, 20);
+            Monster rat = new Monster(1, "Крыса", 1, 10, 10, 5, 5,
+                new Attributes(strength: 8, constitution: 6, dexterity: 12,
+                      intelligence: 2, wisdom: 4, charisma: 3));
             rat.LootTable.Add(new LootItem(ItemByID(ITEM_ID_GOLD_RING), 25, false));
             rat.LootTable.Add(new LootItem(ItemByID(ITEM_ID_RATS_MEAT), 100, false));
 
-            Monster spider = new Monster(MONSTER_ID_SPIDER, "Паук", 1, 25, 25, 10, 5, 10, 10, 15);
+            Monster goblin = new Monster(2, "Гоблин", 2, 20, 20, 15, 10,
+                new Attributes(strength: 12, constitution: 10, dexterity: 10,
+                      intelligence: 6, wisdom: 5, charisma: 4));
+
+
+            Monster spider = new Monster(MONSTER_ID_SPIDER, "Паук", 1, 25, 25, 10, 5,
+                new Attributes(strength: 12, constitution: 10, dexterity: 10,
+                      intelligence: 6, wisdom: 5, charisma: 4));
             spider.LootTable.Add(new LootItem(ItemByID(ITEM_ID_RICH_AMULET), 25, false));
             spider.LootTable.Add(new LootItem(ItemByID(ITEM_ID_SPIDER_SILK), 60, false));
 
-            Monster olderRat = new Monster(MONSTER_ID_OLDER_RAT, "Матерая крыса", 1, 30, 30, 20, 10, 25, 25, 20);
+            Monster olderRat = new Monster(MONSTER_ID_OLDER_RAT, "Матерая крыса", 1, 30, 30, 20, 10, 
+                new Attributes(strength: 12, constitution: 10, dexterity: 10,
+                      intelligence: 6, wisdom: 5, charisma: 4));
             olderRat.LootTable.Add(new LootItem(ItemByID(ITEM_ID_FAMILY_RING), 25, false));
             olderRat.LootTable.Add(new LootItem(ItemByID(ITEM_ID_RATS_MEAT), 100, false));
             olderRat.LootTable.Add(new LootItem(ItemByID(ITEM_ID_RATS_MEAT), 100, false));
             olderRat.LootTable.Add(new LootItem(ItemByID(ITEM_ID_RATS_MEAT), 100, false));
 
-            Monster olderSpider = new Monster(MONSTER_ID_OLDER_SPIDER, "Матерый паук", 1, 50, 50, 40, 25, 50, 50, 15);
+            Monster olderSpider = new Monster(MONSTER_ID_OLDER_SPIDER, "Матерый паук", 1, 50, 50, 40, 25, 
+                new Attributes(strength: 12, constitution: 10, dexterity: 10,
+                      intelligence: 6, wisdom: 5, charisma: 4));
             spider.LootTable.Add(new LootItem(ItemByID(ITEM_ID_RICH_AMULET), 25, false));
             spider.LootTable.Add(new LootItem(ItemByID(ITEM_ID_SPIDER_SILK), 60, false));
 
