@@ -68,6 +68,7 @@ namespace Engine
             PopulateMonsters();
             PopulateQuests();
             PopulateLocations();
+          
             PopulateTitles();
 
 
@@ -166,20 +167,33 @@ namespace Engine
 
         private static void PopulateLocations()
         {
-            List<InventoryItem> villageTraderInventory = new List<InventoryItem>();
-            villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_WEAK_HEALING_POTION), 25));
-            villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_SWORD), 1));
-            villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_LEATHER_HELMET), 1));
-            villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_LEATHER_ARMOR), 1));
-            villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_SHIELD), 1));
-            villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_HELMET), 1));
-            villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_ARMOR), 1));
-            villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_GLOVES), 1));
-            villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_BOOTS), 1));
-            villageTraderInventory.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_GREATSWORD), 1));
 
-            Trader villageTrader = new Trader(NPC_ID_VILLAGE_TRADER, "Купец Зарубий", "Добро пожаловать в мою лавку, путник!" +
-                " Товары самого высшего качества, для тебя особенная цена!", villageTraderInventory);
+
+
+            Trader villageTrader = TraderByID(NPC_ID_VILLAGE_TRADER);
+
+            // ДОБАВЬТЕ ПРОВЕРКУ НА NULL
+            if (villageTrader == null)
+            {
+                // Создаем торговца, если он не был создан ранее
+                villageTrader = new Trader(NPC_ID_VILLAGE_TRADER, "Купец Зарубий",
+                    "Добро пожаловать в мою лавку!");
+                Traders.Add(villageTrader);
+            }
+
+            villageTrader.ItemsForSale.Add(new InventoryItem(ItemByID(ITEM_ID_WEAK_HEALING_POTION), 25));
+
+            List<InventoryItem> villageTraderInventory = new List<InventoryItem>();
+            villageTrader.ItemsForSale.Add(new InventoryItem(ItemByID(ITEM_ID_WEAK_HEALING_POTION), 25));
+            villageTrader.ItemsForSale.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_SWORD), 1));
+            villageTrader.ItemsForSale.Add(new InventoryItem(ItemByID(ITEM_ID_LEATHER_HELMET), 1));
+            villageTrader.ItemsForSale.Add(new InventoryItem(ItemByID(ITEM_ID_LEATHER_ARMOR), 1));
+            villageTrader.ItemsForSale.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_SHIELD), 1));
+            villageTrader.ItemsForSale.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_HELMET), 1));
+            villageTrader.ItemsForSale.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_ARMOR), 1));
+            villageTrader.ItemsForSale.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_GLOVES), 1));
+            villageTrader.ItemsForSale.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_BOOTS), 1));
+            villageTrader.ItemsForSale.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_GREATSWORD), 1));
 
             // Получаем NPC из квестов (они уже созданы в PopulateQuests с квестами)
             NPC villageElder = Quests.First(q => q.ID == QUEST_ID_RAT_HUNT).QuestGiver;
@@ -198,10 +212,7 @@ namespace Engine
             Monster olderSpiderTemplate = MonsterByID(MONSTER_ID_OLDER_SPIDER);
             Monster olderRatTemplate = MonsterByID(MONSTER_ID_OLDER_RAT);
 
-            Traders.Add(villageTrader);
-
-            Location village = new Location(LOCATION_ID_VILLAGE, "Деревня", "Здесь вы родились, тут безопасно.",
-                null, false);
+            Location village = new Location(LOCATION_ID_VILLAGE, "Деревня", "Здесь вы родились, тут безопасно.");
 
             village.NPCsHere.Add(villageTrader);
             village.NPCsHere.Add(villageElder);
@@ -289,10 +300,16 @@ namespace Engine
             spiderSilk.RewardItems.Add(new InventoryItem(ItemByID(ITEM_ID_WEAK_HEALING_POTION), 10));
             craftsman.AddQuest(spiderSilk);
 
+            // ПОЛУЧАЕМ торговца вместо создания нового
+            Trader trader = TraderByID(NPC_ID_VILLAGE_TRADER);
+            if (trader == null)
+            {
+                trader = new Trader(NPC_ID_VILLAGE_TRADER, "Купец Зарубий",
+                    "Добро пожаловать в мою лавку, путник! Товары самого высшего качества!");
+                Traders.Add(trader);
+            }
 
-            // Квест на сбор ящиков для торговца
-            var trader = (Trader)NPCByID(NPC_ID_VILLAGE_TRADER);
-
+            // Квест на сбор ящиков
             var crateQuest = new CollectibleQuest(
                 QUEST_ID_LOST_CRATES,
                 "Потерянные ящики",
@@ -310,11 +327,11 @@ namespace Engine
             // Настраиваем места спавна
             crateQuest.SpawnLocations.AddRange(new[]
             {
-                new CollectibleSpawn(LOCATION_ID_FIELD_OF_NORTH, ITEM_ID_CRATE),
-                new CollectibleSpawn(LOCATION_ID_FIELD_OF_SOUTH, ITEM_ID_CRATE2),
-                new CollectibleSpawn(LOCATION_ID_FIELD_OF_EAST, ITEM_ID_CRATE3),
-                new CollectibleSpawn(LOCATION_ID_FIELD_OF_WEST, ITEM_ID_CRATE4)
-            });
+        new CollectibleSpawn(LOCATION_ID_FIELD_OF_NORTH, ITEM_ID_CRATE),
+        new CollectibleSpawn(LOCATION_ID_FIELD_OF_SOUTH, ITEM_ID_CRATE2),
+        new CollectibleSpawn(LOCATION_ID_FIELD_OF_EAST, ITEM_ID_CRATE3),
+        new CollectibleSpawn(LOCATION_ID_FIELD_OF_WEST, ITEM_ID_CRATE4)
+    });
 
             // ДОБАВЛЯЕМ КОЛБЭК ЗДЕСЬ - после создания квеста
             crateQuest.OnQuestComplete = (player) =>
@@ -332,10 +349,12 @@ namespace Engine
             trader.AddQuest(crateQuest);
             Quests.Add(crateQuest);
 
+            // УБЕРИТЕ ЭТУ СТРОКУ - торговец уже добавлен выше
+            // Traders.Add(trader);
+
             Quests.Add(ratHunt);
             Quests.Add(spiderSilk);
         }
-
         private static void PopulateTitles()
         {
             // Истребитель крыс - бонус против крыс
@@ -356,32 +375,17 @@ namespace Engine
 
         public static Item ItemByID(int id)
         {
-            foreach(Item item in Items)
-            {
-                if (item.ID == id) return item;
-            }
-
-            return null;
+            return Items.FirstOrDefault(item => item.ID == id);
         }
 
         public static Monster MonsterByID(int id)
         {
-            foreach(Monster monster in Monsters)
-            {
-                if (monster.ID == id) return monster;
-            }
-
-            return null;
+            return Monsters.FirstOrDefault(monster => monster.ID == id);
         }
 
         public static Location LocationByID(int id)
         {
-            foreach(Location location in Locations)
-            {
-                if(location.ID == id) return location;
-            }
-
-            return null;
+            return Locations.FirstOrDefault(location => location.ID == id);
         }
 
         public static Trader TraderByID(int id)
@@ -406,6 +410,11 @@ namespace Engine
                 var npc = location.NPCsHere.FirstOrDefault(n => n.ID == id);
                 if (npc != null) return npc;
             }
+
+            // Также ищем среди traders
+            var trader = Traders.FirstOrDefault(t => t.ID == id);
+            if (trader != null) return trader;
+
             return null;
         }
 

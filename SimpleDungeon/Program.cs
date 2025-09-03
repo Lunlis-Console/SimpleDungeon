@@ -532,7 +532,6 @@ namespace SimpleDungeon
 
         private static void InteractWithWorld()
         {
-            // 1. Собираем все объекты для взаимодействия в текущей локации
             var worldEntities = new List<WorldEntity>();
 
             // Добавляем монстров
@@ -548,45 +547,27 @@ namespace SimpleDungeon
                 worldEntities.Add(new WorldEntity(npc, EntityType.NPC, npc.Name));
             }
 
-            // ДОБАВЛЯЕМ ПРЕДМЕТЫ НА ЗЕМЛЕ
+            // Добавляем предметы на земле
             foreach (var item in _player.CurrentLocation.GroundItems)
             {
                 worldEntities.Add(new WorldEntity(item, EntityType.Item, $"{item.Details.Name}"));
             }
 
-            // 2. Если не с чем взаимодействовать, выходим
+            // Если не с чем взаимодействовать
             if (worldEntities.Count == 0)
             {
                 MessageSystem.AddMessage("Здесь не с чем взаимодействовать.");
                 return;
             }
 
-            // 3. Используем MenuSystem для выбора цели - ВОТ ЗДЕСЬ ВСТАВЛЯЕМ КОД:
+            // Выбор сущности для взаимодействия
             var selectedWorldEntity = MenuSystem.SelectFromList(
                 worldEntities,
-                entity =>
-                {
-                    switch (entity.Type)
-                    {
-                        case EntityType.Monster:
-                            return $"{entity.DisplayName} (Монстр)";
-                        case EntityType.NPC:
-                            return $"{entity.DisplayName} (Житель)";
-                        case EntityType.Item:
-                            return $"📦 {entity.DisplayName} (Предмет)"; // Добавляем иконку
-                        case EntityType.Chest:
-                            return $"{entity.DisplayName} (Сундук)";
-                        case EntityType.Door:
-                            return $"{entity.DisplayName} (Дверь)";
-                        default:
-                            return entity.DisplayName;
-                    }
-                },
+                entity => entity.DisplayName,
                 "ВЫБЕРИТЕ ЦЕЛЬ",
                 "Клавиши 'W' 'S' для выбора, 'E' - взаимодействовать, 'Q' - отмена"
             );
 
-            // 4. Если сущность выбрана, переходим к меню действий для нее
             if (selectedWorldEntity != null)
             {
                 InteractWithEntity(selectedWorldEntity);
@@ -594,88 +575,54 @@ namespace SimpleDungeon
         }
         private static void InteractWithEntity(WorldEntity worldEntity)
         {
-            // Если это предмет на земле
+            // Если это предмет на земле - обрабатываем отдельно
             if (worldEntity.Entity is InventoryItem groundItem)
             {
                 PickUpItem(groundItem);
                 return;
             }
 
-            bool continueInteraction = true;
-
-            while (continueInteraction)
+            // Для всех остальных типов сущностей (монстры, NPC и т.д.)
+            if (worldEntity.Entity is IInteractable interactable)
             {
-                Console.Clear();
-                MessageSystem.DisplayMessages();
+                bool continueInteraction = true;
 
-                // Получаем доступные действия для выбранной сущности
-                List<string> actions;
-                string entityName;
+                while (continueInteraction)
+                {
+                    Console.Clear();
+                    MessageSystem.DisplayMessages();
 
-                // ОБРАБАТЫВАЕМ РАЗНЫЕ ТИПЫ СУЩНОСТЕЙ
-                if (worldEntity.Entity is IInteractable interactable)
-                {
-                    actions = interactable.GetAvailableActions(_player);
-                    entityName = interactable.Name;
-                }
-                else if (worldEntity.Entity is InventoryItem item)
-                {
-                    // Для предметов создаем специальные действия
-                    actions = new List<string> { "Подобрать", "Осмотреть", "Назад" };
-                    entityName = item.Details.Name;
-                }
-                else
-                {
-                    MessageSystem.AddMessage("Нельзя взаимодействовать с этим объектом.");
-                    return;
-                }
+                    List<string> actions = interactable.GetAvailableActions(_player);
+                    actions.Add("Назад"); // Добавляем опцию возврата
 
-                // Показываем меню выбора действия
-                var selectedAction = MenuSystem.SelectFromList(
-                    actions,
-                    action => action,
-                    $"ВЗАИМОДЕЙСТВИЕ: {entityName}",
-                    "Клавиши 'W' 'S' для выбора, 'E' - выполнить, 'Q' - назад"
-                );
+                    var selectedAction = MenuSystem.SelectFromList(
+                        actions,
+                        action => action,
+                        $"ВЗАИМОДЕЙСТВИЕ: {interactable.Name}",
+                        "Клавиши 'W' 'S' для выбора, 'E' - выполнить, 'Q' - назад"
+                    );
 
-                if (selectedAction != null)
-                {
-                    // ОБРАБАТЫВАЕМ ВЫБРАННОЕ ДЕЙСТВИЕ
-                    if (worldEntity.Entity is IInteractable interactableEntity)
+                    if (selectedAction != null && selectedAction != "Назад")
                     {
-                        // Для NPC, монстров и других взаимодействующих объектов
-                        interactableEntity.ExecuteAction(_player, selectedAction);
+                        interactable.ExecuteAction(_player, selectedAction);
 
-                        // Определяем, нужно ли продолжать взаимодействие
-                        switch (selectedAction)
+                        // Если действие завершает взаимодействие (например, атака или уход)
+                        if (selectedAction == "Атаковать" || selectedAction == "Уйти")
                         {
-                            case "Уйти":
-                            case "Атаковать":
-                                continueInteraction = false;
-                                break;
-                            case "Осмотреть":
-                            case "Поговорить":
-                            case "Торговать":
-                                continueInteraction = true;
-                                break;
-                            default:
-                                continueInteraction = true;
-                                break;
+                            continueInteraction = false;
                         }
                     }
-                    else if (worldEntity.Entity is InventoryItem itemEntity)
+                    else
                     {
-                        // Для предметов на земле
-                        HandleItemAction(itemEntity, selectedAction, ref continueInteraction);
+                        continueInteraction = false;
                     }
                 }
-                else
-                {
-                    continueInteraction = false;
-                }
+            }
+            else
+            {
+                MessageSystem.AddMessage("Нельзя взаимодействовать с этим объектом.");
             }
         }
-
         // НОВЫЙ МЕТОД ДЛЯ ОБРАБОТКИ ДЕЙСТВИЙ С ПРЕДМЕТАМИ
         private static void HandleItemAction(InventoryItem item, string action, ref bool continueInteraction)
         {
