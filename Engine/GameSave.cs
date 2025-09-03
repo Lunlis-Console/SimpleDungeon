@@ -22,6 +22,7 @@ namespace Engine
         public int Level { get; set; }
         public int BaseAttack { get; set; }
         public int BaseDefence { get; set; }
+        public int BaseAgility { get; set; }
         public int Agility { get; set; }
         public int LocationID { get; set; }
 
@@ -106,7 +107,8 @@ namespace Engine
                 Level = player.Level,
                 BaseAttack = player.BaseAttack,
                 BaseDefence = player.BaseDefence,
-                Agility = player.Agility,
+                BaseAgility = player.BaseAgility,
+                Agility = player.BaseAgility, // Для обратной совместимости
                 LocationID = player.CurrentLocation?.ID ?? World.LOCATION_ID_VILLAGE,
 
                 Inventory = player.Inventory.Items.Select(ii =>
@@ -148,11 +150,22 @@ namespace Engine
             string json = File.ReadAllText(filePath);
             GameSave save = JsonSerializer.Deserialize<GameSave>(json);
 
+            // Обработка обратной совместимости
+            int baseAgility;
+            if (save.BaseAgility != 0) // Новые сохранения
+            {
+                baseAgility = save.BaseAgility;
+            }
+            else // Старые сохранения
+            {
+                baseAgility = save.Agility;
+            }
+
             // Создаем игрока с базовыми характеристиками
             var player = new Player(
                 save.Gold, save.CurrentHP, save.MaximumHP,
                 save.CurrentEXP, save.MaximumEXP, save.Level,
-                save.BaseAttack, save.BaseDefence, save.Agility
+                save.BaseAttack, save.BaseDefence, baseAgility
             );
 
             // Загружаем инвентарь

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static DisplayUtilities;
+using static ConsoleOperations;
 
 namespace Engine
 {
@@ -243,39 +245,7 @@ namespace Engine
             Console.WriteLine("| 3 - защищаться | 4 - бежать |");
         }
 
-        private void DrawHealthBar(int current, int max, int length)
-        {
-            // Защита от отрицательных значений
-            current = Math.Max(current, 0);
-            max = Math.Max(max, 1); // Защита от деления на ноль
-
-            float percentage = (float)current / max;
-            int bars = (int)(length * percentage);
-
-            // Гарантируем, что bars и emptyBars не будут отрицательными
-            bars = Math.Max(0, Math.Min(bars, length));
-            int emptyBars = length - bars;
-            emptyBars = Math.Max(0, emptyBars); // Дополнительная защита
-
-            // Форматируем числа с выравниванием
-            string healthText = $"{current}/{max}";
-
-            Console.Write("Здоровье: [");
-
-            // Цвет health bar в зависимости от процентов HP
-            if (percentage > 0.5f)
-                Console.ForegroundColor = ConsoleColor.Green;
-            else if (percentage > 0.25f)
-                Console.ForegroundColor = ConsoleColor.Yellow;
-            else
-                Console.ForegroundColor = ConsoleColor.Red;
-
-            Console.Write(new string('█', bars));
-            Console.Write(new string('░', emptyBars));
-            Console.ResetColor();
-
-            Console.WriteLine($"] {healthText}");
-        }
+  
 
         private void ProcessPlayerInput()
         {
@@ -435,51 +405,26 @@ namespace Engine
             Monster.CurrentSpeed = Math.Min(Monster.CurrentSpeed, 100);
         }
 
-        private void DrawSpeedBar(int current, int length)
-        {
-            float percentage = (float)current / 100;
-            int bars = (int)(length * percentage);
-
-            Console.Write("Скорость: [");
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.Write(new string('█', bars));
-            Console.Write(new string('░', length - bars));
-            Console.ResetColor();
-            Console.WriteLine($"] {current}%");
-        }
-                
         private void RenderStaticCombatLayout()
         {
-            monsterSpeedLine = 4; // Установите соответствующие значения
+            monsterSpeedLine = 4;
             playerSpeedLine = 22;
 
             Console.Clear();
 
             // === ИНФОРМАЦИЯ О ТЕКУЩЕМ СОСТОЯНИИ ХОДА ===
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine($"=== НАПОЛНЕНИЕ ШКАЛЫ СКОРОСТИ ===");
-            Console.WriteLine($"================ ХОД {_currentTurn} ================");
-            Console.ResetColor();
+            DrawHeader($"=== НАПОЛНЕНИЕ ШКАЛЫ СКОРОСТИ ===");
+            DrawHeader($"================ ХОД {_currentTurn} ================");
 
             // === МОНСТР ===
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine($"=======[{Monster.Name}][{Monster.Level}]========");
+            Console.WriteLine($" [{Monster.Name}][{Monster.Level}]");
             Console.ResetColor();
 
             DrawHealthBar(Monster.CurrentHP, Monster.MaximumHP, 20);
-
-            //Console.Write("Здоровье: [");
-            //Console.Write(new string(' ', 20));
-            //Console.WriteLine($"] {Monster.CurrentHP}/{Monster.MaximumHP}");
-
             monsterSpeedLine = Console.CursorTop;
-            DrawSpeedBar(0, 20); // Начинаем с 0%
-
-            //Console.Write("Скорость: [");
-            //Console.Write(new string(' ', 20));
-            //Console.WriteLine("] 0%");
-
-            Console.WriteLine($"АТК: {Monster.Attack} | ЗЩТ: {Monster.Defence} | ЛОВ: {Monster.Agility}");
+            DrawSpeedBar(0, 20);
+            DrawStatBlock(Monster.Attack, Monster.Defence, Monster.Agility);
             Console.WriteLine("====================================");
 
             // === БОЕВОЙ ЛОГ ===
@@ -494,23 +439,13 @@ namespace Engine
 
             // === ИГРОК ===
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"========[Игрок][{Player.Level}]========");
+            Console.WriteLine($" [Игрок][{Player.Level}]");
             Console.ResetColor();
 
             DrawHealthBar(Player.CurrentHP, Player.TotalMaximumHP, 20);
-
-            //Console.Write("Здоровье: [");
-            //Console.Write(new string(' ', 20));
-            //Console.WriteLine($"] {Player.CurrentHP}/{Player.MaximumHP}");
-
             playerSpeedLine = Console.CursorTop;
-            DrawSpeedBar(0, 20); // Начинаем с 0%
-
-            //Console.Write("Скорость: [");
-            //Console.Write(new string(' ', 20));
-            //Console.WriteLine("] 0%");
-
-            Console.WriteLine($"АТК: {Player.Attack} | ЗЩТ: {Player.Defence} | ЛОВ: {Player.Agility}");
+            DrawSpeedBar(0, 20);
+            DrawStatBlock(Player.Attack, Player.Defence, Player.Agility);
 
             // === ДЕЙСТВИЯ ===
             Console.WriteLine("=========Действия=========");
@@ -521,158 +456,47 @@ namespace Engine
         // Обновляем методы для использования фиксированных позиций
         private void UpdateTurnStatus()
         {
-            int originalLeft = Console.CursorLeft;
-            int originalTop = Console.CursorTop;
-
-            Console.SetCursorPosition(0, TurnStatusLine);
-            Console.ForegroundColor = ConsoleColor.Yellow;
-
-            if (Player.CurrentSpeed >= 100)
-                Console.Write($"=== ВАШ ХОД ===");
-            else if (Monster.CurrentSpeed >= 100)
-                Console.Write($"=== ХОД {Monster.Name.ToUpper()} ===");
-            else
-                Console.Write("=== НАПОЛНЕНИЕ ШКАЛЫ СКОРОСТИ ===");
-
-            // Очищаем оставшуюся часть строки
-            Console.Write(new string(' ', Console.WindowWidth - Console.CursorLeft));
-
-            Console.ResetColor();
-            Console.SetCursorPosition(originalLeft, originalTop);
+            UpdateAtPosition(TurnStatusLine, () =>
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                if (Player.CurrentSpeed >= 100)
+                    Console.Write($"=== ВАШ ХОД ===");
+                else if (Monster.CurrentSpeed >= 100)
+                    Console.Write($"=== ХОД {Monster.Name.ToUpper()} ===");
+                else
+                    Console.Write("=== НАПОЛНЕНИЕ ШКАЛЫ СКОРОСТИ ===");
+                Console.ResetColor();
+            });
         }
 
         private void UpdateTurnNumber()
         {
-            int originalLeft = Console.CursorLeft;
-            int originalTop = Console.CursorTop;
-
-            Console.SetCursorPosition(0, TurnNumberLine);
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write($"================ ХОД {_currentTurn} ================");
-            Console.Write(new string(' ', Console.WindowWidth - Console.CursorLeft));
-            Console.ResetColor();
-            Console.SetCursorPosition(originalLeft, originalTop);
+            UpdateAtPosition(TurnNumberLine, () =>
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write($"================ ХОД {_currentTurn} ================");
+                Console.ResetColor();
+            });
         }
 
         private void UpdateHealthBar(int current, int max, int line, string label)
         {
-            if (line < 0 || line >= Console.BufferHeight)
+            if (line < 0) return;
+
+            UpdateAtPosition(line, () =>
             {
-                return;
-            }
-
-            int originalLeft = Console.CursorLeft;
-            int originalTop = Console.CursorTop;
-
-            try
-            {
-                Console.SetCursorPosition(0, line);
-
-                // ОЧИСТКА СТРОКИ
-                Console.Write(new string(' ', Console.WindowWidth));
-                Console.SetCursorPosition(0, line);
-
-                // Защита от отрицательных значений
-                current = Math.Max(current, 0);
-                max = Math.Max(max, 1); // Защита от деления на ноль
-
-                float percentage = (float)current / max;
-                int bars = (int)(20 * percentage);
-
-                // Гарантируем, что bars и emptyBars не будут отрицательными
-                bars = Math.Max(0, Math.Min(bars, 20));
-                int emptyBars = 20 - bars;
-                emptyBars = Math.Max(0, emptyBars); // Дополнительная защита
-
-                // Форматируем текст здоровья
-                string healthText = $"{current}/{max}";
-
-                Console.Write($"{label}: [");
-
-                if (percentage > 0.5f)
-                    Console.ForegroundColor = ConsoleColor.Green;
-                else if (percentage > 0.25f)
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                else
-                    Console.ForegroundColor = ConsoleColor.Red;
-
-                Console.Write(new string('█', bars));
-                Console.Write(new string('░', emptyBars));
-                Console.ResetColor();
-
-                Console.WriteLine($"] {healthText}");
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                // Игнорируем ошибку позиционирования
-            }
-            finally
-            {
-                try
-                {
-                    Console.SetCursorPosition(originalLeft, originalTop);
-                }
-                catch (ArgumentOutOfRangeException)
-                {
-                    Console.SetCursorPosition(0, 0);
-                }
-            }
+                DrawHealthBar(current, max, 20, label);
+            });
         }
 
         private void UpdateSpeedBar(int current, int line, string label)
         {
-            // Проверяем что позиция в пределах допустимого
-            if (line < 0 || line >= Console.BufferHeight)
+            if (line < 0) return;
+
+            UpdateAtPosition(line, () =>
             {
-                return; // Выходим если позиция невалидная
-            }
-
-            int originalLeft = Console.CursorLeft;
-            int originalTop = Console.CursorTop;
-
-            try
-            {
-                Console.SetCursorPosition(0, line);
-
-                // ОЧИСТКА СТРОКИ перед отрисовкой
-                Console.Write(new string(' ', Console.WindowWidth));
-                Console.SetCursorPosition(0, line);
-
-                // Ограничиваем current в диапазоне 0-100
-                current = Math.Max(0, Math.Min(current, 100));
-                float percentage = (float)current / 100;
-                int bars = (int)(20 * percentage);
-
-                // Гарантируем, что bars и emptyBars не будут отрицательными
-                bars = Math.Max(0, Math.Min(bars, 20));
-                int emptyBars = 20 - bars;
-
-                Console.Write($"{label}: [");
-                Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.Write(new string('█', bars));
-                Console.Write(new string('░', emptyBars));
-                Console.ResetColor();
-
-                // ИСПРАВЛЕНИЕ: Убрать лишний символ процента
-                Console.WriteLine($"] {current}%"); // БЫЛО: {current}%%
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                // Игнорируем ошибку позиционирования
-            }
-            finally
-            {
-                // Всегда возвращаем курсор на исходную позицию
-                try
-                {
-                    Console.SetCursorPosition(originalLeft, originalTop);
-                }
-                catch (ArgumentOutOfRangeException)
-                {
-                    // Если исходная позиция тоже невалидная, просто сбрасываем курсор
-                    Console.SetCursorPosition(0, 0);
-                }
-            }
+                DrawSpeedBar(current, 20, label);
+            });
         }
 
         private void UpdateCombatLog()
