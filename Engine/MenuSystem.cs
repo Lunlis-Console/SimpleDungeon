@@ -62,6 +62,8 @@
                 }
             } while (key != ConsoleKey.E && key != ConsoleKey.Enter && key != ConsoleKey.Spacebar);
 
+            Console.Clear();
+
             return items[selectedIndex];
         }
 

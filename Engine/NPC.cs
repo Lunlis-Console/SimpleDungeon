@@ -6,6 +6,11 @@
         public string Name { get; set; }
         public string Greeting { get; set; }
         public List<Quest> QuestsToGive { get; set; }
+        public virtual List<InventoryItem> ItemsForSale { get; set; }
+        public virtual int Gold { get; set; }
+        public virtual int BuyPriceModifier => 100; // 100% по умолчанию
+        public virtual int SellPriceModifier => 80; // 80% по умолчанию
+        public ITrader Trader { get; set; } // Добавляем это свойство
 
         public NPC(int id, string name, string greeting = "")
         {
@@ -15,6 +20,42 @@
             QuestsToGive = new List<Quest>();
         }
 
+        // Новый метод для инициализации магазина
+        public virtual void InitializeShop(Player player)
+        {
+            // Базовая реализация - может быть переопределена
+            ItemsForSale = new List<InventoryItem>();
+        }
+
+        public virtual bool CanAfford(Item item, int quantity, Player player)
+        {
+            return player.Gold >= (item.Price * BuyPriceModifier / 100) * quantity;
+        }
+
+        public virtual string GetShopGreeting()
+        {
+            return $"{Name}: Что желаете приобрести?";
+        }
+
+        // В методе GetAvailableActions добавьте:
+        public List<string> GetAvailableActions(Player player)
+        {
+            var actions = new List<string> { "Поговорить", "Осмотреть" };
+
+            // Добавляем опцию торговли если NPC является торговцем
+            if (Trader != null)
+            {
+                actions.Add("Торговать");
+            }
+
+            // Добавляем опцию квестов если они есть
+            if (QuestsToGive?.Count > 0)
+            {
+                actions.Add("Квесты");
+            }
+
+            return actions;
+        }
         private class MenuOption
         {
             public string DisplayText { get; }
@@ -30,18 +71,30 @@
         // Новый метод Talk - просто начинает разговор
         public virtual void Talk(Player player)
         {
+            DebugConsole.Log("DEBUG: NPC's Talk() started");
+
             // Создаем список опций с действиями
             var menuOptions = new List<MenuOption>();
+            DebugConsole.Log("DEBUG: Create list of options");
 
+            DebugConsole.Log("DEBUG: Try to check availabe quests");
             // Доступные квесты (еще не взятые)
             var availableQuests = QuestsToGive?
                 .Where(q => !player.QuestLog.ActiveQuests.Contains(q) &&
                            !player.QuestLog.CompletedQuests.Contains(q))
                 .ToList() ?? new List<Quest>();
 
+            for (int i = 0; i < availableQuests.Count; i++)
+            {
+                DebugConsole.Log(availableQuests[i].Name);
+            }
+
+
+
             foreach (var quest in availableQuests)
             {
                 menuOptions.Add(new MenuOption($"Квест: {quest.Name}", () => OfferQuest(player, quest)));
+
             }
 
             // Активные квесты (уже взятые, но еще не завершенные)
@@ -120,6 +173,7 @@
         }
         protected virtual void HaveConversation()
         {
+            DebugConsole.Log($"Conversation with: {Name}");
             Console.Clear();
             Console.WriteLine($"{Name}: {Greeting}");
             Console.WriteLine("\nНажмите любую клавишу чтобы продолжить...");
@@ -224,32 +278,34 @@
             }
         }
 
-        // ... остальной код класса NPC ...
-
-        // Реализация расширенного интерфейса IInteractable
-        public virtual List<string> GetAvailableActions(Player player)
-        {
-            var actions = new List<string> { "Поговорить", "Осмотреть" };
-            return actions;
-        }
-
-        public virtual void ExecuteAction(Player player, string action)
+        // В методе ExecuteAction добавьте:
+        public void ExecuteAction(Player player, string action)
         {
             switch (action)
             {
                 case "Поговорить":
-                    this.Talk(player);
+                    Talk(player);
                     break;
                 case "Осмотреть":
-                    OnExamine(player);
+                    Examine(player);
                     break;
-                default:
-                    MessageSystem.AddMessage("Неизвестное действие.");
+                case "Торговать":
+                    if (Trader != null)
+                    {
+                        new TradeSystem(Trader, player).StartTrade();
+                    }
+                    break;
+                case "Квесты":
+                    ShowQuestMenu(player);
                     break;
             }
         }
 
-        // Новый метод для осмотра NPC
+        private void ShowQuestMenu(Player player)
+        {
+            // Логика меню квестов (перенести из старого Talk метода)
+        }
+
         // Новый метод для осмотра NPC
         private void Examine(Player player)
         {

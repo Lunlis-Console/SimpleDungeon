@@ -35,20 +35,6 @@ namespace Engine
         public int MonstersKilled { get; set; }
         public int QuestsCompleted { get; set; }
 
-        // Устаревшие поля для обратной совместимости (помечены как obsolete)
-        [JsonIgnore]
-        public int? Agility { get; set; }
-        [JsonIgnore]
-        public int? EquippedHelmetID { get; set; }
-        [JsonIgnore]
-        public int? EquippedArmorID { get; set; }
-        [JsonIgnore]
-        public int? EquippedGlovesID { get; set; }
-        [JsonIgnore]
-        public int? EquippedBootsID { get; set; }
-        [JsonIgnore]
-        public int? EquippedWeaponID { get; set; }
-
         public GameSave()
         {
             Inventory = new List<InventoryItemData>();

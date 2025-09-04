@@ -121,6 +121,10 @@ namespace SimpleDungeon
                         {
                             _player = SaveManager.LoadGame("quicksave");
                             MessageSystem.AddMessage("Быстрая загрузка выполнена!");
+
+                        Console.Clear();
+                        DisplayUI();
+
                         }
                         catch
                         {
@@ -470,7 +474,12 @@ namespace SimpleDungeon
                 {
                     _player = SaveManager.LoadGame(selectedSave);
                     MessageSystem.AddMessage($"Игра загружена: {selectedSave}");
+
+                    Console.Clear();
+                    DisplayUI();
+
                     ProcessKeyInput();
+
                 }
                 catch (Exception ex)
                 {
@@ -478,9 +487,12 @@ namespace SimpleDungeon
                     Console.ReadKey();
                 }
             }
+
         }
         private static void StartNewGame()
         {
+            
+
             _player = new Player(0, 100, 100, 0, 100, 1, 0, 0, 10);
             _player.CurrentLocation = World.LocationByID(World.LOCATION_ID_VILLAGE);
 
@@ -492,6 +504,9 @@ namespace SimpleDungeon
             _player.Inventory.AddItem(World.ItemByID(World.ITEM_ID_LEATHER_GLOVES), 1);
             _player.Inventory.AddItem(World.ItemByID(World.ITEM_ID_LEATHER_BOOTS), 1);
             _player.Inventory.AddItem(World.ItemByID(World.ITEM_ID_RUSTY_SWORD), 1);
+
+            Console.Clear();
+            DisplayUI();
 
             ProcessKeyInput();
         }
@@ -564,12 +579,19 @@ namespace SimpleDungeon
                 "Выберите сохранение для загрузки"
             );
 
+
+
             if (selectedSave != null)
             {
                 try
                 {
                     _player = SaveManager.LoadGame(selectedSave);
+
                     MessageSystem.AddMessage($"Игра загружена: {selectedSave}");
+
+                    Console.Clear();
+                    DisplayUI();
+
                 }
                 catch (Exception ex)
                 {
@@ -577,6 +599,8 @@ namespace SimpleDungeon
                     Console.ReadKey();
                 }
             }
+
+            
         }
         private class MenuOption
         {
@@ -635,6 +659,7 @@ namespace SimpleDungeon
         }
         private static void InteractWithEntity(WorldEntity worldEntity)
         {
+
             // Если это предмет на земле - обрабатываем отдельно
             if (worldEntity.Entity is InventoryItem groundItem)
             {
