@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -73,6 +73,7 @@ namespace Engine
         public static readonly List<Location> Locations = new List<Location>();
         public static readonly List<Quest> Quests = new List<Quest>();
         public static readonly List<Title> Titles = new List<Title>();
+        public static readonly List<NPC> NPCs = new List<NPC>();
 
         #endregion
 
@@ -84,37 +85,29 @@ namespace Engine
             {
                 DebugConsole.Log("DEBUG: World initialization started");
 
+                // 1. Сначала создаем базовые объекты
                 PopulateItems();
                 DebugConsole.Log("DEBUG: Items populated");
 
                 PopulateMonsters();
                 DebugConsole.Log("DEBUG: Monsters populated");
 
-                
-
-                PopulateLocations();
-                DebugConsole.Log("DEBUG: Locations populated");
-
-                PopulateNPC();
-                DebugConsole.Log("DEBUG: NPC populated");
-
-                PopulateQuests();
-                DebugConsole.Log("DEBUG: Quests populated");
-
-
-
                 PopulateTitles();
                 DebugConsole.Log("DEBUG: Titles populated");
 
-                PopulateQuestItems();
-                DebugConsole.Log("DEBUG: Quest items populated");
+                // 2. Создаем NPC (без квестов пока)
+                PopulateNPC();
+                DebugConsole.Log("DEBUG: NPC populated");
 
-                //// Проверка после инициализации
-                //Trader trader = TraderByID(NPC_ID_VILLAGE_TRADER);
-                //if (trader != null)
-                //{
-                //    DebugConsole.Log($"DEBUG: Final check - Trader has {trader.QuestsToGive?.Count ?? 0} quests");
-                //}
+                // 3. Создаем квесты (теперь NPC уже существуют)
+                PopulateQuests();
+                DebugConsole.Log("DEBUG: Quests populated");
+
+                // 4. Создаем локации (все объекты уже созданы)
+                PopulateLocations();
+                DebugConsole.Log("DEBUG: Locations populated");
+
+                DebugConsole.Log("DEBUG: World initialization completed successfully");
             }
             catch (Exception ex)
             {
@@ -136,7 +129,7 @@ namespace Engine
             PopulateWeapons();
             PopulateArmor();
             PopulateJewelry();
-            PopulateQuestItems(); // Перенесено сюда для правильного порядка
+            PopulateQuestItems();
         }
 
         private static void PopulateConsumables()
@@ -216,11 +209,11 @@ namespace Engine
             // Крыса
             Monster rat = new Monster(1, "Крыса", 1, 10, 10, 5, 5,
                 new Attributes(
-                    strength: 8, 
+                    strength: 8,
                     constitution: 6,
                     dexterity: 12,
-                    intelligence: 2, 
-                    wisdom: 4, 
+                    intelligence: 2,
+                    wisdom: 4,
                     charisma: 3
                     ));
             rat.LootTable.Add(new LootItem(ItemByID(ITEM_ID_GOLD_RING), 25, false));
@@ -229,11 +222,11 @@ namespace Engine
             // Паук
             Monster spider = new Monster(MONSTER_ID_SPIDER, "Паук", 1, 25, 25, 10, 5,
                 new Attributes(
-                    strength: 12, 
-                    constitution: 10, 
+                    strength: 12,
+                    constitution: 10,
                     dexterity: 10,
-                    intelligence: 6, 
-                    wisdom: 5, 
+                    intelligence: 6,
+                    wisdom: 5,
                     charisma: 4
                     ));
             spider.LootTable.Add(new LootItem(ItemByID(ITEM_ID_RICH_AMULET), 25, false));
@@ -242,11 +235,11 @@ namespace Engine
             // Матерая крыса
             Monster olderRat = new Monster(MONSTER_ID_OLDER_RAT, "Матерая крыса", 1, 30, 30, 20, 10,
                 new Attributes(
-                    strength: 12, 
-                    constitution: 10, 
+                    strength: 12,
+                    constitution: 10,
                     dexterity: 10,
-                    intelligence: 6, 
-                    wisdom: 5, 
+                    intelligence: 6,
+                    wisdom: 5,
                     charisma: 4
                     ));
             olderRat.LootTable.Add(new LootItem(ItemByID(ITEM_ID_FAMILY_RING), 25, false));
@@ -257,11 +250,11 @@ namespace Engine
             // Матерый паук
             Monster olderSpider = new Monster(MONSTER_ID_OLDER_SPIDER, "Матерый паук", 1, 50, 50, 40, 25,
                 new Attributes(
-                    strength: 12, 
-                    constitution: 10, 
+                    strength: 12,
+                    constitution: 10,
                     dexterity: 10,
-                    intelligence: 6, 
-                    wisdom: 5, 
+                    intelligence: 6,
+                    wisdom: 5,
                     charisma: 4
                     ));
             olderSpider.LootTable.Add(new LootItem(ItemByID(ITEM_ID_RICH_AMULET), 25, false));
@@ -279,9 +272,8 @@ namespace Engine
 
         private static void PopulateNPC()
         {
+            // Создаем торговца
             var merchant = new Merchant("Купец Зарубий", "Добро пожаловать в мою лавку! Есть чем поторговать?", 1500);
-
-
             merchant.ItemsForSale.Add(new InventoryItem(ItemByID(ITEM_ID_WEAK_HEALING_POTION), 25));
             merchant.ItemsForSale.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_SWORD), 1));
             merchant.ItemsForSale.Add(new InventoryItem(ItemByID(ITEM_ID_LEATHER_HELMET), 1));
@@ -293,18 +285,13 @@ namespace Engine
             merchant.ItemsForSale.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_BOOTS), 1));
             merchant.ItemsForSale.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_GREATSWORD), 1));
 
-            // Создаем NPC торговца
+            // Создаем NPC
             NPC villageTrader = new NPC(NPC_ID_VILLAGE_TRADER, "Купец Зарубий",
                 "Добро пожаловать в нашу деревню! Есть чем поторговать?");
-
             villageTrader.Trader = merchant;
-            villageTrader.QuestsToGive = new List<Quest> { QuestByID(QUEST_ID_LOST_CRATES) };
-
 
             NPC villageElder = new NPC(NPC_ID_VILLAGE_ELDER, "Староста деревни",
-        "Добро пожаловать в нашу деревню, путник! Нам нужна твоя помощь.");
-
-            villageElder.QuestsToGive = new List<Quest> { QuestByID(QUEST_ID_RAT_HUNT) };
+                "Добро пожаловать в нашу деревню, путник! Нам нужна твоя помощь.");
 
             NPC craftsman = new NPC(NPC_ID_VILLAGE_CRAFTSMAN, "Ремесленник",
                 "Приветствую! Ищу качественные материалы для своих изделий.");
@@ -312,48 +299,24 @@ namespace Engine
             NPC hunter = new NPC(NPC_ID_VILLAGE_HUNTER, "Охотник",
                 "Эй, ищешь работу? У меня есть пара заданий для смельчака.");
 
-
-            // Добавляем NPC в локации
-            Location village = LocationByID(LOCATION_ID_VILLAGE);
-            village.NPCsHere.Add(villageTrader);
-            village.NPCsHere.Add(villageElder);
-
-
-            //// Добавляем торговца в список traders
-            //NPC.Add(villageTrader);
-
-            _villageTrader = villageTrader;
-            _villageElder = villageElder;
-            _craftsman = craftsman;
-            _hunter = hunter;
-            
+            // Добавляем NPC в общий список
+            NPCs.Add(villageTrader);
+            NPCs.Add(villageElder);
+            NPCs.Add(craftsman);
+            NPCs.Add(hunter);
         }
-
-        // Добавьте эти поля в класс World для хранения ссылок на NPC:
-        private static NPC _villageElder;
-        private static NPC _craftsman;
-        private static NPC _hunter;
-        private static NPC _villageTrader;
 
         #endregion
 
         #region Заполнение локаций
 
-        public static void PopulateLocations()
+        private static void PopulateLocations()
         {
-
-            // Получаем NPC из сохраненных ссылок
-            NPC villageTrader = _villageTrader;
-            NPC villageElder = _villageElder;
-            NPC craftsman = _craftsman;
-            NPC hunter = _hunter;
-
-            // Проверяем, что NPC не null
-            if (villageTrader == null || villageElder == null || craftsman == null || hunter == null)
-            {
-                DebugConsole.Log("ERROR: NPC references are null!");
-                return;
-            }
+            // Получаем NPC из общего списка
+            NPC villageTrader = NPCByID(NPC_ID_VILLAGE_TRADER);
+            NPC villageElder = NPCByID(NPC_ID_VILLAGE_ELDER);
+            NPC craftsman = NPCByID(NPC_ID_VILLAGE_CRAFTSMAN);
+            NPC hunter = NPCByID(NPC_ID_VILLAGE_HUNTER);
 
             // Шаблоны монстров
             Monster ratTemplate = MonsterByID(MONSTER_ID_RAT);
@@ -365,10 +328,10 @@ namespace Engine
             Location village = new Location(LOCATION_ID_VILLAGE, "Деревня", "Здесь вы родились, тут безопасно.");
 
             // Добавление NPC в деревню
-            village.NPCsHere.Add(villageTrader);
-            village.NPCsHere.Add(villageElder);
-            village.NPCsHere.Add(craftsman);
-            village.NPCsHere.Add(hunter);
+            if (villageTrader != null) village.NPCsHere.Add(villageTrader);
+            if (villageElder != null) village.NPCsHere.Add(villageElder);
+            if (craftsman != null) village.NPCsHere.Add(craftsman);
+            if (hunter != null) village.NPCsHere.Add(hunter);
 
             // Северная поляна (крысы)
             List<Monster> northFieldMonsterTemplate = new List<Monster>
@@ -378,7 +341,7 @@ namespace Engine
             Location fieldOfNorth = new Location(LOCATION_ID_FIELD_OF_NORTH, "Северная Поляна",
                 "Поляна к северу от деревни, тут обитают крысы.", northFieldMonsterTemplate);
 
-            // Южная поляна ( крысы + матерая крыса)
+            // Южная поляна (крысы + матерая крыса)
             List<Monster> southFieldMonsterTemplate = new List<Monster>
             {
                 ratTemplate, ratTemplate, ratTemplate, olderRatTemplate
@@ -402,7 +365,7 @@ namespace Engine
             Location fieldOfWest = new Location(LOCATION_ID_FIELD_OF_WEST, "Западная Поляна",
                 "Поляна к западу от деревни, тут обитают пауки.", westFieldMonsterTemplate);
 
-            // Настройка связей между локацией
+            // Настройка связей между локациями
             village.LocationToNorth = fieldOfNorth;
             village.LocationToSouth = fieldOfSouth;
             village.LocationToEast = fieldOfEast;
@@ -427,10 +390,10 @@ namespace Engine
 
         private static void PopulateQuests()
         {
-            // Используем сохраненные ссылки на NPC
-            NPC villageElder = _villageElder;
-            NPC craftsman = _craftsman;
-            NPC villageTrader = _villageTrader;
+            // Получаем NPC из общего списка
+            NPC villageElder = NPCByID(NPC_ID_VILLAGE_ELDER);
+            NPC craftsman = NPCByID(NPC_ID_VILLAGE_CRAFTSMAN);
+            NPC villageTrader = NPCByID(NPC_ID_VILLAGE_TRADER);
 
             if (villageElder == null || craftsman == null || villageTrader == null)
             {
@@ -445,7 +408,7 @@ namespace Engine
 
             ratHunt.QuestItems.Add(new QuestItem(ItemByID(ITEM_ID_RATS_MEAT), 5));
             ratHunt.RewardItems.Add(new InventoryItem(ItemByID(ITEM_ID_WEAK_HEALING_POTION), 5));
-            villageElder.AddQuest(ratHunt);
+            villageElder.QuestsToGive = new List<Quest> { ratHunt };
 
             // Квест на паутину
             Quest spiderSilk = new Quest(QUEST_ID_SPIDER_SILK, "Шелк паука",
@@ -454,7 +417,7 @@ namespace Engine
 
             spiderSilk.QuestItems.Add(new QuestItem(ItemByID(ITEM_ID_SPIDER_SILK), 3));
             spiderSilk.RewardItems.Add(new InventoryItem(ItemByID(ITEM_ID_WEAK_HEALING_POTION), 10));
-            craftsman.AddQuest(spiderSilk);
+            craftsman.QuestsToGive = new List<Quest> { spiderSilk };
 
             // Квест на сбор ящиков
             var crateQuest = new CollectibleQuest(
@@ -464,43 +427,43 @@ namespace Engine
                 100, 200, villageTrader,
                 new List<QuestItem>
                 {
-            new QuestItem(ItemByID(ITEM_ID_CRATE), 1),
-            new QuestItem(ItemByID(ITEM_ID_CRATE2), 1),
-            new QuestItem(ItemByID(ITEM_ID_CRATE3), 1),
-            new QuestItem(ItemByID(ITEM_ID_CRATE4), 1)
+                    new QuestItem(ItemByID(ITEM_ID_CRATE), 1),
+                    new QuestItem(ItemByID(ITEM_ID_CRATE2), 1),
+                    new QuestItem(ItemByID(ITEM_ID_CRATE3), 1),
+                    new QuestItem(ItemByID(ITEM_ID_CRATE4), 1)
                 }
             );
 
             crateQuest.SpawnLocations.AddRange(new[]
             {
-        new CollectibleSpawn(LOCATION_ID_FIELD_OF_NORTH, ITEM_ID_CRATE),
-        new CollectibleSpawn(LOCATION_ID_FIELD_OF_SOUTH, ITEM_ID_CRATE2),
-        new CollectibleSpawn(LOCATION_ID_FIELD_OF_EAST, ITEM_ID_CRATE3),
-        new CollectibleSpawn(LOCATION_ID_FIELD_OF_WEST, ITEM_ID_CRATE4)
-    });
+                new CollectibleSpawn(LOCATION_ID_FIELD_OF_NORTH, ITEM_ID_CRATE),
+                new CollectibleSpawn(LOCATION_ID_FIELD_OF_SOUTH, ITEM_ID_CRATE2),
+                new CollectibleSpawn(LOCATION_ID_FIELD_OF_EAST, ITEM_ID_CRATE3),
+                new CollectibleSpawn(LOCATION_ID_FIELD_OF_WEST, ITEM_ID_CRATE4)
+            });
 
             crateQuest.OnQuestComplete = (player) =>
             {
                 var questTrader = NPCByID(NPC_ID_VILLAGE_TRADER);
-                if (questTrader != null)
+                if (questTrader != null && questTrader.Trader != null)
                 {
-                    questTrader.ItemsForSale.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_GREATSWORD), 1));
-                    questTrader.ItemsForSale.Add(new InventoryItem(ItemByID(ITEM_ID_RICH_AMULET), 1));
-                    questTrader.Gold += 500;
+                    questTrader.Trader.ItemsForSale.Add(new InventoryItem(ItemByID(ITEM_ID_IRON_GREATSWORD), 1));
+                    questTrader.Trader.ItemsForSale.Add(new InventoryItem(ItemByID(ITEM_ID_RICH_AMULET), 1));
+                    questTrader.Trader.Gold += 500;
                     MessageSystem.AddMessage("Ассортимент торговца расширился!");
                 }
             };
 
-            villageTrader.AddQuest(crateQuest);
+            villageTrader.QuestsToGive = new List<Quest> { crateQuest };
 
             // Добавляем квесты в общий список
             Quests.Add(ratHunt);
             Quests.Add(spiderSilk);
             Quests.Add(crateQuest);
 
-
             DebugConsole.Log($"Trader quests: {villageTrader.QuestsToGive?.Count ?? 0}");
         }
+
         #endregion
 
         #region Заполнение титулов
@@ -558,15 +521,6 @@ namespace Engine
             return Locations.FirstOrDefault(location => location.ID == id);
         }
 
-        //public static Trader TraderByID(int id)
-        //{
-        //    foreach (Trader trader in Traders)
-        //    {
-        //        if (trader.ID == id) return trader;
-        //    }
-        //    return null;
-        //}
-
         public static Quest QuestByID(int id)
         {
             return Quests.FirstOrDefault(q => q.ID == id);
@@ -574,24 +528,16 @@ namespace Engine
 
         public static NPC NPCByID(int id)
         {
-            // Проверяем traders first
-            //foreach (var trader in Traders)
-            //{
-            //    if (trader.ID == id) return trader;
-            //}
+            // Ищем в общем списке NPC
+            var npc = NPCs.FirstOrDefault(n => n.ID == id);
+            if (npc != null) return npc;
 
-            // Ищем в локациях
+            // Ищем в локациях (на случай, если что-то пропущено)
             foreach (var location in Locations)
             {
-                var npc = location.NPCsHere.FirstOrDefault(n => n.ID == id);
+                npc = location.NPCsHere.FirstOrDefault(n => n.ID == id);
                 if (npc != null) return npc;
             }
-
-            // Проверяем сохраненные NPC ссылки
-            if (_villageElder != null && _villageElder.ID == id) return _villageElder;
-            if (_craftsman != null && _craftsman.ID == id) return _craftsman;
-            if (_hunter != null && _hunter.ID == id) return _hunter;
-            if (_villageTrader != null && _villageTrader.ID == id) return _villageTrader;
 
             DebugConsole.Log($"NPC with ID {id} not found!");
             return null;
