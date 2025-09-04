@@ -12,12 +12,15 @@
         public virtual int SellPriceModifier => 80; // 80% по умолчанию
         public ITrader Trader { get; set; } // Добавляем это свойство
 
-        public NPC(int id, string name, string greeting = "")
+        private readonly IWorldRepository _worldRepository;
+
+        public NPC(int id, string name, string greeting = "", IWorldRepository worldRepository = null)
         {
             ID = id;
             Name = name;
             Greeting = greeting;
             QuestsToGive = new List<Quest>();
+            _worldRepository = worldRepository;
         }
 
         // Новый метод для инициализации магазина

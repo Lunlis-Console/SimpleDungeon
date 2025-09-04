@@ -8,13 +8,16 @@ namespace Engine
         public List<CollectibleSpawn> SpawnLocations { get; set; }
         public bool IsItemsSpawned { get; set; }
 
+        private readonly IWorldRepository _worldRepository;
+
         public CollectibleQuest(int id, string name, string description, int rewardEXP,
-            int rewardGold, NPC questGiver, List<QuestItem> questItems)
+            int rewardGold, NPC questGiver, List<QuestItem> questItems, IWorldRepository worldRepository)
             : base(id, name, description, rewardEXP, rewardGold, questGiver)
         {
             QuestItems = questItems;
             SpawnLocations = new List<CollectibleSpawn>();
             IsItemsSpawned = false;
+            _worldRepository = worldRepository;
         }
 
         public void SpawnCollectibles()
@@ -23,7 +26,7 @@ namespace Engine
 
             foreach (var spawn in SpawnLocations)
             {
-                var location = World.LocationByID(spawn.LocationID);
+                var location = _worldRepository.LocationByID(spawn.LocationID);
                 if (location != null)
                 {
                     // Очищаем старые предметы этого квеста
@@ -32,7 +35,7 @@ namespace Engine
 
                     // Добавляем новые
                     location.GroundItems.Add(new InventoryItem(
-                        World.ItemByID(spawn.ItemID), spawn.Quantity));
+                        _worldRepository.ItemByID(spawn.ItemID), spawn.Quantity));
                 }
             }
             IsItemsSpawned = true;
@@ -42,11 +45,11 @@ namespace Engine
         {
             foreach (var spawn in SpawnLocations)
             {
-                var location = World.LocationByID(spawn.LocationID);
+                var location = _worldRepository.LocationByID(spawn.LocationID);
                 if (location != null)
                 {
-                    location.GroundItems.RemoveAll(item =>
-                        QuestItems.Any(qi => qi.Details.ID == item.Details.ID));
+                    location.GroundItems.Add(new InventoryItem(
+                        _worldRepository.ItemByID(spawn.ItemID), spawn.Quantity));
                 }
             }
             IsItemsSpawned = false;

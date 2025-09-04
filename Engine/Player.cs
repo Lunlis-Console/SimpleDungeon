@@ -36,8 +36,10 @@ namespace Engine
         public Title ActiveTitle { get; set; }
         public Dictionary<string, int> MonstersKilledByType { get; set; }
 
+        private readonly IWorldRepository _worldRepository;
+
         public Player(int gold, int currentHP, int maximumHP, int currentEXP, int maximumEXP, int level,
-            int baseAttack, int baseDefence, int agility, Attributes attributes = null) :
+            int baseAttack, int baseDefence, int agility, IWorldRepository worldRepository, Attributes attributes = null) :
             base(currentHP, maximumHP)
         {
             Gold = gold;
@@ -58,6 +60,8 @@ namespace Engine
             EvasionChance = 5 + (Attributes.Dexterity / 2);
 
             Inventory.OnEquipmentChanged += OnEquipmentChanged;
+
+            _worldRepository = worldRepository;
         }
 
         public void MoveTo(Location newLocation)
@@ -228,7 +232,7 @@ namespace Engine
             Console.WriteLine("\nНажмите любую клавишу чтобы продолжить...");
             Console.ReadKey();
 
-            CombatEngine combatEngine = new CombatEngine(this, monster);
+            CombatEngine combatEngine = new CombatEngine(this, monster, _worldRepository);
             combatEngine.CombatLoop();
 
             if (!IsInCombat)
@@ -426,7 +430,7 @@ namespace Engine
         // Проверка разблокировки титулов
         public void CheckTitleUnlocks()
         {
-            foreach (var title in World.Titles)
+            foreach (var title in GameServices.WorldRepository.GetAllTitles())
             {
                 if (!title.IsUnlocked && title.CheckRequirements(this))
                 {

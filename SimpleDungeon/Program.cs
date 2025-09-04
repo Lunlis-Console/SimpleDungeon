@@ -119,7 +119,7 @@ namespace SimpleDungeon
                     case ConsoleKey.F9:
                         try
                         {
-                            _player = SaveManager.LoadGame("quicksave");
+                            _player = SaveManager.LoadGame("quicksave", GameServices.WorldRepository);
                             MessageSystem.AddMessage("Быстрая загрузка выполнена!");
 
                         Console.Clear();
@@ -413,7 +413,7 @@ namespace SimpleDungeon
             {
                 try
                 {
-                    _player = SaveManager.LoadGame(selectedSave);
+                    _player = SaveManager.LoadGame(selectedSave, GameServices.WorldRepository);
                     MessageSystem.AddMessage($"Игра загружена: {selectedSave}");
 
                     Console.Clear();
@@ -432,23 +432,23 @@ namespace SimpleDungeon
         }
         private static void StartNewGame()
         {
-            
+            GameServices.Initialize();
 
-            _player = new Player(0, 100, 100, 0, 100, 1, 0, 0, 10);
-            _player.CurrentLocation = World.LocationByID(World.LOCATION_ID_VILLAGE);
+            _player = GameServices.GameFactory.CreateNewPlayer();
+
+            _player.CurrentLocation = GameServices.WorldRepository.LocationByID(Constants.LOCATION_ID_VILLAGE);
 
             // Стартовые предметы
 
-            _player.Inventory.AddItem(World.ItemByID(World.ITEM_ID_LEATHER_HELMET), 1);
-            _player.Inventory.AddItem(World.ItemByID(World.ITEM_ID_SPIDER_SILK), 1);
-            _player.Inventory.AddItem(World.ItemByID(World.ITEM_ID_LEATHER_ARMOR), 1);
-            _player.Inventory.AddItem(World.ItemByID(World.ITEM_ID_LEATHER_GLOVES), 1);
-            _player.Inventory.AddItem(World.ItemByID(World.ITEM_ID_LEATHER_BOOTS), 1);
-            _player.Inventory.AddItem(World.ItemByID(World.ITEM_ID_RUSTY_SWORD), 1);
+            _player.Inventory.AddItem(GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_LEATHER_HELMET), 1);
+            _player.Inventory.AddItem(GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_SPIDER_SILK), 1);
+            _player.Inventory.AddItem(GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_LEATHER_ARMOR), 1);
+            _player.Inventory.AddItem(GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_LEATHER_GLOVES), 1);
+            _player.Inventory.AddItem(GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_LEATHER_BOOTS), 1);
+            _player.Inventory.AddItem(GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_RUSTY_SWORD), 1);
 
             Console.Clear();
             DisplayUI();
-
             ProcessKeyInput();
         }
         private static void ShowGameMenu()
@@ -526,7 +526,7 @@ namespace SimpleDungeon
             {
                 try
                 {
-                    _player = SaveManager.LoadGame(selectedSave);
+                    _player = SaveManager.LoadGame(selectedSave, GameServices.WorldRepository);
 
                     MessageSystem.AddMessage($"Игра загружена: {selectedSave}");
 

@@ -100,7 +100,7 @@ namespace Engine
                 BaseAttack = player.BaseAttack,
                 BaseDefence = player.BaseDefence,
                 BaseAgility = player.BaseAgility,
-                LocationID = player.CurrentLocation?.ID ?? World.LOCATION_ID_VILLAGE,
+                LocationID = player.CurrentLocation?.ID ?? Constants.LOCATION_ID_VILLAGE,
 
                 Inventory = player.Inventory.Items.Select(ii =>
                     new InventoryItemData(ii.Details.ID, ii.Quantity)).ToList(),
@@ -126,7 +126,7 @@ namespace Engine
             MessageSystem.AddMessage($"Игра сохранена: {saveName}");
         }
 
-        public static Player LoadGame(string saveName)
+        public static Player LoadGame(string saveName, IWorldRepository worldRepository)
         {
             string filePath = Path.Combine(SavesDirectory, $"{saveName}.json");
 
@@ -138,17 +138,18 @@ namespace Engine
             string json = File.ReadAllText(filePath);
             GameSave save = JsonSerializer.Deserialize<GameSave>(json);
 
-            // Создаем игрока с базовыми характеристиками
+            // Создаем игрока с передачей репозитория
             var player = new Player(
                 save.Gold, save.CurrentHP, save.MaximumHP,
                 save.CurrentEXP, save.MaximumEXP, save.Level,
-                save.BaseAttack, save.BaseDefence, save.BaseAgility
+                save.BaseAttack, save.BaseDefence, save.BaseAgility,
+                GameServices.WorldRepository // Добавляем репозиторий
             );
 
-            // Загружаем инвентарь
+            // В цикле загрузки инвентаря:
             foreach (var itemData in save.Inventory)
             {
-                Item item = World.ItemByID(itemData.ItemID);
+                Item item = worldRepository.ItemByID(itemData.ItemID);
                 if (item != null)
                 {
                     player.Inventory.AddItem(item, itemData.Quantity);
@@ -158,7 +159,7 @@ namespace Engine
             // Загружаем экипировку (новый способ)
             foreach (var equippedItem in save.EquippedItems)
             {
-                Equipment equipment = World.ItemByID(equippedItem.ItemID) as Equipment;
+                Equipment equipment = worldRepository.ItemByID(equippedItem.ItemID) as Equipment;
                 if (equipment != null)
                 {
                     // Находим соответствующий предмет в инвентаре
@@ -189,7 +190,7 @@ namespace Engine
             // Загружаем квесты
             foreach (int questID in save.ActiveQuests)
             {
-                Quest quest = World.QuestByID(questID);
+                Quest quest = worldRepository.QuestByID(questID);
                 if (quest != null)
                 {
                     player.QuestLog.ActiveQuests.Add(quest);
@@ -198,7 +199,7 @@ namespace Engine
 
             foreach (int questID in save.CompletedQuests)
             {
-                Quest quest = World.QuestByID(questID);
+                Quest quest = worldRepository.QuestByID(questID);
                 if (quest != null)
                 {
                     player.QuestLog.CompletedQuests.Add(quest);
@@ -210,7 +211,7 @@ namespace Engine
             player.QuestsCompleted = save.QuestsCompleted;
 
             // Загружаем локацию
-            player.CurrentLocation = World.LocationByID(save.LocationID);
+            player.CurrentLocation = worldRepository.LocationByID(save.LocationID);
 
             return player;
         }

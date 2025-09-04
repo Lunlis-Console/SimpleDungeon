@@ -30,13 +30,11 @@ namespace Engine
             if (messages.Count == 0)
                 return;
 
-            //Console.WriteLine("=== СИСТЕМНЫЕ СООБЩЕНИЯ ===");
             foreach (var message in messages)
             {
-                Console.Write($" - {message}");
+                GameServices.OutputService.Write($" - {message}");
             }
-            //Console.WriteLine("=======================");
-            Console.WriteLine();
+            GameServices.OutputService.WriteLine("");
         }
     }
 

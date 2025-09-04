@@ -18,8 +18,9 @@ namespace Engine
         // Сообщения о действиях для отображения в UI
         public string PlayerActionMessage { get; private set; }
         public string MonsterActionMessage { get; private set; }
+        private readonly IWorldRepository _worldRepository;
 
-        public CombatEngine(Player player, Monster monster)
+        public CombatEngine(Player player, Monster monster, IWorldRepository worldRepository)
         {
             Player = player;
             Monster = monster;
@@ -28,6 +29,8 @@ namespace Engine
 
             PlayerActionMessage = "";
             MonsterActionMessage = "";
+
+            _worldRepository = worldRepository;
         }
 
         private List<string> _combatLog = new List<string>();
@@ -178,7 +181,7 @@ namespace Engine
                 UpdateCombatLog(); // ОБНОВЛЯЕМ ОТОБРАЖЕНИЕ ЛОГА
                 Player.IsInCombat = false;
 
-                Console.WriteLine("Нажмите любую клавишу, чтобы продолжить...");
+                GameServices.OutputService.WriteLine("Нажмите любую клавишу, чтобы продолжить...");
                 Console.ReadKey(true);
             }
             else if (Player.CurrentHP <= 0)
@@ -188,12 +191,12 @@ namespace Engine
                 Player.CurrentHP = 0;
                 // Отрисовываем финальное состояние боя
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine("ВЫ ПОГИБЛИ!");
+                GameServices.OutputService.WriteLine("ВЫ ПОГИБЛИ!");
                 Console.ResetColor();
 
                 MessageSystem.AddMessage("Вы пали в бою...");
                 Player.IsInCombat = false;
-                Console.WriteLine("Нажмите любую клавишу, чтобы продолжить...");
+                GameServices.OutputService.WriteLine("Нажмите любую клавишу, чтобы продолжить...");
                 Console.ReadKey(true);
             }
         }
