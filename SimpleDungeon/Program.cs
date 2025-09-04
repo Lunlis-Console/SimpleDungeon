@@ -200,65 +200,6 @@ namespace SimpleDungeon
                 _needsRedraw = true;
             }
         }
-        private static void StartCombat()
-        {
-            var monsters = _player.CurrentLocation.FindMonsters();
-            if (monsters.Count > 0)
-            {
-                if (monsters.Count == 1)
-                {
-                    _player.StartCombat(monsters[0]);
-                }
-                else
-                {
-                    var selecterMonster = MenuSystem.SelectFromList(
-                        monsters,
-                        monster => $"{monster.Name} [{monster.Level}]",
-                        "Выберите монстра для атаки"
-                    );
-
-                    if (selecterMonster != null)
-                    {
-                        _player.StartCombat(selecterMonster);
-                    }
-                }
-            }
-            else
-            {
-                MessageSystem.AddMessage("Здесь нет монстров для атаки.");
-                //Console.WriteLine("Нажмите любую клавишу чтобы продолжить...");
-                //Console.ReadKey();
-            }
-        }
-        private static void TalkToNPC()
-        {
-            if (_player.CurrentLocation.NPCsHere.Count > 0)
-            {
-                if (_player.CurrentLocation.NPCsHere.Count == 1)
-                {
-                    _player.TalkTo(_player.CurrentLocation.NPCsHere[0].Name);
-                }
-                else
-                {
-                    var selectedNPC = MenuSystem.SelectFromList(
-                        _player.CurrentLocation.NPCsHere,
-                        npc => npc.Name,
-                        "Выберите для разговора"
-                    );
-
-                    if (selectedNPC != null)
-                    {
-                        _player.TalkTo(selectedNPC.Name);
-                    }
-                }
-            }
-            else
-            {
-                Console.WriteLine("СИСТЕМА: Здесь нет NPC для разговора.");
-                Console.WriteLine("Нажмите любую клавишу чтобы продолжить...");
-                Console.ReadKey();
-            }
-        }
         private static void DisplayUI()
         {
             Console.SetCursorPosition(0, 0);
@@ -343,9 +284,9 @@ namespace SimpleDungeon
             Console.WriteLine("=================Помощь=================");
             Console.WriteLine("WASD - Перемещение между локациями");
             Console.WriteLine("I - Открыть сумку (инвентарь)");
-            Console.WriteLine("L - Осмотреться вокруг");
-            Console.WriteLine("F - Атаковать монстра");
-            Console.WriteLine("T - Говорить с NPC");
+            Console.WriteLine("L - Осмотреться вокруг (в разработке)");
+            Console.WriteLine("E - Взаимодействие");
+            Console.WriteLine("J - Журнал заданий");
             Console.WriteLine("H - Показать помощь");
             Console.WriteLine("ESC - Выйти из игры");
             Console.WriteLine("========================================");
