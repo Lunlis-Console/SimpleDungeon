@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections.Generic;
 
 namespace Engine
@@ -103,7 +103,7 @@ namespace Engine
             Console.WriteLine($"Имя: Игрок");
             Console.WriteLine($"Уровень: {player.Level}");
             Console.WriteLine($"Опыт: {player.CurrentEXP}/{player.MaximumEXP}");
-            Console.WriteLine($"Здоровье: {player.CurrentHP}/{player.MaximumHP}");
+            Console.WriteLine($"Здоровье: {player.CurrentHP}/{player.TotalMaximumHP}");
             Console.WriteLine($"Золото: {player.Gold}");
 
             if (player.ActiveTitle != null)
@@ -111,26 +111,37 @@ namespace Engine
                 Console.WriteLine($"Титул: {player.ActiveTitle.Name}");
             }
 
+            // Атрибуты персонажа
+            Console.WriteLine("\n-----------------АТРИБУТЫ-----------------");
+            Console.WriteLine($"Сила: {player.Attributes.Strength}");
+            Console.WriteLine($"Телосложение: {player.Attributes.Constitution}");
+            Console.WriteLine($"Ловкость: {player.Attributes.Dexterity}");
+            Console.WriteLine($"Интеллект: {player.Attributes.Intelligence}");
+            Console.WriteLine($"Мудрость: {player.Attributes.Wisdom}");
+            Console.WriteLine($"Харизма: {player.Attributes.Charisma}");
+
             Console.WriteLine("\n--------------БОЕВЫЕ ПАРАМЕТРЫ--------------");
             Console.WriteLine($"Атака: {player.Attack}");
             Console.WriteLine($"Защита: {player.Defence}");
+            Console.WriteLine($"Скорость: {player.Agility}");
 
             Console.WriteLine("\n-----------------ЭКИПИРОВКА-----------------");
-            DisplayEquipmentSlot("Оружие", player.Inventory.Weapon, player.Attack);
+            DisplayEquipmentSlot("Оружие", player.Inventory.Weapon, player.Inventory.Weapon?.AttackBonus ?? 0);
             DisplayEquipmentSlot("Шлем", player.Inventory.Helmet, player.Inventory.Helmet?.DefenceBonus ?? 0);
             DisplayEquipmentSlot("Броня", player.Inventory.Armor, player.Inventory.Armor?.DefenceBonus ?? 0);
             DisplayEquipmentSlot("Перчатки", player.Inventory.Gloves, player.Inventory.Gloves?.DefenceBonus ?? 0);
             DisplayEquipmentSlot("Ботинки", player.Inventory.Boots, player.Inventory.Boots?.DefenceBonus ?? 0);
 
             Console.WriteLine("\n---------------БОНУСЫ ОТ ЭКИПИРОВКИ---------------");
-            int totalAttackBonus = player.Inventory.Weapon?.AttackBonus ?? 0;
-            int totalDefenceBonus = (player.Inventory.Helmet?.DefenceBonus ?? 0) +
-                                  (player.Inventory.Armor?.DefenceBonus ?? 0) +
-                                  (player.Inventory.Gloves?.DefenceBonus ?? 0) +
-                                  (player.Inventory.Boots?.DefenceBonus ?? 0);
+            int totalAttackBonus = player.Inventory.CalculateTotalAttack();
+            int totalDefenceBonus = player.Inventory.CalculateTotalDefence();
+            int totalAgilityBonus = player.Inventory.CalculateTotalAgility();
+            int totalHealthBonus = player.Inventory.CalculateTotalHealth();
 
             Console.WriteLine($"Суммарная атака: {player.Attack} (+{totalAttackBonus} от экипировки)");
             Console.WriteLine($"Суммарная защита: {player.Defence} (+{totalDefenceBonus} от экипировки)");
+            Console.WriteLine($"Суммарная ловкость: {player.Agility} (+{totalAgilityBonus} от экипировки)");
+            Console.WriteLine($"Суммарное здоровье: {player.TotalMaximumHP} (+{totalHealthBonus} от экипировки)");
 
             // Статистика (можно расширить)
             Console.WriteLine("\n-----------------СТАТИСТИКА-----------------");
