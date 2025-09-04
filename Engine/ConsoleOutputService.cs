@@ -9,5 +9,11 @@ namespace Engine
         public void WriteLine(string message) => Console.WriteLine(message);
         public void Clear() => Console.Clear();
         public void SetCursorPosition(int left, int top) => Console.SetCursorPosition(left, top);
+
+        // В ConsoleOutputService.cs добавляем пустые реализации
+        public void BeginBuffer() { }
+        public void EndBuffer() { }
+        public void Render() { }
+        public void RenderPartial(int left, int top, int width, int height) { }
     }
 }

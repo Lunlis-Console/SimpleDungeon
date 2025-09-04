@@ -28,38 +28,35 @@ namespace SimpleDungeon
         {
             while (true)
             {
-                bool keyProcessed = false;
+                if (_needsRedraw)
+                {
+                    GameServices.Renderer.RenderGameWorld(_player, _player.CurrentLocation);
+                    _needsRedraw = false;
+                }
 
                 // Быстрая проверка ввода
                 while (Console.KeyAvailable)
                 {
-                    keyProcessed = true;
                     var keyInfo = Console.ReadKey(true);
 
                     if (keyInfo.Key == ConsoleKey.F3)
                     {
                         DebugConsole.Toggle();
-                        Console.Clear();
                         if (!DebugConsole.IsVisible)
                         {
-                            DisplayUI();
+                            // Перерисовываем игру после закрытия консоли
+                            _needsRedraw = true;
                         }
                         break;
                     }
 
+                    // Если дебаг-консоль не видна, обрабатываем игровые клавиши
                     if (!DebugConsole.IsVisible)
                     {
                         ProcessGameKey(keyInfo.Key);
-                        Console.Clear();
-                        DisplayUI();
-                        break;
                     }
-                    else
-                    {
-                        // Передаем ввод в дебаг-консоль с символом
-                        DebugConsole.HandleKey(keyInfo.Key, keyInfo.KeyChar);
-                        break;
-                    }
+
+                    Thread.Sleep(DebugConsole.IsVisible ? 1 : 10);
                 }
 
                 // Отрисовка дебаг-консоли если видна
@@ -68,86 +65,77 @@ namespace SimpleDungeon
                     DebugConsole.Update();
                 }
 
-                // Небольшая пауза только если не было обработки ввода
-                if (!keyProcessed)
-                {
-                    Thread.Sleep(DebugConsole.IsVisible ? 1 : 10);
-                }
+                Thread.Sleep(DebugConsole.IsVisible ? 1 : 10);
             }
         }
         private static void ProcessGameKey(ConsoleKey key)
         {
             switch (key)
-                {
-                    case ConsoleKey.W:
-                        MoveNorth();
-                        break;
-                    case ConsoleKey.D:
-                        MoveEast();
-                        break;
-                    case ConsoleKey.S:
-                        MoveSouth();
-                        break;
-                    case ConsoleKey.A:
-                        MoveWest();
-                        break;
-                    case ConsoleKey.I:
-                        _player.DisplayInventory();
-                        break;
-                    case ConsoleKey.L:
-                        _player.LookAround();
-                        //Console.Clear();
-                        break;
-                    case ConsoleKey.E:
-                        InteractWithWorld();
-                        break;
-                    case ConsoleKey.H:
-                        HelpWorld();
-                        break;
-                    case ConsoleKey.C:
-                        CharacterScreen.Show(_player);
-                        break;
-                    case ConsoleKey.J:
-                        _player.QuestLog.DisplayQuestLog();
-                        break;
-                    case ConsoleKey.Escape:
-                        ShowGameMenu();
-                        break;
-                    case ConsoleKey.F5:
-                        SaveManager.SaveGame(_player, "quicksave");
-                        break;
-                    case ConsoleKey.F9:
-                        try
-                        {
-                            _player = SaveManager.LoadGame("quicksave", GameServices.WorldRepository);
-                            MessageSystem.AddMessage("Быстрая загрузка выполнена!");
-
-                        Console.Clear();
-                        DisplayUI();
-
-                        }
-                        catch
-                        {
-                            MessageSystem.AddMessage("Быстрое сохранение не найдено!");
-                        }
-                        break;
-                    //case ConsoleKey.Escape:
-                    //    if (MenuSystem.ConfirmAction("Сохранить игру перед выходом?"))
-                    //    {
-                    //        SaveManager.SaveGame(_player, $"save_{DateTime.Now:yyyyMMdd_HHmmss}");
-                    //    }
-                        //return;
-
-                    default:
-                        Console.WriteLine("СИСТЕМА: Неизвестная команда. Нажмите H для помощи.");
-                        //Console.WriteLine("Нажмите любую клавишу чтобы продолжить...");
-                        //Console.ReadKey();
-                        break;
-                }
-
-                //Console.Clear();
+            {
+                case ConsoleKey.W:
+                    MoveNorth();
+                    break;
+                case ConsoleKey.D:
+                    MoveEast();
+                    break;
+                case ConsoleKey.S:
+                    MoveSouth();
+                    break;
+                case ConsoleKey.A:
+                    MoveWest();
+                    break;
+                case ConsoleKey.I:
+                    _player.DisplayInventory();
+                    _needsRedraw = true;
+                    break;
+                case ConsoleKey.L:
+                    _player.LookAround();
+                    _needsRedraw = true;
+                    break;
+                case ConsoleKey.E:
+                    InteractWithWorld();
+                    _needsRedraw = true;
+                    break;
+                case ConsoleKey.H:
+                    HelpWorld();
+                    _needsRedraw = true;
+                    break;
+                case ConsoleKey.C:
+                    CharacterScreen.Show(_player);
+                    _needsRedraw = true;
+                    break;
+                case ConsoleKey.J:
+                    _player.QuestLog.DisplayQuestLog();
+                    _needsRedraw = true;
+                    break;
+                case ConsoleKey.Escape:
+                    ShowGameMenu();
+                    _needsRedraw = true;
+                    break;
+                case ConsoleKey.F5:
+                    SaveManager.SaveGame(_player, "quicksave");
+                    MessageSystem.AddMessage("Игра сохранена!");
+                    _needsRedraw = true;
+                    break;
+                case ConsoleKey.F9:
+                    try
+                    {
+                        _player = SaveManager.LoadGame("quicksave", GameServices.WorldRepository);
+                        MessageSystem.AddMessage("Быстрая загрузка выполнена!");
+                        _needsRedraw = true;
+                    }
+                    catch
+                    {
+                        MessageSystem.AddMessage("Быстрое сохранение не найдено!");
+                        _needsRedraw = true;
+                    }
+                    break;
+                default:
+                    MessageSystem.AddMessage("Неизвестная команда. Нажмите H для помощи.");
+                    _needsRedraw = true;
+                    break;
+            }
         }
-
         private static void MoveNorth()
         {
             if (_player.CurrentLocation.LocationToNorth == null)
@@ -200,83 +188,6 @@ namespace SimpleDungeon
                 _needsRedraw = true;
             }
         }
-        private static void DisplayUI()
-        {
-            Console.SetCursorPosition(0, 0);
-
-            // СБРАСЫВАЕМ ЦВЕТА ПЕРЕД ОТРИСОВКОЙ
-            Console.ResetColor();
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.BackgroundColor = ConsoleColor.Black;
-
-            MessageSystem.DisplayMessages();
-
-            Console.WriteLine("=========================Окружение========================");
-            DisplayCurrentLocation();
-            DisplayMonstersAndNPCs();
-
-            // ДОБАВЛЯЕМ ОТОБРАЖЕНИЕ ПРЕДМЕТОВ НА ЗЕМЛЕ
-            DisplayGroundItems();
-
-            Console.WriteLine("=========================Действие=========================");
-            DisplayAvailabelDirecrions();
-
-            // СБРАСЫВАЕМ ЦВЕТА ПОСЛЕ ОТРИСОВКИ
-            Console.ResetColor();
-        }
-        private static void DisplayCurrentLocation()
-        {
-            Console.WriteLine($"Текущаяя локация: {_player.CurrentLocation.Name}");
-
-            if (_player.CurrentLocation.Description != "")
-            {
-                Console.WriteLine($"\nОписание: {_player.CurrentLocation.Description}");
-            }
-        }
-        private static void DisplayMonstersAndNPCs()
-        {
-
-            var monsters = _player.CurrentLocation.FindMonsters();
-            if (monsters.Count > 0)
-            {
-                Console.WriteLine("\nМонстры: ");
-                foreach (var monster in monsters)
-                {
-                    Console.WriteLine($"- {monster.Name} [{monster.Level}].");
-                }
-            }
-            //else
-            //{
-            //    Console.WriteLine("\nМонстры: отсутствуют");
-            //}
-
-            if (_player.CurrentLocation.NPCsHere.Count > 0)
-            {
-                Console.WriteLine("\nЖители:");
-                foreach (var npc in _player.CurrentLocation.NPCsHere)
-                {
-                    Console.WriteLine($"- {npc.Name}");
-                }
-            }
-            //else
-            //{
-            //    Console.WriteLine("\nЖители: отсутствуют");
-            //}
-        }
-
-        private static void DisplayGroundItems()
-        {
-            var groundItems = _player.CurrentLocation.GroundItems;
-            if (groundItems.Count > 0)
-            {
-                Console.WriteLine("\nПредметы на земле:");
-                foreach (var item in groundItems.GroupBy(i => i.Details.ID))
-                {
-                    var firstItem = item.First();
-                    Console.WriteLine($"- {firstItem.Details.Name} x{item.Sum(i => i.Quantity)}");
-                }
-            }
-        }
         private static void HelpWorld()
         {
             Console.Clear();
@@ -294,29 +205,6 @@ namespace SimpleDungeon
             Console.WriteLine("\nНажмите любую клавишу, чтобы закрыть описание...");
             Console.ReadKey();
             Console.Clear();
-        }
-        private static void DisplayAvailabelDirecrions()
-        {
-            Console.WriteLine("Доступние направления: ");
-
-            if (_player.CurrentLocation.LocationToNorth != null)
-            {
-                Console.WriteLine("W - Север");
-            }
-            if (_player.CurrentLocation.LocationToWest != null)
-            {
-                Console.WriteLine("A - Запад");
-            }
-            if (_player.CurrentLocation.LocationToSouth != null)
-            {
-                Console.WriteLine("S - Юг");
-            }
-            if (_player.CurrentLocation.LocationToEast != null)
-            {
-                Console.WriteLine("D - Восток");
-            }
-
-            Console.WriteLine("| C - Характеристики | I - Сумка | J - Журнал | L - Осмотреться | E - Взаимодействовать | H - Помощь |");
         }
         private static void ShowMainMenu()
         {
@@ -417,7 +305,7 @@ namespace SimpleDungeon
                     MessageSystem.AddMessage($"Игра загружена: {selectedSave}");
 
                     Console.Clear();
-                    DisplayUI();
+                    //DisplayUI();
 
                     ProcessKeyInput();
 
@@ -448,7 +336,7 @@ namespace SimpleDungeon
             _player.Inventory.AddItem(GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_RUSTY_SWORD), 1);
 
             Console.Clear();
-            DisplayUI();
+            //DisplayUI();
             ProcessKeyInput();
         }
         private static void ShowGameMenu()
@@ -531,7 +419,7 @@ namespace SimpleDungeon
                     MessageSystem.AddMessage($"Игра загружена: {selectedSave}");
 
                     Console.Clear();
-                    DisplayUI();
+                    //DisplayUI();
 
                 }
                 catch (Exception ex)

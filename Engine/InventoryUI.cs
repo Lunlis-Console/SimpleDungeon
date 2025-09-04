@@ -7,62 +7,55 @@ namespace Engine
 {
     public static class InventoryUI
     {
-        public static InventoryItem SelectItemFromInventory(List<InventoryItem> inventory, string title = "Выберите предмет")
-        {
-            if (inventory == null || inventory.Count == 0)
-                return null;
+        //public static object SelectItemFromCombinedList(List<object> items, Player player)
+        //{
+        //    if (items == null || items.Count == 0)
+        //        return null;
 
-            if (inventory.Count == 1)
-                return inventory[0];
+        //    if (items.Count == 1)
+        //        return items[0];
 
-            int selectedIndex = 0;
-            ConsoleKey key;
+        //    int selectedIndex = 0;
+        //    ConsoleKey key;
 
-            do
-            {
-                Console.Clear();
+        //    do
+        //    {
+        //        var inventoryData = new InventoryRenderData
+        //        {
+        //            Items = items,
+        //            SelectedIndex = selectedIndex,
+        //            Player = player,
+        //            Title = "Выберите предмет"
+        //        };
 
-                MessageSystem.DisplayMessages();
+        //        GameServices.Renderer.RenderInventory(inventoryData);
 
-                Console.WriteLine($"{title}");
-                Console.WriteLine("Клавиши 'W' 'S' для выбора, 'E' для подтверждения, 'Q' для выхода");
-                Console.WriteLine();
+        //        key = Console.ReadKey(true).Key;
 
-                for (int i = 0; i < inventory.Count; i++)
-                {
-                    if (i == selectedIndex)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.Write(">");
-                    }
-                    else
-                    {
-                        Console.Write("  ");
-                    }
+        //        switch (key)
+        //        {
+        //            case ConsoleKey.W:
+        //            case ConsoleKey.UpArrow:
+        //                selectedIndex = Math.Max(0, selectedIndex - 1);
+        //                break;
 
-                    Console.WriteLine($"{inventory[i].Details.Name} x{inventory[i].Quantity}");
-                    Console.ResetColor();
-                }
+        //            case ConsoleKey.S:
+        //            case ConsoleKey.DownArrow:
+        //                selectedIndex = Math.Min(items.Count - 1, selectedIndex + 1);
+        //                break;
 
-                key = Console.ReadKey(true).Key;
+        //            case ConsoleKey.Q:
+        //            case ConsoleKey.Escape:
+        //                return null;
 
-                switch (key)
-                {
-                    case ConsoleKey.W:
-                        selectedIndex = (selectedIndex - 1 + inventory.Count) % inventory.Count;
-                        break;
-                    case ConsoleKey.S:
-                        selectedIndex = (selectedIndex + 1) % inventory.Count;
-                        break;
-                    case ConsoleKey.Q:
-                        return null;
-                }
+        //            case ConsoleKey.E:
+        //            case ConsoleKey.Enter:
+        //            case ConsoleKey.Spacebar:
+        //                return items[selectedIndex];
+        //        }
 
-            } while (key != ConsoleKey.E);
-
-            return inventory[selectedIndex];
-        }
-
+        //    } while (true);
+        //}
         public static void ShowItemContextMenu(Player player, InventoryItem selectedItem)
         {
             if (selectedItem == null) return;
@@ -192,28 +185,7 @@ namespace Engine
             }
         }
 
-        public static object SelectItemFromCombinedList(
-    List<object> items,
-    string title,
-    Equipment mainHand,
-    Equipment offHand,
-    Equipment helmet,
-    Equipment armor,
-    Equipment gloves,
-    Equipment boots,
-    Equipment weapon,
-    Equipment amulet,
-    Equipment ring1,
-    Equipment ring2,
-    int playerGold,
-    int playerDefence,
-    int playerAttack,
-    int playerAgility,
-    int playerLevel,
-    int playerCurrentEXP,
-    int playerMaximumEXP,
-    int playerCurrentHP,
-    int playerTotalMaximumHP)
+        public static object SelectItemFromCombinedList(List<object> items, Player player)
         {
             if (items == null || items.Count == 0)
                 return null;
@@ -226,101 +198,50 @@ namespace Engine
 
             do
             {
-                Console.Clear();
-                MessageSystem.DisplayMessages();
-
-                Console.WriteLine($"{title}");
-
-                // Отображение статистики и экипировки
-                int rightColumnStart = Console.WindowWidth - 35;
-                Console.SetCursorPosition(rightColumnStart, 1);
-                Console.WriteLine("======Экипировано======");
-                Console.SetCursorPosition(rightColumnStart, 2);
-                Console.WriteLine($"Основная рука: {(mainHand?.Name ?? "Пусто")}");
-                Console.SetCursorPosition(rightColumnStart, 3);
-                Console.WriteLine($"Вторая рука: {(offHand?.Name ?? "Пусто")}");
-                Console.SetCursorPosition(rightColumnStart, 4);
-                Console.WriteLine($"Шлем: {(helmet?.Name ?? "Пусто")}");
-                Console.SetCursorPosition(rightColumnStart, 5);
-                Console.WriteLine($"Броня: {(armor?.Name ?? "Пусто")}");
-                Console.SetCursorPosition(rightColumnStart, 6);
-                Console.WriteLine($"Перчатки: {(gloves?.Name ?? "Пусто")}");
-                Console.SetCursorPosition(rightColumnStart, 7);
-                Console.WriteLine($"Ботинки: {(boots?.Name ?? "Пусто")}");
-                Console.SetCursorPosition(rightColumnStart, 8);
-                Console.WriteLine($"Амулет: {(amulet?.Name ?? "Пусто")}");
-                Console.SetCursorPosition(rightColumnStart, 9);
-                Console.WriteLine($"Кольцо 1: {(ring1?.Name ?? "Пусто")}");
-                Console.SetCursorPosition(rightColumnStart, 10);
-                Console.WriteLine($"Кольцо 2: {(ring2?.Name ?? "Пусто")}");
-
-                Console.SetCursorPosition(rightColumnStart, 11);
-                Console.WriteLine("========================");
-                Console.SetCursorPosition(rightColumnStart, 12);
-                Console.WriteLine($"УР: {playerLevel} ОЗ: {playerCurrentHP}/{playerTotalMaximumHP} " +
-                    $"ОП: {playerCurrentEXP}/{playerMaximumEXP}");
-                Console.SetCursorPosition(rightColumnStart, 13);
-                Console.WriteLine($"Атака: {playerAttack}");
-                Console.SetCursorPosition(rightColumnStart, 14);
-                Console.WriteLine($"Защита: {playerDefence}");
-                Console.SetCursorPosition(rightColumnStart, 15);
-                Console.WriteLine($"Ловкость: {playerAgility}");
-
-                Console.SetCursorPosition(0, 1);
-                Console.WriteLine("=========Сумка=========");
-
-                // Отображение предметов
-                for (int i = 0; i < items.Count; i++)
+                // Вместо прямой отрисовки - создаем данные для рендерера
+                var inventoryData = new InventoryRenderData
                 {
-                    if (i == selectedIndex)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.Write(">");
-                    }
-                    else
-                    {
-                        Console.Write("  ");
-                    }
+                    Items = items,
+                    SelectedIndex = selectedIndex,
+                    Player = player,
+                    Title = "Выберите предмет"
+                };
 
-                    string displayText = items[i] switch
-                    {
-                        InventoryItem invItem => $"{invItem.Details.Name} x{invItem.Quantity}",
-                        EquipmentSlotItem eqItem => $"[Экипировано] {eqItem}",
-                        _ => items[i].ToString()
-                    };
-
-                    Console.WriteLine(displayText);
-                    Console.ResetColor();
-                }
-
-                Console.WriteLine("======================");
-                Console.WriteLine($"Золото: {playerGold}");
-                //Console.WriteLine("TAB - переключить на экипированные предметы");
+                // Отрисовываем через Renderer
+                GameServices.Renderer.RenderInventory(inventoryData);
 
                 key = Console.ReadKey(true).Key;
 
                 switch (key)
                 {
                     case ConsoleKey.W:
-                        selectedIndex = (selectedIndex - 1 + items.Count) % items.Count;
+                    case ConsoleKey.UpArrow:
+                        selectedIndex = Math.Max(0, selectedIndex - 1);
                         break;
+
                     case ConsoleKey.S:
-                        selectedIndex = (selectedIndex + 1) % items.Count;
+                    case ConsoleKey.DownArrow:
+                        selectedIndex = Math.Min(items.Count - 1, selectedIndex + 1);
                         break;
+
                     case ConsoleKey.Tab:
                         // Переключение на экипированные предметы
                         var equipmentIndex = items.FindIndex(item => item is EquipmentSlotItem);
                         if (equipmentIndex >= 0) selectedIndex = equipmentIndex;
                         break;
+
                     case ConsoleKey.Q:
+                    case ConsoleKey.Escape:
                         return null;
+
+                    case ConsoleKey.E:
+                    case ConsoleKey.Enter:
+                    case ConsoleKey.Spacebar:
+                        return items[selectedIndex];
                 }
 
-            } while (key != ConsoleKey.E);
-
-            return items[selectedIndex];
+            } while (true);
         }
-
         public class EquipmentSlotItem
         {
             public string SlotName { get; }

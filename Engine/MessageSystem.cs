@@ -8,7 +8,7 @@ namespace Engine
 {
     public static class MessageSystem
     {
-        private static readonly Queue<string> messages = new Queue<string>();
+        public static readonly Queue<string> messages = new Queue<string>();
         private const int MaxMessages = 1;
 
         public static void AddMessage(string message)

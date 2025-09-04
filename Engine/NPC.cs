@@ -295,6 +295,7 @@
                 case "Торговать":
                     if (Trader != null)
                     {
+                        Trader.InitializeShop(player);
                         new TradeSystem(Trader, player).StartTrade();
                     }
                     break;

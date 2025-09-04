@@ -123,73 +123,77 @@ namespace Engine
         }
         public void DisplayInventory()
         {
-            while (true)
+            GameServices.Renderer.ForceInventoryRedraw(); // Добавьте эту строку
+
+            var allItems = PrepareInventoryItems();
+
+            if (allItems.Count == 0)
             {
-                Console.Clear();
-                MessageSystem.DisplayMessages();
-
-                // Создаем объединенный список предметов: инвентарь + экипировка
-                var allItems = new List<object>();
-
-                // Добавляем экипированные предметы
-                if (Inventory.Helmet != null) allItems.Add(new EquipmentSlotItem("Шлем", Inventory.Helmet));
-                if (Inventory.Armor != null) allItems.Add(new EquipmentSlotItem("Броня", Inventory.Armor));
-                if (Inventory.Gloves != null) allItems.Add(new EquipmentSlotItem("Перчатки", Inventory.Gloves));
-                if (Inventory.Boots != null) allItems.Add(new EquipmentSlotItem("Ботинки", Inventory.Boots));
-                if (Inventory.MainHand != null) allItems.Add(new EquipmentSlotItem("Основная рука", Inventory.MainHand));
-                if (Inventory.OffHand != null) allItems.Add(new EquipmentSlotItem("Вторая рука", Inventory.OffHand));
-                if (Inventory.Amulet != null) allItems.Add(new EquipmentSlotItem("Амулет", Inventory.Amulet));
-                if (Inventory.Ring1 != null) allItems.Add(new EquipmentSlotItem("Кольцо 1", Inventory.Ring1));
-                if (Inventory.Ring2 != null) allItems.Add(new EquipmentSlotItem("Кольцо 2", Inventory.Ring2));
-
-                allItems.AddRange(Inventory.Items.Cast<object>());
-
-
-                if (allItems.Count == 0)
+                // Отрисовка пустого инвентаря через Renderer
+                var emptyData = new InventoryRenderData
                 {
-                    Console.WriteLine("Пусто");
-                    Console.WriteLine("\nНажмите любую клавишу чтобы вернуться...");
-                    Console.ReadKey();
-                    break;
-                }
-                else
-                {
-                    // Используем новый метод для выбора из объединенного списка
-                    var selectedItem = InventoryUI.SelectItemFromCombinedList(
-                        allItems,
-                        "",
-                        Inventory.MainHand, 
-                        Inventory.OffHand,
-                        Inventory.Helmet,    // Было: Inventory.Amulet
-                        Inventory.Armor,     // Было: Inventory.Ring1
-                        Inventory.Gloves,    // Было: Inventory.Ring2
-                        Inventory.Boots,     // Было: Inventory.Helmet
-                        Inventory.Weapon,    // Было: Inventory.Armor
-                        Inventory.Amulet,    // Было: Inventory.Gloves
-                        Inventory.Ring1,     // Было: Inventory.Boots
-                        Inventory.Ring2,     // Было: Inventory.Weapon
-                        Gold, Defence, Attack, Agility, Level, CurrentEXP, MaximumEXP, CurrentHP, TotalMaximumHP);
+                    Items = new List<object>(),
+                    SelectedIndex = 0,
+                    Player = this,
+                    Title = "Инвентарь (пусто)"
+                };
 
-                    if (selectedItem == null)
-                    {
-                        break;
-                    }
-
-                    // Обрабатываем выбранный предмет
-                    if (selectedItem is InventoryItem inventoryItem)
-                    {
-                        InventoryUI.ShowItemContextMenu(this, inventoryItem);
-                    }
-                    else if (selectedItem is EquipmentSlotItem equipmentItem)
-                    {
-                        ShowEquipmentContextMenu(equipmentItem.Equipment);
-                    }
-                }
+                GameServices.Renderer.RenderInventory(emptyData);
+                Console.WriteLine("\nНажмите любую клавишу чтобы вернуться...");
+                Console.ReadKey();
+                return;
             }
-            MessageSystem.ClearMessages();
+
+            // Используем обновленный SelectItemFromCombinedList
+            var selectedItem = InventoryUI.SelectItemFromCombinedList(allItems, this);
+
+            if (selectedItem != null)
+            {
+                HandleSelectedItem(selectedItem);
+            }
+        }
+        // Вспомогательный метод для подготовки списка предметов
+        private List<object> PrepareInventoryItems()
+        {
+            var allItems = new List<object>();
+
+            // Добавляем экипированные предметы как EquipmentSlotItem
+            if (Inventory.Helmet != null)
+                allItems.Add(new InventoryUI.EquipmentSlotItem("Шлем", Inventory.Helmet));
+            if (Inventory.Armor != null)
+                allItems.Add(new InventoryUI.EquipmentSlotItem("Броня", Inventory.Armor));
+            if (Inventory.Gloves != null)
+                allItems.Add(new InventoryUI.EquipmentSlotItem("Перчатки", Inventory.Gloves));
+            if (Inventory.Boots != null)
+                allItems.Add(new InventoryUI.EquipmentSlotItem("Ботинки", Inventory.Boots));
+            if (Inventory.MainHand != null)
+                allItems.Add(new InventoryUI.EquipmentSlotItem("Оружие", Inventory.MainHand));
+            if (Inventory.OffHand != null)
+                allItems.Add(new InventoryUI.EquipmentSlotItem("Щит", Inventory.OffHand));
+            if (Inventory.Amulet != null)
+                allItems.Add(new InventoryUI.EquipmentSlotItem("Амулет", Inventory.Amulet));
+            if (Inventory.Ring1 != null)
+                allItems.Add(new InventoryUI.EquipmentSlotItem("Кольцо 1", Inventory.Ring1));
+            if (Inventory.Ring2 != null)
+                allItems.Add(new InventoryUI.EquipmentSlotItem("Кольцо 2", Inventory.Ring2));
+
+            // Добавляем предметы из инвентаря
+            allItems.AddRange(Inventory.Items.Cast<object>());
+
+            return allItems;
         }
 
-        // Новый метод для контекстного меню экипированных предметов
+        private void HandleSelectedItem(object selectedItem)
+        {
+            if (selectedItem is InventoryItem inventoryItem)
+            {
+                InventoryUI.ShowItemContextMenu(this, inventoryItem);
+            }
+            else if (selectedItem is InventoryUI.EquipmentSlotItem equipmentItem)
+            {
+                ShowEquipmentContextMenu(equipmentItem.Equipment);
+            }
+        }        // Новый метод для контекстного меню экипированных предметов
         private void ShowEquipmentContextMenu(Equipment equipment)
         {
             var actions = new List<string> { "Снять", "Осмотреть", "Назад" };

@@ -6,6 +6,7 @@ namespace Engine
         private static IWorldRepository _worldRepository;
         private static IOutputService _outputService;
         private static IGameFactory _gameFactory;
+        private static Renderer _renderer;
 
         public static IWorldRepository WorldRepository
         {
@@ -15,7 +16,7 @@ namespace Engine
 
         public static IOutputService OutputService
         {
-            get => _outputService ??= new ConsoleOutputService();
+            get => _outputService ??= new DoubleBufferConsole(); // Используем DoubleBuffer по умолчанию
             set => _outputService = value;
         }
 
@@ -24,11 +25,19 @@ namespace Engine
             get => _gameFactory ??= new GameFactory(WorldRepository);
             set => _gameFactory = value;
         }
+
+        public static Renderer Renderer
+        {
+            get => _renderer ??= new Renderer(OutputService);
+            set => _renderer = value;
+        }
+
         public static void Initialize()
         {
             WorldRepository = new StaticWorldRepository();
             WorldInitializer.InitializeWithDependencies(WorldRepository);
             GameFactory = new GameFactory(WorldRepository);
+            Renderer = new Renderer(OutputService);
         }
 
         public static void InitializeForTests(IWorldRepository testRepository)
