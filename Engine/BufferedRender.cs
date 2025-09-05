@@ -217,13 +217,15 @@ namespace Engine
             _needsFullRedraw = true;
         }
 
-        public void CheckWindowResize()
+        public bool CheckWindowResize()
         {
             if (Console.WindowWidth != _width || Console.WindowHeight != _height)
             {
                 InitializeBuffers();
                 SetNeedsFullRedraw();
+                return true;
             }
+            return false;
         }
 
         private void OnCancelKeyPress(object sender, ConsoleCancelEventArgs e)

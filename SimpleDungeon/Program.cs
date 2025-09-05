@@ -47,7 +47,6 @@ namespace SimpleDungeon
             {
                 try
                 {
-                    DebugConsole.GlobalUpdate();
                     // Обновляем входные данные
                     InputManager.Update();
 
@@ -70,6 +69,12 @@ namespace SimpleDungeon
                         {
                             DebugConsole.ProcessInput(keyInfo);
                         }
+
+                        // Отрисовываем независимо от ввода, если консоль видима
+                        ScreenManager.RenderCurrentScreen();
+                        DebugConsole.GlobalDraw();
+
+                        Thread.Sleep(50);
                         continue;
                     }
 
@@ -81,10 +86,10 @@ namespace SimpleDungeon
                     }
 
                     // Отрисовка
-                    if (ScreenManager.NeedsRedraw)
+                    if (ScreenManager.NeedsRedraw || GameServices.BufferedRenderer.CheckWindowResize())
                     {
                         ScreenManager.RenderCurrentScreen();
-                        DebugConsole.GlobalDraw(); // Отрисовываем консоль поверх
+                        DebugConsole.GlobalDraw();
                     }
 
                     Thread.Sleep(50);

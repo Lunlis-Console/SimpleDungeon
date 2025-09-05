@@ -1,4 +1,6 @@
-﻿public static class DebugConsole
+﻿using Engine;
+
+public static class DebugConsole
 {
     private static readonly List<string> _logMessages = new List<string>();
     private static bool _isVisible = false;
@@ -31,9 +33,14 @@
             _inputBuffer = "";
             _viewOffset = 0;
         }
+        else
+        {
+            // ДОБАВЬТЕ ЭТО - при скрытии консоли нужна полная перерисовка
+            GameServices.BufferedRenderer.SetNeedsFullRedraw();
+        }
 
         _needsRedraw = true;
-        ScreenManager.SetNeedsRedraw(); // Убедитесь, что эта строка есть
+        ScreenManager.SetNeedsRedraw();
     }
 
     public static void Log(string message)
@@ -253,6 +260,8 @@
             case ConsoleKey.Escape:
                 _isVisible = false;
                 _needsRedraw = true;
+                // ДОБАВЬТЕ ЭТУ СТРОКУ - принудительная полная перерисовка
+                GameServices.BufferedRenderer.SetNeedsFullRedraw();
                 ScreenManager.SetNeedsRedraw();
                 break;
 
@@ -326,9 +335,14 @@
     // Метод для глобальной отрисовки из любого меню
     public static void GlobalDraw()
     {
-        if (!_isVisible || !_enabled) return;
+        if (_isVisible && _enabled)
         {
             Draw();
+        }
+        else if (_needsRedraw)
+        {
+            // Если консоль скрыта, но нужна перерисовка, сбрасываем флаг
+            _needsRedraw = false;
         }
     }
 }
