@@ -162,9 +162,12 @@
         {
             if (ConfirmAction("Вернуться в главное меню? Несохраненный прогресс будет потерян."))
             {
-                ScreenManager.ReturnToMainScreen();
-                // Здесь нужно будет вернуться в главное меню игры
-                MessageSystem.AddMessage("Возврат в главное меню...");
+                // Вместо ScreenManager.ReturnToMainScreen() используем:
+                while (ScreenManager.ScreenCount > 0)
+                {
+                    ScreenManager.PopScreen();
+                }
+                // Теперь ProcessKeyInput() автоматически завершится и вернет в главное меню
             }
         }
 

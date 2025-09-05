@@ -11,6 +11,37 @@ namespace Engine
             _renderer = GameServices.BufferedRenderer;
         }
 
+        protected void SoftClearScreen()
+        {
+            try
+            {
+                // Для BufferedRenderer
+                _renderer.FillArea(0, 0, Console.WindowWidth, Console.WindowHeight, ' ',
+                                 ConsoleColor.White, ConsoleColor.Black);
+            }
+            catch
+            {
+                // Fallback на консольный метод
+                try
+                {
+                    int currentTop = Console.CursorTop;
+                    int currentLeft = Console.CursorLeft;
+
+                    Console.SetCursorPosition(0, 0);
+                    for (int i = 0; i < Console.WindowHeight; i++)
+                    {
+                        Console.Write(new string(' ', Console.WindowWidth));
+                    }
+                    Console.SetCursorPosition(currentLeft, currentTop);
+                }
+                catch
+                {
+                    Console.Clear();
+                }
+            }
+        }
+
+
         public abstract void Render();
         public abstract void HandleInput(ConsoleKeyInfo keyInfo);
 
@@ -38,8 +69,8 @@ namespace Engine
 
         protected void ClearScreen()
         {
-            _renderer.FillArea(0, 0, Console.WindowWidth, Console.WindowHeight, ' ',
-                              ConsoleColor.White, ConsoleColor.Black);
+            // Заменяем старый ClearScreen на безопасную версию
+            SoftClearScreen();
         }
 
         protected List<string> WrapText(string text, int maxWidth)

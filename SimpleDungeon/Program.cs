@@ -12,8 +12,23 @@ namespace SimpleDungeon
             Console.Title = "Simple Dungeon";
             Console.CursorVisible = false;
 
+            // Включим консоль сразу для диагностики
+            DebugConsole.SetEnabled(true);
+            DebugConsole.Log("Application started");
+
             // Инициализация сервисов
-            GameServices.Initialize();
+            try
+            {
+                GameServices.Initialize();
+                DebugConsole.Log("GameServices initialized successfully");
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.Log($"GameServices init failed: {ex.Message}");
+                Console.WriteLine($"Ошибка инициализации: {ex.Message}");
+                Console.ReadKey();
+                return;
+            }
 
             bool running = true;
 
@@ -22,7 +37,7 @@ namespace SimpleDungeon
                 ShowMainMenu();
 
                 // После возврата из игрового цикла спрашиваем, что делать дальше
-                Console.Clear();
+                //Console.Clear();
                 Console.WriteLine("1. Новая игра");
                 Console.WriteLine("2. Выйти");
 
@@ -38,15 +53,24 @@ namespace SimpleDungeon
 
 
         // В Program.cs замените ProcessKeyInput
-        // В Program.cs обновляем главный цикл
         private static void ProcessKeyInput()
         {
             bool inGame = true;
+            bool firstFrame = true; // Добавляем флаг первого кадра
+
+            ScreenManager.RenderCurrentScreen();
 
             while (inGame)
             {
                 try
                 {
+                    if (firstFrame)
+                    {
+                        // Принудительная полная перерисовка на первом кадре
+                        GameServices.BufferedRenderer.SetNeedsFullRedraw();
+                        ScreenManager.SetNeedsRedraw();
+                        firstFrame = false;
+                    }
                     // Обновляем входные данные
                     InputManager.Update();
 
@@ -83,6 +107,14 @@ namespace SimpleDungeon
                     if (inputKey.Key != ConsoleKey.NoName)
                     {
                         ScreenManager.HandleInput(inputKey);
+                    }
+
+                    // Добавьте проверку на возврат в главное меню
+                    if (ScreenManager.ScreenCount == 0)
+                    {
+                        DebugConsole.Log("Returning to main menu");
+                        inGame = false;
+                        break;
                     }
 
                     // Отрисовка
@@ -247,12 +279,13 @@ namespace SimpleDungeon
         {
             int selectedIndex = 0;
             string[] menuItems = { "Новая игра", "Загрузить игру", "Выход" };
+            bool inMenu = true;
 
-            while (true)
+            while (inMenu)
             {
                 Console.Clear();
                 Console.WriteLine("===================================");
-                Console.WriteLine("          SIMPLE DUNGEON");
+                Console.WriteLine("         SIMPLE DUNGEON");
                 Console.WriteLine("===================================");
 
                 // Отображаем пункты меню
@@ -261,38 +294,43 @@ namespace SimpleDungeon
                     if (i == selectedIndex)
                     {
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.Write(">");
+                        Console.Write("> ");
                     }
                     else
                     {
                         Console.Write("  ");
                     }
-
                     Console.WriteLine(menuItems[i]);
                     Console.ResetColor();
                 }
 
                 Console.WriteLine("===================================");
+                Console.WriteLine("W/S - выбор, Enter - подтвердить");
 
                 var key = Console.ReadKey(true).Key;
 
                 switch (key)
                 {
                     case ConsoleKey.W:
+                    case ConsoleKey.UpArrow:
                         selectedIndex = (selectedIndex - 1 + menuItems.Length) % menuItems.Length;
                         break;
 
                     case ConsoleKey.S:
+                    case ConsoleKey.DownArrow:
                         selectedIndex = (selectedIndex + 1) % menuItems.Length;
                         break;
 
+                    case ConsoleKey.Enter:
                     case ConsoleKey.E:
+                        inMenu = false;
                         ExecuteMainMenuChoice(selectedIndex);
                         break;
 
                     case ConsoleKey.Q:
-                        Console.WriteLine("\nВыход из игры...");
-                        return;
+                    case ConsoleKey.Escape:
+                        Environment.Exit(0);
+                        break;
                 }
             }
         }
@@ -302,16 +340,11 @@ namespace SimpleDungeon
             {
                 case 0: // Новая игра
                     StartNewGame();
-                    ProcessKeyInput(); // ЗАПУСКАЕМ ИГРОВОЙ ЦИКЛ ЗДЕСЬ
+                    // ProcessKeyInput() ЗАПУСКАЕТСЯ внутри StartNewGame()
                     break;
 
                 case 1: // Загрузить игру
                     ShowLoadGameMenu();
-                    // Если игра загружена, запускаем игровой цикл
-                    if (_player != null)
-                    {
-                        ProcessKeyInput();
-                    }
                     break;
 
                 case 2: // Выход
@@ -319,6 +352,9 @@ namespace SimpleDungeon
                     Environment.Exit(0);
                     break;
             }
+
+            // После завершения игрового цикла автоматически возвращаемся в главное меню
+            // НЕ очищаем консоль!
         }
         private static void ShowLoadGameMenu()
         {
@@ -380,8 +416,14 @@ namespace SimpleDungeon
                 MessageSystem.ClearMessages();
                 MessageSystem.AddMessage("Добро пожаловать в игру!");
 
-                // Создаем экран
+                
+
+                // Создаем экран и НЕМЕДЛЕННО отрисовываем
                 ScreenManager.PushScreen(new GameWorldScreen(_player));
+                ScreenManager.RenderCurrentScreen(); // ДОБАВИТЬ ЭТУ СТРОКУ
+                Console.WriteLine("Запуск RenderCurrentScreen()");
+
+                Thread.Sleep(1000);
 
                 // Запускаем игровой цикл
                 ProcessKeyInput();

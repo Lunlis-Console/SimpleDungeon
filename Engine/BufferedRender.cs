@@ -73,14 +73,29 @@ namespace Engine
         {
             if (_disposed) throw new ObjectDisposedException(nameof(BufferedRenderer));
 
+            //DebugConsole.Log($"BufferedRenderer: BeginFrame - Window: {Console.WindowWidth}x{Console.WindowHeight}");
+
             // Проверяем изменение размера окна
             if (Console.WindowWidth != _width || Console.WindowHeight != _height)
             {
+                DebugConsole.Log("BufferedRenderer: Window resized, reinitializing buffers");
                 InitializeBuffers();
                 _needsFullRedraw = true;
             }
 
             ClearBuffer(_backBuffer);
+        }
+
+        public void EndFrame()
+        {
+            if (_disposed) throw new ObjectDisposedException(nameof(BufferedRenderer));
+
+            //DebugConsole.Log("BufferedRenderer: EndFrame - Starting render");
+            Render();
+            //DebugConsole.Log("BufferedRenderer: Render completed");
+
+            Array.Copy(_backBuffer, _frontBuffer, _backBuffer.Length);
+            //DebugConsole.Log("BufferedRenderer: EndFrame completed");
         }
 
         public void Write(int x, int y, string text,
@@ -126,13 +141,6 @@ namespace Engine
                     }
                 }
             }
-        }
-
-        public void EndFrame()
-        {
-            if (_disposed) throw new ObjectDisposedException(nameof(BufferedRenderer));
-            Render();
-            Array.Copy(_backBuffer, _frontBuffer, _backBuffer.Length);
         }
 
         private void Render()

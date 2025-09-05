@@ -20,10 +20,26 @@ public static class ScreenManager
 
     public static void RenderCurrentScreen()
     {
-        if (_screenStack.Count == 0) return;
+        if (_screenStack.Count == 0)
+        {
+            DebugConsole.Log("ScreenManager: No screens in stack");
+            return;
+        }
 
-        _screenStack.Peek().Render();
-        _needsRedraw = false; // ВАЖНО: сбрасываем флаг после отрисовки
+        var currentScreen = _screenStack.Peek();
+        //DebugConsole.Log($"ScreenManager: Rendering {currentScreen.GetType().Name}");
+
+        try
+        {
+            currentScreen.Render();
+            //DebugConsole.Log("ScreenManager: Render completed successfully");
+        }
+        catch (Exception ex)
+        {
+            DebugConsole.Log($"ScreenManager: Render failed: {ex.Message}");
+        }
+
+        _needsRedraw = false;
     }
 
     public static void HandleInput(ConsoleKeyInfo keyInfo)

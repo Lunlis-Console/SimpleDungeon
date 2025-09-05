@@ -10,11 +10,14 @@
             _player = player;
             _currentLocation = player.CurrentLocation;
 
+            // Небольшая задержка для инициализации
+            Thread.Sleep(50);
             ScreenManager.SetNeedsRedraw();
         }
 
         public override void Render()
         {
+
             _renderer.BeginFrame();
             ClearScreen();
 
