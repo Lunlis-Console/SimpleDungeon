@@ -86,6 +86,7 @@ namespace Engine
             try
             {
                 _bufferedRenderer?.Dispose();
+                _bufferedRenderer = null; // Важно: обнуляем ссылку
 
                 if (_outputService is IDisposable disposable)
                 {

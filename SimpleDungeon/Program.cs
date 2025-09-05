@@ -124,6 +124,13 @@ namespace SimpleDungeon
                         DebugConsole.GlobalDraw();
                     }
 
+
+                    // Возможны баги в этой конструкции
+                    if (ScreenManager.ScreenCount < 1)
+                    {
+                        firstFrame = true;
+                    }
+
                     Thread.Sleep(50);
                 }
                 catch (Exception ex)
@@ -421,7 +428,7 @@ namespace SimpleDungeon
                 // Создаем экран и НЕМЕДЛЕННО отрисовываем
                 ScreenManager.PushScreen(new GameWorldScreen(_player));
                 ScreenManager.RenderCurrentScreen(); // ДОБАВИТЬ ЭТУ СТРОКУ
-                Console.WriteLine("Запуск RenderCurrentScreen()");
+                Console.WriteLine("Инициализация...");
 
                 Thread.Sleep(1000);
 
