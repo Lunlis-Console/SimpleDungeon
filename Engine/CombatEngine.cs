@@ -14,6 +14,7 @@ namespace Engine
         public string PlayerActionMessage { get; private set; }
         public string MonsterActionMessage { get; private set; }
         private readonly IWorldRepository _worldRepository;
+        private readonly CombatRenderer _combatRenderer;
 
         public CombatEngine(Player player, Monster monster, IWorldRepository worldRepository)
         {
@@ -26,6 +27,8 @@ namespace Engine
             MonsterActionMessage = "";
 
             _worldRepository = worldRepository;
+
+            _combatRenderer = new CombatRenderer(GameServices.DoubleBufferRenderer);
         }
 
         private List<string> _combatLog = new List<string>();
@@ -43,9 +46,11 @@ namespace Engine
         private const int PlayerSpeedLine = 21;     // "Скорость: [" игрока
         private const int PlayerStatsLine = 20;     // "АТК: " игрока
 
+        
+
         public void CombatLoop()
         {
-            // Убрать: GameServices.Renderer.SetDoubleBuffering(false);
+            // Инициализация...
 
             Player.CurrentSpeed = 0;
             Monster.CurrentSpeed = 0;
@@ -55,32 +60,23 @@ namespace Engine
             int slowerAgility = Math.Min(Player.Agility, Monster.Agility);
             bool playerIsSlower = Player.Agility == slowerAgility;
 
-            // Полная отрисовка вместо частичных обновлений
-            GameServices.Renderer.RenderCombatState(Player, Monster, _combatLog, _currentTurn, Player.CurrentSpeed, Monster.CurrentSpeed);
-            AddToCombatLog($"=== ХОД {_currentTurn} ===");
 
-            // Полная перерисовка вместо UpdateCombatLog
-            GameServices.Renderer.RenderCombatState(Player, Monster, _combatLog, _currentTurn, Player.CurrentSpeed, Monster.CurrentSpeed);
-            Thread.Sleep(250);
+            _combatRenderer.SetNeedsFullRedraw(); // Первая отрисовка - полная
 
             while (Player.IsInCombat && Player.CurrentHP > 0 && Monster.CurrentHP > 0)
             {
                 UpdateSpeedMeters();
 
-                // Полная перерисовка вместо частичных обновлений
-                GameServices.Renderer.RenderCombatState(Player, Monster, _combatLog, _currentTurn, Player.CurrentSpeed, Monster.CurrentSpeed);
+                // Рендерим кадр с двойной буферизацией
+                _combatRenderer.RenderCombatFrame(
+                    Player, Monster, _combatLog, _currentTurn,
+                    Player.CurrentSpeed, Monster.CurrentSpeed
+                );
 
                 if (Monster.CurrentSpeed >= 100)
                 {
-                    // Полная перерисовка
-                    GameServices.Renderer.RenderCombatState(Player, Monster, _combatLog, _currentTurn, Player.CurrentSpeed, Monster.CurrentSpeed);
                     Thread.Sleep(250);
-
                     MonsterTurn();
-
-                    // Полная перерисовка вместо UpdateCombatLog
-                    GameServices.Renderer.RenderCombatState(Player, Monster, _combatLog, _currentTurn, Player.CurrentSpeed, Monster.CurrentSpeed);
-
                     Monster.CurrentSpeed = 0;
                     if (Player.CurrentHP <= 0 || Monster.CurrentHP <= 0) break;
 
@@ -89,8 +85,6 @@ namespace Engine
                         Thread.Sleep(250);
                         _currentTurn++;
                         AddToCombatLog($"=== ХОД {_currentTurn} ===");
-                        // Полная перерисовка
-                        GameServices.Renderer.RenderCombatState(Player, Monster, _combatLog, _currentTurn, Player.CurrentSpeed, Monster.CurrentSpeed);
                         Thread.Sleep(250);
                     }
                     Thread.Sleep(250);
@@ -103,13 +97,7 @@ namespace Engine
                         Console.ReadKey(true);
                     }
 
-                    // Полная перерисовка
-                    GameServices.Renderer.RenderCombatState(Player, Monster, _combatLog, _currentTurn, Player.CurrentSpeed, Monster.CurrentSpeed);
                     ProcessPlayerInput();
-
-                    // Полная перерисовка вместо UpdateCombatLog
-                    GameServices.Renderer.RenderCombatState(Player, Monster, _combatLog, _currentTurn, Player.CurrentSpeed, Monster.CurrentSpeed);
-
                     Player.CurrentSpeed = 0;
                     if (!Player.IsInCombat || Monster.CurrentHP <= 0 || Player.CurrentHP <= 0) break;
 
@@ -118,14 +106,14 @@ namespace Engine
                         Thread.Sleep(250);
                         _currentTurn++;
                         AddToCombatLog($"=== ХОД {_currentTurn} ===");
-                        // Полная перерисовка
-                        GameServices.Renderer.RenderCombatState(Player, Monster, _combatLog, _currentTurn, Player.CurrentSpeed, Monster.CurrentSpeed);
                         Thread.Sleep(250);
                     }
                     Thread.Sleep(250);
                 }
-                Thread.Sleep(50);
+
+                Thread.Sleep(50); // Небольшая задержка между кадрами
             }
+
             EndCombat();
         }
         private void ProcessPlayerInput()

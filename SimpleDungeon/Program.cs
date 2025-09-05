@@ -28,6 +28,8 @@ namespace SimpleDungeon
         {
             while (true)
             {
+                GameServices.Renderer.CheckWindowResize();
+
                 if (_needsRedraw)
                 {
                     GameServices.Renderer.RenderGameWorld(_player, _player.CurrentLocation);
@@ -65,7 +67,7 @@ namespace SimpleDungeon
                     DebugConsole.Update();
                 }
 
-                Thread.Sleep(DebugConsole.IsVisible ? 1 : 10);
+                Thread.Sleep(10);
             }
         }
         private static void ProcessGameKey(ConsoleKey key)

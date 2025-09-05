@@ -7,6 +7,8 @@ namespace Engine
         private static IOutputService _outputService;
         private static IGameFactory _gameFactory;
         private static Renderer _renderer;
+        public static DoubleBufferRenderer DoubleBufferRenderer { get; set; }
+        public static CombatRenderer CombatRenderer { get; set; }
 
         public static IWorldRepository WorldRepository
         {
@@ -37,7 +39,10 @@ namespace Engine
             WorldRepository = new StaticWorldRepository();
             WorldInitializer.InitializeWithDependencies(WorldRepository);
             GameFactory = new GameFactory(WorldRepository);
+            OutputService = new ConsoleOutputService();
+            DoubleBufferRenderer = new DoubleBufferRenderer(OutputService);
             Renderer = new Renderer(OutputService);
+            CombatRenderer = new CombatRenderer(DoubleBufferRenderer);
         }
 
         public static void InitializeForTests(IWorldRepository testRepository)

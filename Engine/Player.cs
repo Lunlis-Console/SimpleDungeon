@@ -66,6 +66,8 @@ namespace Engine
 
         public void MoveTo(Location newLocation)
         {
+            GameServices.Renderer.SetNeedsFullRedraw();
+
             if (newLocation != null)
             {
                 newLocation.SpawnMonsters(Level);
@@ -123,7 +125,7 @@ namespace Engine
         }
         public void DisplayInventory()
         {
-            GameServices.Renderer.ForceInventoryRedraw(); // Добавьте эту строку
+            GameServices.Renderer.SetNeedsFullRedraw();
 
             var allItems = PrepareInventoryItems();
 

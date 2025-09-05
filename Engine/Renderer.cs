@@ -8,6 +8,7 @@ namespace Engine
     public class Renderer
     {
         private readonly IOutputService _output;
+        private readonly DoubleBufferRenderer _doubleBuffer;
 
         // Константы для позиционирования в бою
         private const int TurnStatusLine = 0;
@@ -21,86 +22,117 @@ namespace Engine
         public Renderer(IOutputService outputService)
         {
             _output = outputService ?? throw new ArgumentNullException(nameof(outputService));
+            _doubleBuffer = new DoubleBufferRenderer(outputService);
         }
+
+        public void BeginFrame()
+        {
+            _doubleBuffer.CheckWindowResize();
+            _doubleBuffer.BeginFrame();
+        }
+
+        public void EndFrame()
+        {
+            _doubleBuffer.EndFrame();
+        }
+
 
         // Основной метод отрисовки игрового мира
+        // Модифицируем методы рендеринга для использования буфера
         public void RenderGameWorld(Player player, Location location)
         {
-            if (player == null) throw new ArgumentNullException(nameof(player));
-            if (location == null) throw new ArgumentNullException(nameof(location));
+            BeginFrame();
 
-            _output.Clear();
+            RenderMessagesToBuffer();
+            RenderLocationInfoToBuffer(location);
+            RenderCreaturesToBuffer(location);
+            RenderGroundItemsToBuffer(location);
+            RenderAvailableDirectionsToBuffer(location);
 
-            RenderMessages();
-            _output.WriteLine("=========================Окружение========================");
-            _output.WriteLine($"Текущая локация: {location.Name}");
-
-            if (!string.IsNullOrEmpty(location.Description))
-            {
-                _output.WriteLine($"\nОписание: {location.Description}");
-            }
-
-            RenderCreatures(location);
-            RenderGroundItems(location);
-            RenderAvailableDirections(location);
+            EndFrame();
         }
 
-        private void RenderMessages()
+
+        private void RenderMessagesToBuffer()
         {
             if (MessageSystem.messages.Count == 0) return;
 
+            int y = 0;
             foreach (var message in MessageSystem.messages)
             {
-                _output.Write($" - {message}");
+                _doubleBuffer.Write(0, y, $" - {message}");
+                y++;
             }
-            _output.WriteLine("");
         }
 
-        private void RenderCreatures(Location location)
+        private void RenderLocationInfoToBuffer(Location location)
         {
+            int y = MessageSystem.messages.Count + 2;
+
+            _doubleBuffer.Write(0, y, "=========================Окружение========================");
+            y++;
+            _doubleBuffer.Write(0, y, $"Текущая локация: {location.Name}");
+            y++;
+
+            if (!string.IsNullOrEmpty(location.Description))
+            {
+                _doubleBuffer.Write(0, y, $"Описание: {location.Description}");
+                y++;
+            }
+            y++;
+        }
+
+        private void RenderCreaturesToBuffer(Location location)
+        {
+            int y = MessageSystem.messages.Count + 4;
+
             var monsters = location.FindMonsters();
             if (monsters.Count > 0)
             {
-                _output.WriteLine("\nМонстры: ");
+                _doubleBuffer.Write(0, y, "\nМонстры: ");
                 foreach (var monster in monsters)
                 {
-                    _output.WriteLine($"- {monster.Name} [{monster.Level}].");
+                    _doubleBuffer.Write(0, y, $"- {monster.Name} [{monster.Level}].");
                 }
             }
 
             if (location.NPCsHere.Count > 0)
             {
-                _output.WriteLine("\nЖители:");
+                _doubleBuffer.Write(0, y, "\nЖители:");
                 foreach (var npc in location.NPCsHere)
                 {
-                    _output.WriteLine($"- {npc.Name}");
+                    _doubleBuffer.Write(0, y, $"- {npc.Name}");
                 }
             }
         }
 
-        private void RenderGroundItems(Location location)
+        private void RenderGroundItemsToBuffer(Location location)
         {
+            int y = MessageSystem.messages.Count + 4;
+
             if (location.GroundItems.Count == 0) return;
 
-            _output.WriteLine("\nПредметы на земле:");
+            _doubleBuffer.Write(0, y, "\nПредметы на земле:");
             foreach (var itemGroup in location.GroundItems.GroupBy(i => i.Details.ID))
             {
                 var firstItem = itemGroup.First();
-                _output.WriteLine($"- {firstItem.Details.Name} x{itemGroup.Sum(i => i.Quantity)}");
+                _doubleBuffer.Write(0, y, $"- {firstItem.Details.Name} x{itemGroup.Sum(i => i.Quantity)}");
             }
         }
 
-        private void RenderAvailableDirections(Location location)
+        private void RenderAvailableDirectionsToBuffer(Location location)
         {
-            _output.WriteLine("=========================Действие=========================");
-            _output.WriteLine("Доступные направления: ");
+            int y = MessageSystem.messages.Count + 6;
 
-            if (location.LocationToNorth != null) _output.WriteLine("W - Север");
-            if (location.LocationToWest != null) _output.WriteLine("A - Запад");
-            if (location.LocationToSouth != null) _output.WriteLine("S - Юг");
-            if (location.LocationToEast != null) _output.WriteLine("D - Восток");
+            _doubleBuffer.Write(0, y, "=========================Действие=========================");
+            _doubleBuffer.Write(0, y, "Доступные направления: ");
 
-            _output.WriteLine("| C - Характеристики | I - Сумка | J - Журнал | L - Осмотреться | E - Взаимодействовать | H - Помощь |");
+            if (location.LocationToNorth != null) _doubleBuffer.Write(0, y, "W - Север");
+            if (location.LocationToWest != null) _doubleBuffer.Write(0, y, "A - Запад");
+            if (location.LocationToSouth != null) _doubleBuffer.Write(0, y, "S - Юг");
+            if (location.LocationToEast != null) _doubleBuffer.Write(0, y, "D - Восток");
+
+            _doubleBuffer.Write(0, y, "| C - Характеристики | I - Сумка | J - Журнал | L - Осмотреться | E - Взаимодействовать | H - Помощь |");
         }
 
         // Методы для боевой системы
@@ -197,31 +229,44 @@ namespace Engine
             Console.ResetColor();
         }
 
-        //private void RenderHealthBar(int current, int max, string label)
-        //{
-        //    current = Math.Max(current, 0);
-        //    max = Math.Max(max, 1);
+        // Добавляем в Renderer вспомогательные методы
+        private void RenderToBuffer(int x, int y, string text, ConsoleColor color = ConsoleColor.White)
+        {
+            // Сохраняем текущий цвет
+            ConsoleColor previousColor = Console.ForegroundColor;
+            Console.ForegroundColor = color;
 
-        //    float percentage = (float)current / max;
-        //    int bars = (int)(20 * percentage);
-        //    bars = Math.Clamp(bars, 0, 20);
-        //    int emptyBars = 20 - bars;
+            _doubleBuffer.Write(x, y, text);
 
-        //    Console.Write($"{label}: [");
+            // Восстанавливаем цвет
+            Console.ForegroundColor = previousColor;
+        }
 
-        //    if (percentage > 0.75f)
-        //        Console.ForegroundColor = ConsoleColor.Green;
-        //    else if (percentage > 0.25f)
-        //        Console.ForegroundColor = ConsoleColor.Yellow;
-        //    else
-        //        Console.ForegroundColor = ConsoleColor.Red;
+        private void RenderHealthBarToBuffer(int x, int y, int current, int max, string label = "Здоровье")
+        {
+            current = Math.Max(current, 0);
+            max = Math.Max(max, 1);
 
-        //    Console.Write(new string('█', bars));
-        //    Console.Write(new string('░', emptyBars));
-        //    Console.ResetColor();
+            float percentage = (float)current / max;
+            int bars = (int)(20 * percentage);
+            bars = Math.Clamp(bars, 0, 20);
+            int emptyBars = 20 - bars;
 
-        //    Console.WriteLine($"] {current}/{max}");
-        //}
+            string healthText = $"{current}/{max}";
+
+            string bar = $"{label}: [";
+
+            // Выбираем цвет в зависимости от процента здоровья
+            ConsoleColor color = percentage > 0.5f ? ConsoleColor.Green :
+                                percentage > 0.25f ? ConsoleColor.Yellow :
+                                ConsoleColor.Red;
+
+            bar += new string('█', bars);
+            bar += new string('░', emptyBars);
+            bar += $"] {healthText}";
+
+            RenderToBuffer(x, y, bar, color);
+        }
 
         private void RenderSpeedBar(int current, string label)
         {
