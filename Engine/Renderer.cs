@@ -303,11 +303,18 @@ namespace Engine
             _output.WriteLine("-----------------ЭКИПИРОВКА-----------------");
             Console.ResetColor();
 
-            RenderEquipmentSlot("Оружие", player.Inventory.Weapon, player.Inventory.Weapon?.AttackBonus ?? 0, "АТК");
+            // ОРУЖИЕ - два слота
+            RenderEquipmentSlot("Осн. рука", player.Inventory.MainHand, player.Inventory.MainHand?.AttackBonus ?? 0, "АТК");
+            RenderEquipmentSlot("Втор. рука", player.Inventory.OffHand, player.Inventory.OffHand?.AttackBonus ?? 0, "АТК");
+            // БРОНЯ
             RenderEquipmentSlot("Шлем", player.Inventory.Helmet, player.Inventory.Helmet?.DefenceBonus ?? 0, "ЗЩТ");
             RenderEquipmentSlot("Броня", player.Inventory.Armor, player.Inventory.Armor?.DefenceBonus ?? 0, "ЗЩТ");
             RenderEquipmentSlot("Перчатки", player.Inventory.Gloves, player.Inventory.Gloves?.DefenceBonus ?? 0, "ЗЩТ");
             RenderEquipmentSlot("Ботинки", player.Inventory.Boots, player.Inventory.Boots?.DefenceBonus ?? 0, "ЗЩТ");
+            // БИЖУТЕРИЯ
+            RenderEquipmentSlot("Амулет", player.Inventory.Amulet, player.Inventory.Amulet?.DefenceBonus ?? 0, "ЗЩТ");
+            RenderEquipmentSlot("Кольцо 1", player.Inventory.Ring1, player.Inventory.Ring1?.DefenceBonus ?? 0, "ЗЩТ");
+            RenderEquipmentSlot("Кольцо 2", player.Inventory.Ring2, player.Inventory.Ring2?.DefenceBonus ?? 0, "ЗЩТ");
             _output.WriteLine("");
 
             // Бонусы от экипировки (компактно)
