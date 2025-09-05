@@ -11,12 +11,12 @@ namespace Engine
 
             while (viewing)
             {
-                Console.Clear();
+                GameServices.OutputService.Clear();
                 //DisplayCharacterDetails(player);
                 GameServices.Renderer.RenderCharacterScreen(player);
 
-                Console.WriteLine("\nQ - закрыть, I - инвентарь, S - навыки, T - титулы");
-                Console.Write("> ");
+                GameServices.OutputService.WriteLine("\nQ - закрыть, I - инвентарь, S - навыки, T - титулы");
+                GameServices.OutputService.Write("> ");
 
                 var key = Console.ReadKey(true).Key;
 
@@ -49,9 +49,9 @@ namespace Engine
 
             if (titles.Count == 0)
             {
-                Console.Clear();
-                Console.WriteLine("У вас нет разблокированных титулов!");
-                Console.WriteLine("\nНажмите любую клавишу...");
+                GameServices.OutputService.Clear();
+                GameServices.OutputService.WriteLine("У вас нет разблокированных титулов!");
+                GameServices.OutputService.WriteLine("\nНажмите любую клавишу...");
                 Console.ReadKey();
                 return;
             }
@@ -75,12 +75,12 @@ namespace Engine
                 }
 
                 // Показываем информацию о титуле
-                Console.Clear();
-                Console.WriteLine($"====== {selectedTitle.Name} ======");
-                Console.WriteLine($"Описание: {selectedTitle.Description}");
-                Console.WriteLine($"Бонусы: {selectedTitle.GetBonusDescription()}");
-                Console.WriteLine($"Требование: {selectedTitle.RequirementAmount} {GetRequirementDescription(selectedTitle)}");
-                Console.WriteLine("\nНажмите любую клавишу...");
+                GameServices.OutputService.Clear();
+                GameServices.OutputService.WriteLine($"====== {selectedTitle.Name} ======");
+                GameServices.OutputService.WriteLine($"Описание: {selectedTitle.Description}");
+                GameServices.OutputService.WriteLine($"Бонусы: {selectedTitle.GetBonusDescription()}");
+                GameServices.OutputService.WriteLine($"Требование: {selectedTitle.RequirementAmount} {GetRequirementDescription(selectedTitle)}");
+                GameServices.OutputService.WriteLine("\nНажмите любую клавишу...");
                 Console.ReadKey();
             }
         }

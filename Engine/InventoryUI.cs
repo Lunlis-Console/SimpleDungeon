@@ -7,55 +7,6 @@ namespace Engine
 {
     public static class InventoryUI
     {
-        //public static object SelectItemFromCombinedList(List<object> items, Player player)
-        //{
-        //    if (items == null || items.Count == 0)
-        //        return null;
-
-        //    if (items.Count == 1)
-        //        return items[0];
-
-        //    int selectedIndex = 0;
-        //    ConsoleKey key;
-
-        //    do
-        //    {
-        //        var inventoryData = new InventoryRenderData
-        //        {
-        //            Items = items,
-        //            SelectedIndex = selectedIndex,
-        //            Player = player,
-        //            Title = "Выберите предмет"
-        //        };
-
-        //        GameServices.Renderer.RenderInventory(inventoryData);
-
-        //        key = Console.ReadKey(true).Key;
-
-        //        switch (key)
-        //        {
-        //            case ConsoleKey.W:
-        //            case ConsoleKey.UpArrow:
-        //                selectedIndex = Math.Max(0, selectedIndex - 1);
-        //                break;
-
-        //            case ConsoleKey.S:
-        //            case ConsoleKey.DownArrow:
-        //                selectedIndex = Math.Min(items.Count - 1, selectedIndex + 1);
-        //                break;
-
-        //            case ConsoleKey.Q:
-        //            case ConsoleKey.Escape:
-        //                return null;
-
-        //            case ConsoleKey.E:
-        //            case ConsoleKey.Enter:
-        //            case ConsoleKey.Spacebar:
-        //                return items[selectedIndex];
-        //        }
-
-        //    } while (true);
-        //}
         public static void ShowItemContextMenu(Player player, InventoryItem selectedItem)
         {
             if (selectedItem == null) return;
@@ -190,15 +141,11 @@ namespace Engine
             if (items == null || items.Count == 0)
                 return null;
 
-            if (items.Count == 1)
-                return items[0];
-
             int selectedIndex = 0;
-            ConsoleKey key;
 
-            do
+            while (true)
             {
-                // Вместо прямой отрисовки - создаем данные для рендерера
+                // Использовать Renderer вместо прямого вывода
                 var inventoryData = new InventoryRenderData
                 {
                     Items = items,
@@ -207,10 +154,14 @@ namespace Engine
                     Title = "Выберите предмет"
                 };
 
-                // Отрисовываем через Renderer
                 GameServices.Renderer.RenderInventory(inventoryData);
 
-                key = Console.ReadKey(true).Key;
+                var key = InputHandler.WaitForKey(
+                    ConsoleKey.W, ConsoleKey.UpArrow,
+                    ConsoleKey.S, ConsoleKey.DownArrow,
+                    ConsoleKey.Q, ConsoleKey.Escape,
+                    ConsoleKey.E, ConsoleKey.Enter,
+                    ConsoleKey.Spacebar);
 
                 switch (key)
                 {
@@ -224,12 +175,6 @@ namespace Engine
                         selectedIndex = Math.Min(items.Count - 1, selectedIndex + 1);
                         break;
 
-                    case ConsoleKey.Tab:
-                        // Переключение на экипированные предметы
-                        var equipmentIndex = items.FindIndex(item => item is EquipmentSlotItem);
-                        if (equipmentIndex >= 0) selectedIndex = equipmentIndex;
-                        break;
-
                     case ConsoleKey.Q:
                     case ConsoleKey.Escape:
                         return null;
@@ -239,8 +184,7 @@ namespace Engine
                     case ConsoleKey.Spacebar:
                         return items[selectedIndex];
                 }
-
-            } while (true);
+            }
         }
         public class EquipmentSlotItem
         {

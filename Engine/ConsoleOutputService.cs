@@ -10,7 +10,7 @@ namespace Engine
         public void Clear() => Console.Clear();
         public void SetCursorPosition(int left, int top) => Console.SetCursorPosition(left, top);
 
-        // В ConsoleOutputService.cs добавляем пустые реализации
+        // Пустые реализации для совместимости
         public void BeginBuffer() { }
         public void EndBuffer() { }
         public void Render() { }

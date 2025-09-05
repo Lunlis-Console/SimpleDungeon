@@ -8,8 +8,6 @@ namespace Engine
     public class Renderer
     {
         private readonly IOutputService _output;
-        private readonly DoubleBufferConsole _doubleBuffer;
-        private readonly bool _useDoubleBuffering = true;
 
         // Константы для позиционирования в бою
         private const int TurnStatusLine = 0;
@@ -20,16 +18,9 @@ namespace Engine
         private const int PlayerHealthLine = 21;
         private const int PlayerSpeedLine = 22;
 
-        // Отслеживание состояния инвентаря
-        private int _lastSelectedIndex = -1;
-        private bool _inventoryNeedsFullRedraw = true;
-        private readonly int _dividerPosition;
-
         public Renderer(IOutputService outputService)
         {
             _output = outputService ?? throw new ArgumentNullException(nameof(outputService));
-            _doubleBuffer = new DoubleBufferConsole();
-            _dividerPosition = Console.WindowWidth / 2;
         }
 
         // Основной метод отрисовки игрового мира
@@ -38,81 +29,78 @@ namespace Engine
             if (player == null) throw new ArgumentNullException(nameof(player));
             if (location == null) throw new ArgumentNullException(nameof(location));
 
-            var output = GetOutputService();
-            output.Clear();
+            _output.Clear();
 
-            RenderMessages(output);
-            output.WriteLine("=========================Окружение========================");
-            output.WriteLine($"Текущая локация: {location.Name}");
+            RenderMessages();
+            _output.WriteLine("=========================Окружение========================");
+            _output.WriteLine($"Текущая локация: {location.Name}");
 
             if (!string.IsNullOrEmpty(location.Description))
             {
-                output.WriteLine($"\nОписание: {location.Description}");
+                _output.WriteLine($"\nОписание: {location.Description}");
             }
 
-            RenderCreatures(output, location);
-            RenderGroundItems(output, location);
-            RenderAvailableDirections(output, location);
-
-            RenderIfDoubleBuffering();
+            RenderCreatures(location);
+            RenderGroundItems(location);
+            RenderAvailableDirections(location);
         }
 
-        public void RenderMessages(IOutputService output)
+        private void RenderMessages()
         {
             if (MessageSystem.messages.Count == 0) return;
 
             foreach (var message in MessageSystem.messages)
             {
-                output.Write($" - {message}");
+                _output.Write($" - {message}");
             }
-            output.WriteLine("");
+            _output.WriteLine("");
         }
 
-        private void RenderCreatures(IOutputService output, Location location)
+        private void RenderCreatures(Location location)
         {
             var monsters = location.FindMonsters();
             if (monsters.Count > 0)
             {
-                output.WriteLine("\nМонстры: ");
+                _output.WriteLine("\nМонстры: ");
                 foreach (var monster in monsters)
                 {
-                    output.WriteLine($"- {monster.Name} [{monster.Level}].");
+                    _output.WriteLine($"- {monster.Name} [{monster.Level}].");
                 }
             }
 
             if (location.NPCsHere.Count > 0)
             {
-                output.WriteLine("\nЖители:");
+                _output.WriteLine("\nЖители:");
                 foreach (var npc in location.NPCsHere)
                 {
-                    output.WriteLine($"- {npc.Name}");
+                    _output.WriteLine($"- {npc.Name}");
                 }
             }
         }
 
-        private void RenderGroundItems(IOutputService output, Location location)
+        private void RenderGroundItems(Location location)
         {
             if (location.GroundItems.Count == 0) return;
 
-            output.WriteLine("\nПредметы на земле:");
+            _output.WriteLine("\nПредметы на земле:");
             foreach (var itemGroup in location.GroundItems.GroupBy(i => i.Details.ID))
             {
                 var firstItem = itemGroup.First();
-                output.WriteLine($"- {firstItem.Details.Name} x{itemGroup.Sum(i => i.Quantity)}");
+                _output.WriteLine($"- {firstItem.Details.Name} x{itemGroup.Sum(i => i.Quantity)}");
             }
         }
 
-        private void RenderAvailableDirections(IOutputService output, Location location)
+        private void RenderAvailableDirections(Location location)
         {
-            output.WriteLine("=========================Действие=========================");
-            output.WriteLine("Доступные направления: ");
+            _output.WriteLine("=========================Действие=========================");
+            _output.WriteLine("Доступные направления: ");
 
-            if (location.LocationToNorth != null) output.WriteLine("W - Север");
-            if (location.LocationToWest != null) output.WriteLine("A - Запад");
-            if (location.LocationToSouth != null) output.WriteLine("S - Юг");
-            if (location.LocationToEast != null) output.WriteLine("D - Восток");
+            if (location.LocationToNorth != null) _output.WriteLine("W - Север");
+            if (location.LocationToWest != null) _output.WriteLine("A - Запад");
+            if (location.LocationToSouth != null) _output.WriteLine("S - Юг");
+            if (location.LocationToEast != null) _output.WriteLine("D - Восток");
 
-            output.WriteLine("| C - Характеристики | I - Сумка | J - Журнал | L - Осмотреться | E - Взаимодействовать | H - Помощь |");
+            _output.WriteLine("| C - Характеристики | I - Сумка | J - Журнал | L - Осмотреться | E - Взаимодействовать | H - Помощь |");
         }
 
         // Методы для боевой системы
@@ -121,15 +109,13 @@ namespace Engine
             if (player == null) throw new ArgumentNullException(nameof(player));
             if (monster == null) throw new ArgumentNullException(nameof(monster));
 
-            var output = GetOutputService();
-            output.Clear();
+            _output.Clear();
             RenderStaticCombatLayout(player, monster, currentTurn, playerSpeed, monsterSpeed, combatLog);
         }
 
         public void RenderStaticCombatLayout(Player player, Monster monster, int currentTurn, int playerSpeed, int monsterSpeed, List<string> combatLog = null)
         {
-            var output = GetOutputService();
-            output.Clear();
+            _output.Clear();
             Console.ResetColor();
 
             RenderTurnStatus(playerSpeed, monsterSpeed, monster);
@@ -138,8 +124,6 @@ namespace Engine
             RenderCombatLog(combatLog);
             RenderPlayerInfo(player, playerSpeed);
             RenderCombatActions();
-
-            RenderIfDoubleBuffering();
         }
 
         private void RenderTurnStatus(int playerSpeed, int monsterSpeed, Monster monster)
@@ -274,243 +258,62 @@ namespace Engine
             };
         }
 
-        // Методы для обновления отдельных элементов в бою
-        public void UpdateAtPosition(int line, Action drawAction)
-        {
-            int originalLeft = Console.CursorLeft;
-            int originalTop = Console.CursorTop;
-
-            try
-            {
-                ClearLine(line);
-                Console.SetCursorPosition(0, line);
-                drawAction();
-            }
-            finally
-            {
-                Console.SetCursorPosition(originalLeft, originalTop);
-            }
-        }
-
-        public void ClearLine(int line)
-        {
-            int originalLeft = Console.CursorLeft;
-            int originalTop = Console.CursorTop;
-
-            try
-            {
-                Console.SetCursorPosition(0, line);
-                Console.Write(new string(' ', Console.WindowWidth));
-                Console.SetCursorPosition(originalLeft, originalTop);
-            }
-            catch (ArgumentOutOfRangeException)
-            {
-                // Игнорируем ошибку позиционирования
-            }
-        }
-
-        public void UpdateTurnStatus(Player player, Monster monster)
-        {
-            UpdateAtPosition(TurnStatusLine, () =>
-            {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                if (player.CurrentSpeed >= 100)
-                    Console.Write("=== ВАШ ХОД ===");
-                else if (monster.CurrentSpeed >= 100)
-                    Console.Write($"=== ХОД {monster.Name.ToUpper()} ===");
-                else
-                    Console.Write("=== НАПОЛНЕНИЕ ШКАЛЫ СКОРОСТИ ===");
-                Console.ResetColor();
-            });
-        }
-
-        public void UpdateTurnNumber(int currentTurn)
-        {
-            UpdateAtPosition(TurnNumberLine, () =>
-            {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Write($"================ ХОД {currentTurn} ================");
-                Console.ResetColor();
-            });
-        }
-
-        public void UpdateHealthBar(int current, int max, int line, string label)
-        {
-            if (line < 0) return;
-
-            UpdateAtPosition(line, () =>
-            {
-                Console.Write(new string(' ', Console.WindowWidth));
-                Console.SetCursorPosition(0, line);
-                RenderHealthBar(current, max, label);
-            });
-        }
-
-        public void UpdateSpeedBar(int current, int line, string label)
-        {
-            if (line < 0) return;
-
-            UpdateAtPosition(line, () =>
-            {
-                Console.Write(new string(' ', Console.WindowWidth));
-                Console.SetCursorPosition(0, line);
-                RenderSpeedBar(current, label);
-            });
-        }
-
-        public void UpdateCombatLog(List<string> combatLog)
-        {
-            int originalLeft = Console.CursorLeft;
-            int originalTop = Console.CursorTop;
-
-            // Очищаем область лога
-            for (int i = 0; i < 10; i++)
-            {
-                Console.SetCursorPosition(0, CombatLogStartLine + i);
-                Console.Write(new string(' ', Console.WindowWidth));
-            }
-
-            // Выводим новые сообщения с цветом
-            for (int i = 0; i < combatLog.Count; i++)
-            {
-                Console.SetCursorPosition(0, CombatLogStartLine + i);
-                Console.ForegroundColor = GetMessageColor(combatLog[i]);
-                Console.Write($" {combatLog[i]}");
-                Console.ResetColor();
-            }
-
-            Console.SetCursorPosition(originalLeft, originalTop);
-        }
-
+        // Метод для отрисовки экрана персонажа
         // Метод для отрисовки экрана персонажа
         public void RenderCharacterScreen(Player player)
         {
             if (player == null) throw new ArgumentNullException(nameof(player));
 
-            var output = GetOutputService();
-            output.Clear();
+            _output.Clear();
 
-            output.WriteLine("=============ХАРАКТЕРИСТИКИ ПЕРСОНАЖА=============");
-            output.WriteLine($"Имя: Игрок");
-            output.WriteLine($"Уровень: {player.Level}");
-            output.WriteLine($"Опыт: {player.CurrentEXP}/{player.MaximumEXP}");
-            output.WriteLine($"Здоровье: {player.CurrentHP}/{player.TotalMaximumHP}");
-            output.WriteLine($"Золото: {player.Gold}");
+            _output.WriteLine("=============ХАРАКТЕРИСТИКИ ПЕРСОНАЖА=============");
+            _output.WriteLine($"Имя: Игрок | Уровень: {player.Level}");
+            _output.WriteLine($"Опыт: {player.CurrentEXP}/{player.MaximumEXP}");
+            _output.WriteLine($"Здоровье: {player.CurrentHP}/{player.TotalMaximumHP} | Золото: {player.Gold}");
 
             if (player.ActiveTitle != null)
             {
-                output.WriteLine($"Титул: {player.ActiveTitle.Name}");
+                _output.WriteLine($"Титул: {player.ActiveTitle.Name}");
             }
 
-            output.WriteLine("\n-----------------АТРИБУТЫ-----------------");
-            output.WriteLine($"Сила: {player.Attributes.Strength}");
-            output.WriteLine($"Телосложение: {player.Attributes.Constitution}");
-            output.WriteLine($"Ловкость: {player.Attributes.Dexterity}");
-            output.WriteLine($"Интеллект: {player.Attributes.Intelligence}");
-            output.WriteLine($"Мудрость: {player.Attributes.Wisdom}");
-            output.WriteLine($"Харизма: {player.Attributes.Charisma}");
+            _output.WriteLine("\n-----------------АТРИБУТЫ-----------------");
+            _output.WriteLine($"Сил: {player.Attributes.Strength} | Тел: {player.Attributes.Constitution}");
+            _output.WriteLine($"Лов: {player.Attributes.Dexterity} | Инт: {player.Attributes.Intelligence}");
+            _output.WriteLine($"Муд: {player.Attributes.Wisdom} | Хар: {player.Attributes.Charisma}");
 
-            output.WriteLine("\n--------------БОЕВЫЕ ПАРАМЕТРЫ--------------");
-            output.WriteLine($"Атака: {player.Attack}");
-            output.WriteLine($"Защита: {player.Defence}");
-            output.WriteLine($"Скорость: {player.Agility}");
+            _output.WriteLine("\n--------------БОЕВЫЕ ПАРАМЕТРЫ--------------");
+            _output.WriteLine($"Атака: {player.Attack} | Защита: {player.Defence}");
+            _output.WriteLine($"Скорость: {player.Agility}");
 
-            output.WriteLine("\n-----------------ЭКИПИРОВКА-----------------");
-            RenderEquipmentSlot(output, "Оружие", player.Inventory.Weapon, player.Inventory.Weapon?.AttackBonus ?? 0);
-            RenderEquipmentSlot(output, "Шлем", player.Inventory.Helmet, player.Inventory.Helmet?.DefenceBonus ?? 0);
-            RenderEquipmentSlot(output, "Броня", player.Inventory.Armor, player.Inventory.Armor?.DefenceBonus ?? 0);
-            RenderEquipmentSlot(output, "Перчатки", player.Inventory.Gloves, player.Inventory.Gloves?.DefenceBonus ?? 0);
-            RenderEquipmentSlot(output, "Ботинки", player.Inventory.Boots, player.Inventory.Boots?.DefenceBonus ?? 0);
+            _output.WriteLine("\n-----------------ЭКИПИРОВКА-----------------");
+            RenderEquipmentSlot("Оружие", player.Inventory.Weapon, player.Inventory.Weapon?.AttackBonus ?? 0);
+            RenderEquipmentSlot("Шлем", player.Inventory.Helmet, player.Inventory.Helmet?.DefenceBonus ?? 0);
+            RenderEquipmentSlot("Броня", player.Inventory.Armor, player.Inventory.Armor?.DefenceBonus ?? 0);
+            RenderEquipmentSlot("Перчатки", player.Inventory.Gloves, player.Inventory.Gloves?.DefenceBonus ?? 0);
+            RenderEquipmentSlot("Ботинки", player.Inventory.Boots, player.Inventory.Boots?.DefenceBonus ?? 0);
 
-            output.WriteLine("\n---------------БОНУСЫ ОТ ЭКИПИРОВКИ---------------");
+            // Сокращаем отображение бонусов
+            _output.WriteLine("\n---------------БОНУСЫ ОТ ЭКИПИРОВКИ---------------");
             int totalAttackBonus = player.Inventory.CalculateTotalAttack();
             int totalDefenceBonus = player.Inventory.CalculateTotalDefence();
             int totalAgilityBonus = player.Inventory.CalculateTotalAgility();
             int totalHealthBonus = player.Inventory.CalculateTotalHealth();
 
-            output.WriteLine($"Суммарная атака: {player.Attack} (+{totalAttackBonus} от экипировки)");
-            output.WriteLine($"Суммарная защита: {player.Defence} (+{totalDefenceBonus} от экипировки)");
-            output.WriteLine($"Суммарная ловкость: {player.Agility} (+{totalAgilityBonus} от экипировки)");
-            output.WriteLine($"Суммарное здоровье: {player.TotalMaximumHP} (+{totalHealthBonus} от экипировки)");
+            _output.WriteLine($"АТК: +{totalAttackBonus} | ЗЩТ: +{totalDefenceBonus}");
+            _output.WriteLine($"ЛОВ: +{totalAgilityBonus} | ЗДР: +{totalHealthBonus}");
 
-            output.WriteLine("\n-----------------СТАТИСТИКА-----------------");
-            output.WriteLine($"Всего убито монстров: {player.MonstersKilled}");
-            output.WriteLine($"Всего выполнено квестов: {player.QuestsCompleted}");
+            // Сокращаем статистику
+            _output.WriteLine("\n-----------------СТАТИСТИКА-----------------");
+            _output.WriteLine($"Монстры: {player.MonstersKilled} | Квесты: {player.QuestsCompleted}");
 
-            RenderIfDoubleBuffering();
+            // Добавляем подсказку для управления
+            _output.WriteLine("\nQ - закрыть, I - инвентарь, S - навыки, T - титулы");
         }
-
-        private void RenderEquipmentSlot(IOutputService output, string slotName, Equipment equipment, int bonus)
+        private void RenderEquipmentSlot(string slotName, Equipment equipment, int bonus)
         {
             string equipmentName = equipment?.Name ?? "Пусто";
             string bonusText = bonus > 0 ? $"(+{bonus})" : "";
-            output.WriteLine($"{slotName.PadRight(10)}: {equipmentName.PadRight(20)} {bonusText}");
-        }
-
-        // Метод для отрисовки главного меню
-        public void RenderMainMenu(string[] menuItems, int selectedIndex)
-        {
-            if (menuItems == null) throw new ArgumentNullException(nameof(menuItems));
-
-            var output = GetOutputService();
-            output.Clear();
-
-            output.WriteLine("===================================");
-            output.WriteLine("          SIMPLE DUNGEON");
-            output.WriteLine("===================================");
-
-            for (int i = 0; i < menuItems.Length; i++)
-            {
-                if (i == selectedIndex)
-                {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    output.Write(">");
-                }
-                else
-                {
-                    output.Write("  ");
-                }
-
-                output.WriteLine(menuItems[i]);
-                Console.ResetColor();
-            }
-
-            output.WriteLine("===================================");
-            RenderIfDoubleBuffering();
-        }
-
-        // Метод для отрисовки меню загрузки
-        public void RenderLoadMenu(List<string> saves, int selectedIndex)
-        {
-            var output = GetOutputService();
-            output.Clear();
-
-            output.WriteLine("====== ЗАГРУЗИТЬ ИГРУ ======");
-
-            if (saves == null || saves.Count == 0)
-            {
-                output.WriteLine("Нет доступных сохранений!");
-            }
-            else
-            {
-                for (int i = 0; i < saves.Count; i++)
-                {
-                    if (i == selectedIndex)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        output.Write(">");
-                    }
-                    else
-                    {
-                        output.Write("  ");
-                    }
-
-                    output.WriteLine(saves[i]);
-                    Console.ResetColor();
-                }
-            }
-
-            RenderIfDoubleBuffering();
+            _output.WriteLine($"{slotName.PadRight(10)}: {equipmentName.PadRight(20)} {bonusText}");
         }
 
         // Метод для отрисовки инвентаря
@@ -518,61 +321,79 @@ namespace Engine
         {
             if (inventoryData == null) throw new ArgumentNullException(nameof(inventoryData));
 
-            if (!_useDoubleBuffering)
+            _output.Clear();
+
+            int windowWidth = Console.WindowWidth;
+            int dividerPosition = windowWidth / 2;
+
+            // Заголовок
+            _output.WriteLine("=========СУМКА=========");
+            _output.WriteLine("");
+
+            // Левая колонка - предметы
+            int maxLeftItems = Math.Min(inventoryData.Items.Count, Console.WindowHeight - 15);
+
+            for (int i = 0; i < maxLeftItems; i++)
             {
-                RenderInventoryDirect(inventoryData);
-                return;
-            }
+                string displayText = GetItemDisplayText(inventoryData.Items[i]);
+                if (displayText.Length > dividerPosition - 3)
+                    displayText = displayText.Substring(0, dividerPosition - 6) + "...";
 
-            RenderInventoryOptimized(inventoryData);
-        }
-
-        private void RenderInventoryOptimized(InventoryRenderData inventoryData)
-        {
-            _doubleBuffer.BeginBuffer();
-
-            try
-            {
-                if (_inventoryNeedsFullRedraw)
+                if (i == inventoryData.SelectedIndex)
                 {
-                    RenderInventoryBuffered(inventoryData);
-                    _inventoryNeedsFullRedraw = false;
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    _output.Write("> ");
                 }
                 else
                 {
-                    UpdateInventorySelection(inventoryData);
+                    _output.Write("  ");
                 }
+
+                _output.WriteLine(displayText);
+                Console.ResetColor();
             }
-            finally
+
+            // Заполняем оставшиеся строки в левой колонке
+            for (int i = maxLeftItems; i < Console.WindowHeight - 15; i++)
             {
-                _doubleBuffer.EndBuffer();
-                _doubleBuffer.Render();
+                _output.WriteLine("");
             }
+
+            // Правая колонка - экипировка и статистика
+            string[] rightContent = {
+        "======ЭКИПИРОВКА======",
+        $"Оружие: {(inventoryData.MainHand?.Name ?? "Пусто")}",
+        $"Шлем: {(inventoryData.Helmet?.Name ?? "Пусто")}",
+        $"Броня: {(inventoryData.Armor?.Name ?? "Пусто")}",
+        $"Перчатки: {(inventoryData.Gloves?.Name ?? "Пусто")}",
+        $"Ботинки: {(inventoryData.Boots?.Name ?? "Пусто")}",
+        $"Амулет: {(inventoryData.Amulet?.Name ?? "Пусто")}",
+        $"Кольцо 1: {(inventoryData.Ring1?.Name ?? "Пусто")}",
+        $"Кольцо 2: {(inventoryData.Ring2?.Name ?? "Пусто")}",
+        "",
+        "======СТАТИСТИКА======",
+        $"Здоровье: {inventoryData.CurrentHP}/{inventoryData.TotalMaximumHP}",
+        $"Атака: {inventoryData.Attack}",
+        $"Защита: {inventoryData.Defence}",
+        $"Ловкость: {inventoryData.Agility}",
+        $"Золото: {inventoryData.Gold}",
+        $"Уровень: {inventoryData.Level}",
+        $"Опыт: {inventoryData.CurrentEXP}/{inventoryData.MaximumEXP}"
+    };
+
+            // Отрисовываем правую колонку с правильным позиционированием
+            for (int i = 0; i < rightContent.Length && i < Console.WindowHeight - 1; i++)
+            {
+                _output.SetCursorPosition(dividerPosition + 1, i + 1);
+                _output.Write(rightContent[i]);
+            }
+
+            // Управление
+            string controls = "W/S - Выбор  |  E - Действие  |  Q - Назад";
+            int controlsX = (windowWidth - controls.Length) / 2;
+            _output.SetCursorPosition(controlsX, Console.WindowHeight - 2);
+            _output.Write(controls);
         }
-
-        private void UpdateInventorySelection(InventoryRenderData inventoryData)
-        {
-            if (_lastSelectedIndex >= 0 && _lastSelectedIndex < inventoryData.Items.Count)
-            {
-                int y = _lastSelectedIndex + 1;
-                _doubleBuffer.SetCursorPosition(0, y);
-                _doubleBuffer.Write(" ");
-                string displayText = GetItemDisplayText(inventoryData.Items[_lastSelectedIndex]);
-                _doubleBuffer.Write(displayText.PadRight(_dividerPosition - 3));
-            }
-
-            if (inventoryData.SelectedIndex >= 0 && inventoryData.SelectedIndex < inventoryData.Items.Count)
-            {
-                int y = inventoryData.SelectedIndex + 1;
-                _doubleBuffer.SetCursorPosition(0, y);
-                _doubleBuffer.Write(">");
-                string displayText = GetItemDisplayText(inventoryData.Items[inventoryData.SelectedIndex]);
-                _doubleBuffer.Write(displayText.PadRight(_dividerPosition - 3));
-            }
-
-            _lastSelectedIndex = inventoryData.SelectedIndex;
-        }
-
         private string GetItemDisplayText(object item)
         {
             return item switch
@@ -585,87 +406,34 @@ namespace Engine
 
         public void ForceInventoryRedraw()
         {
-            _inventoryNeedsFullRedraw = true;
-            _lastSelectedIndex = -1;
+            // Метод оставлен для совместимости, но теперь не нужен
         }
 
-        private void RenderInventoryBuffered(InventoryRenderData inventoryData)
+        // В класс Renderer добавить:
+        public void RenderMenu(List<string> options, int selectedIndex, string title, string instructions = "")
         {
-            _doubleBuffer.Clear();
+            _output.Clear();
 
-            int windowWidth = Console.WindowWidth;
-            int dividerPosition = windowWidth / 2;
-
-            // Заголовок
-            _doubleBuffer.SetCursorPosition(0, 0);
-            _doubleBuffer.Write("=========СУМКА=========");
-
-            // Левая колонка - предметы
-            for (int i = 0; i < inventoryData.Items.Count && i < Console.WindowHeight - 3; i++)
+            _output.WriteLine($"====== {title} ======");
+            if (!string.IsNullOrEmpty(instructions))
             {
-                int y = i + 1;
-                _doubleBuffer.SetCursorPosition(0, y);
+                _output.WriteLine(instructions);
+                _output.WriteLine("");
+            }
 
-                string displayText = GetItemDisplayText(inventoryData.Items[i]);
-                if (displayText.Length > dividerPosition - 3)
-                    displayText = displayText.Substring(0, dividerPosition - 6) + "...";
-
-                if (i == inventoryData.SelectedIndex)
+            for (int i = 0; i < options.Count; i++)
+            {
+                if (i == selectedIndex)
                 {
-                    _doubleBuffer.Write(">");
-                    _doubleBuffer.Write(displayText.PadRight(dividerPosition - 3));
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    _output.Write("> ");
                 }
                 else
                 {
-                    _doubleBuffer.Write(" ");
-                    _doubleBuffer.Write(displayText.PadRight(dividerPosition - 3));
+                    _output.Write("  ");
                 }
-            }
-
-            // Правая колонка - экипировка
-            string[] rightContent = {
-                "======ЭКИПИРОВКА======",
-                $"Оружие: {(inventoryData.MainHand?.Name ?? "Пусто")}",
-                // ... остальной контент
-            };
-
-            for (int i = 0; i < rightContent.Length && i < Console.WindowHeight - 1; i++)
-            {
-                _doubleBuffer.SetCursorPosition(dividerPosition + 1, i);
-                _doubleBuffer.Write(rightContent[i].PadRight(windowWidth - dividerPosition - 1));
-            }
-
-            // Разделительная линия
-            for (int y = 0; y < Console.WindowHeight; y++)
-            {
-                _doubleBuffer.SetCursorPosition(dividerPosition, y);
-                _doubleBuffer.Write("│");
-            }
-
-            // Управление
-            string controls = "W/S - Выбор  |  E - Действие  |  Q - Назад";
-            int controlsX = (windowWidth - controls.Length) / 2;
-            _doubleBuffer.SetCursorPosition(controlsX, Console.WindowHeight - 2);
-            _doubleBuffer.Write(controls);
-        }
-
-        private void RenderInventoryDirect(InventoryRenderData inventoryData)
-        {
-            _output.Clear();
-            // Реализация прямого рендеринга инвентаря
-        }
-
-        // Вспомогательные методы
-        private IOutputService GetOutputService()
-        {
-            return _useDoubleBuffering ? _doubleBuffer : _output;
-        }
-
-        private void RenderIfDoubleBuffering()
-        {
-            if (_useDoubleBuffering)
-            {
-                _doubleBuffer.Render();
+                _output.WriteLine(options[i]);
+                Console.ResetColor();
             }
         }
     }

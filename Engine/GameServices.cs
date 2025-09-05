@@ -16,7 +16,7 @@ namespace Engine
 
         public static IOutputService OutputService
         {
-            get => _outputService ??= new DoubleBufferConsole(); // Используем DoubleBuffer по умолчанию
+            get => _outputService ??= new ConsoleOutputService(); // Используем простой ConsoleOutputService
             set => _outputService = value;
         }
 
@@ -43,7 +43,6 @@ namespace Engine
         public static void InitializeForTests(IWorldRepository testRepository)
         {
             WorldRepository = testRepository;
-            // Для тестов не инициализируем статический World
         }
     }
 }
