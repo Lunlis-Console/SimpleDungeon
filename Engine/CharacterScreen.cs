@@ -15,8 +15,6 @@ namespace Engine
                 //DisplayCharacterDetails(player);
                 GameServices.Renderer.RenderCharacterScreen(player);
 
-                GameServices.OutputService.WriteLine("\nQ - закрыть, I - инвентарь, S - навыки, T - титулы");
-                GameServices.OutputService.Write("> ");
 
                 var key = Console.ReadKey(true).Key;
 

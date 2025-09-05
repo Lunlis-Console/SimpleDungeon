@@ -197,31 +197,31 @@ namespace Engine
             Console.ResetColor();
         }
 
-        private void RenderHealthBar(int current, int max, string label)
-        {
-            current = Math.Max(current, 0);
-            max = Math.Max(max, 1);
+        //private void RenderHealthBar(int current, int max, string label)
+        //{
+        //    current = Math.Max(current, 0);
+        //    max = Math.Max(max, 1);
 
-            float percentage = (float)current / max;
-            int bars = (int)(20 * percentage);
-            bars = Math.Clamp(bars, 0, 20);
-            int emptyBars = 20 - bars;
+        //    float percentage = (float)current / max;
+        //    int bars = (int)(20 * percentage);
+        //    bars = Math.Clamp(bars, 0, 20);
+        //    int emptyBars = 20 - bars;
 
-            Console.Write($"{label}: [");
+        //    Console.Write($"{label}: [");
 
-            if (percentage > 0.75f)
-                Console.ForegroundColor = ConsoleColor.Green;
-            else if (percentage > 0.25f)
-                Console.ForegroundColor = ConsoleColor.Yellow;
-            else
-                Console.ForegroundColor = ConsoleColor.Red;
+        //    if (percentage > 0.75f)
+        //        Console.ForegroundColor = ConsoleColor.Green;
+        //    else if (percentage > 0.25f)
+        //        Console.ForegroundColor = ConsoleColor.Yellow;
+        //    else
+        //        Console.ForegroundColor = ConsoleColor.Red;
 
-            Console.Write(new string('█', bars));
-            Console.Write(new string('░', emptyBars));
-            Console.ResetColor();
+        //    Console.Write(new string('█', bars));
+        //    Console.Write(new string('░', emptyBars));
+        //    Console.ResetColor();
 
-            Console.WriteLine($"] {current}/{max}");
-        }
+        //    Console.WriteLine($"] {current}/{max}");
+        //}
 
         private void RenderSpeedBar(int current, string label)
         {
@@ -260,54 +260,117 @@ namespace Engine
 
         // Метод для отрисовки экрана персонажа
         // Метод для отрисовки экрана персонажа
+        // Метод для отрисовки экрана персонажа (Классический вариант)
         public void RenderCharacterScreen(Player player)
         {
             if (player == null) throw new ArgumentNullException(nameof(player));
 
             _output.Clear();
 
+            // Верхний заголовок
+            Console.ForegroundColor = ConsoleColor.Yellow;
             _output.WriteLine("=============ХАРАКТЕРИСТИКИ ПЕРСОНАЖА=============");
-            _output.WriteLine($"Имя: Игрок | Уровень: {player.Level}");
-            _output.WriteLine($"Опыт: {player.CurrentEXP}/{player.MaximumEXP}");
-            _output.WriteLine($"Здоровье: {player.CurrentHP}/{player.TotalMaximumHP} | Золото: {player.Gold}");
+            Console.ResetColor();
 
-            if (player.ActiveTitle != null)
-            {
-                _output.WriteLine($"Титул: {player.ActiveTitle.Name}");
-            }
+            // Основная информация
+            string titleInfo = player.ActiveTitle != null ? $"[{player.ActiveTitle.Name}]" : "";
+            _output.WriteLine($"Игрок {titleInfo,-20} Ур. {player.Level}");
+            _output.WriteLine($"Опыт: {player.CurrentEXP:N0}/{player.MaximumEXP:N0} {"",-10} Золото: {player.Gold:N0}");
 
-            _output.WriteLine("\n-----------------АТРИБУТЫ-----------------");
-            _output.WriteLine($"Сил: {player.Attributes.Strength} | Тел: {player.Attributes.Constitution}");
-            _output.WriteLine($"Лов: {player.Attributes.Dexterity} | Инт: {player.Attributes.Intelligence}");
-            _output.WriteLine($"Муд: {player.Attributes.Wisdom} | Хар: {player.Attributes.Charisma}");
+            // Полоса здоровья
+            RenderHealthBar(player.CurrentHP, player.TotalMaximumHP, "Здоровье");
+            _output.WriteLine("");
 
-            _output.WriteLine("\n--------------БОЕВЫЕ ПАРАМЕТРЫ--------------");
-            _output.WriteLine($"Атака: {player.Attack} | Защита: {player.Defence}");
-            _output.WriteLine($"Скорость: {player.Agility}");
+            // Атрибуты в две колонки
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            _output.WriteLine("-----------------ОСНОВНЫЕ АТРИБУТЫ-----------------");
+            Console.ResetColor();
 
-            _output.WriteLine("\n-----------------ЭКИПИРОВКА-----------------");
-            RenderEquipmentSlot("Оружие", player.Inventory.Weapon, player.Inventory.Weapon?.AttackBonus ?? 0);
-            RenderEquipmentSlot("Шлем", player.Inventory.Helmet, player.Inventory.Helmet?.DefenceBonus ?? 0);
-            RenderEquipmentSlot("Броня", player.Inventory.Armor, player.Inventory.Armor?.DefenceBonus ?? 0);
-            RenderEquipmentSlot("Перчатки", player.Inventory.Gloves, player.Inventory.Gloves?.DefenceBonus ?? 0);
-            RenderEquipmentSlot("Ботинки", player.Inventory.Boots, player.Inventory.Boots?.DefenceBonus ?? 0);
+            _output.WriteLine($"СИЛ: {player.Attributes.Strength,-2} (+{player.Attributes.Strength - 10,-2}) | ТЕЛ: {player.Attributes.Constitution,-2} (+{player.Attributes.Constitution - 10,-2}) | ЛОВ: {player.Attributes.Dexterity,-2} (+{player.Attributes.Dexterity - 10,-2})");
+            _output.WriteLine($"ИНТ: {player.Attributes.Intelligence,-2} (+{player.Attributes.Intelligence - 10,-2}) | МУД: {player.Attributes.Wisdom,-2} (+{player.Attributes.Wisdom - 10,-2}) | ХАР: {player.Attributes.Charisma,-2} (+{player.Attributes.Charisma - 10,-2})");
+            _output.WriteLine("");
 
-            // Сокращаем отображение бонусов
-            _output.WriteLine("\n---------------БОНУСЫ ОТ ЭКИПИРОВКИ---------------");
+            // Боевые параметры
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            _output.WriteLine("--------------БОЕВЫЕ ПАРАМЕТРЫ--------------");
+            Console.ResetColor();
+
+            _output.WriteLine($"АТК: {player.Attack,-3} | ЗЩТ: {player.Defence,-3} | СКР: {player.Agility,-3} | УКЛ: {player.EvasionChance}%");
+            _output.WriteLine("");
+
+            // Экипировка
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            _output.WriteLine("-----------------ЭКИПИРОВКА-----------------");
+            Console.ResetColor();
+
+            RenderEquipmentSlot("Оружие", player.Inventory.Weapon, player.Inventory.Weapon?.AttackBonus ?? 0, "АТК");
+            RenderEquipmentSlot("Шлем", player.Inventory.Helmet, player.Inventory.Helmet?.DefenceBonus ?? 0, "ЗЩТ");
+            RenderEquipmentSlot("Броня", player.Inventory.Armor, player.Inventory.Armor?.DefenceBonus ?? 0, "ЗЩТ");
+            RenderEquipmentSlot("Перчатки", player.Inventory.Gloves, player.Inventory.Gloves?.DefenceBonus ?? 0, "ЗЩТ");
+            RenderEquipmentSlot("Ботинки", player.Inventory.Boots, player.Inventory.Boots?.DefenceBonus ?? 0, "ЗЩТ");
+            _output.WriteLine("");
+
+            // Бонусы от экипировки (компактно)
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            _output.WriteLine("---------------БОНУСЫ ОТ ЭКИПИРОВКИ---------------");
+            Console.ResetColor();
+
             int totalAttackBonus = player.Inventory.CalculateTotalAttack();
             int totalDefenceBonus = player.Inventory.CalculateTotalDefence();
             int totalAgilityBonus = player.Inventory.CalculateTotalAgility();
             int totalHealthBonus = player.Inventory.CalculateTotalHealth();
 
-            _output.WriteLine($"АТК: +{totalAttackBonus} | ЗЩТ: +{totalDefenceBonus}");
-            _output.WriteLine($"ЛОВ: +{totalAgilityBonus} | ЗДР: +{totalHealthBonus}");
+            _output.WriteLine($"АТК: +{totalAttackBonus,-3} | ЗЩТ: +{totalDefenceBonus,-3} | ЛОВ: +{totalAgilityBonus,-3} | ЗДР: +{totalHealthBonus,-3}");
+            _output.WriteLine("");
 
-            // Сокращаем статистику
-            _output.WriteLine("\n-----------------СТАТИСТИКА-----------------");
-            _output.WriteLine($"Монстры: {player.MonstersKilled} | Квесты: {player.QuestsCompleted}");
+            // Статистика
+            Console.ForegroundColor = ConsoleColor.Cyan;
+            _output.WriteLine("-----------------СТАТИСТИКА-----------------");
+            Console.ResetColor();
 
-            // Добавляем подсказку для управления
-            _output.WriteLine("\nQ - закрыть, I - инвентарь, S - навыки, T - титулы");
+            _output.WriteLine($"Убито монстров: {player.MonstersKilled,-5} | Выполнено квестов: {player.QuestsCompleted}");
+            _output.WriteLine("");
+
+            // Управление
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            _output.WriteLine("Q - закрыть, I - инвентарь, S - навыки, T - титулы");
+            Console.ResetColor();
+        }
+
+        // Обновленный метод для отображения слота экипировки
+        private void RenderEquipmentSlot(string slotName, Equipment equipment, int bonus, string bonusType)
+        {
+            string equipmentName = equipment?.Name ?? "Пусто";
+            string bonusText = bonus > 0 ? $"(+{bonus} {bonusType})" : "";
+
+            _output.WriteLine($"{slotName,-10}: {equipmentName,-25} {bonusText}");
+        }
+
+        // Улучшенный метод для отрисовки полосы здоровья
+        private void RenderHealthBar(int current, int max, string label)
+        {
+            current = Math.Max(current, 0);
+            max = Math.Max(max, 1);
+
+            float percentage = (float)current / max;
+            int bars = (int)(20 * percentage);
+            bars = Math.Clamp(bars, 0, 20);
+            int emptyBars = 20 - bars;
+
+            Console.Write($"{label}: [");
+
+            if (percentage > 0.75f)
+                Console.ForegroundColor = ConsoleColor.Green;
+            else if (percentage > 0.25f)
+                Console.ForegroundColor = ConsoleColor.Yellow;
+            else
+                Console.ForegroundColor = ConsoleColor.Red;
+
+            Console.Write(new string('█', bars));
+            Console.Write(new string('░', emptyBars));
+            Console.ResetColor();
+
+            Console.WriteLine($"] {current}/{max}");
         }
         private void RenderEquipmentSlot(string slotName, Equipment equipment, int bonus)
         {
