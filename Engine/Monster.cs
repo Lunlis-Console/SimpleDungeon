@@ -102,7 +102,7 @@ public class Monster : LivingCreature, IInteractable
 
     // Новый метод для осмотра монстра
     // Новый метод для осмотра монстра
-    private void Examine(Player player)
+    public void Examine(Player player)
     {
         // Создаем цикл, который будет показывать информацию и затем СНОВА меню действий
         bool isExamining = true;

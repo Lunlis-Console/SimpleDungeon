@@ -1,75 +1,111 @@
 ﻿using Engine;
-using System;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace SimpleDungeon
 {
     public static class Program
     {
         private static Player _player;
-
+        private static bool _needsRedraw = true;
 
         public static void Main(string[] args)
         {
-            Console.Title = "Sipmle Dungeon";
+            Console.Title = "Simple Dungeon";
             Console.CursorVisible = false;
 
-            ShowMainMenu();
+            // Инициализация сервисов
+            GameServices.Initialize();
 
+            bool running = true;
 
-            ProcessKeyInput();
+            while (running)
+            {
+                ShowMainMenu();
 
+                // После возврата из игрового цикла спрашиваем, что делать дальше
+                Console.Clear();
+                Console.WriteLine("1. Новая игра");
+                Console.WriteLine("2. Выйти");
+
+                var key = Console.ReadKey(true);
+                if (key.Key == ConsoleKey.D2 || key.Key == ConsoleKey.NumPad2)
+                {
+                    running = false;
+                }
+            }
+
+            GameServices.Shutdown();
         }
 
-        private static bool _needsRedraw = true;
-        public static void ProcessKeyInput()
+
+        // В Program.cs замените ProcessKeyInput
+        // В Program.cs обновляем главный цикл
+        private static void ProcessKeyInput()
         {
-            while (true)
+            bool inGame = true;
+
+            // Первоначальная отрисовка
+            ScreenManager.SetNeedsRedraw();
+
+            while (inGame)
             {
-                GameServices.Renderer.CheckWindowResize();
-
-                if (_needsRedraw)
+                try
                 {
-                    GameServices.Renderer.RenderGameWorld(_player, _player.CurrentLocation);
-                    _needsRedraw = false;
-                }
+                    // Проверка изменения размера окна
+                    GameServices.BufferedRenderer.CheckWindowResize();
 
-                // Быстрая проверка ввода
-                while (Console.KeyAvailable)
-                {
-                    var keyInfo = Console.ReadKey(true);
-
-                    if (keyInfo.Key == ConsoleKey.F3)
+                    // Отрисовка только если нужно
+                    if (ScreenManager.NeedsRedraw)
                     {
-                        DebugConsole.Toggle();
+                        ScreenManager.RenderCurrentScreen();
+                    }
+
+                    // Обработка ввода
+                    if (Console.KeyAvailable)
+                    {
+                        var keyInfo = Console.ReadKey(true);
+
+                        // Обработка выхода в меню
+                        if (keyInfo.Key == ConsoleKey.Escape)
+                        {
+                            inGame = false;
+                            continue;
+                        }
+
+                        if (keyInfo.Key == ConsoleKey.F3)
+                        {
+                            DebugConsole.Toggle();
+                            ScreenManager.SetNeedsRedraw();
+                            continue;
+                        }
+
                         if (!DebugConsole.IsVisible)
                         {
-                            // Перерисовываем игру после закрытия консоли
-                            _needsRedraw = true;
+                            ScreenManager.HandleInput(keyInfo);
+                            // HandleInput уже устанавливает _needsRedraw = true
                         }
-                        break;
+                        else
+                        {
+                            DebugConsole.HandleKey(keyInfo.Key, keyInfo.KeyChar);
+                            ScreenManager.SetNeedsRedraw();
+                        }
                     }
 
-                    // Если дебаг-консоль не видна, обрабатываем игровые клавиши
-                    if (!DebugConsole.IsVisible)
-                    {
-                        ProcessGameKey(keyInfo.Key);
-                    }
-
-                    Thread.Sleep(DebugConsole.IsVisible ? 1 : 10);
+                    Thread.Sleep(50); // Небольшая задержка
                 }
-
-                // Отрисовка дебаг-консоли если видна
-                if (DebugConsole.IsVisible)
+                catch (Exception ex)
                 {
-                    DebugConsole.Update();
+                    DebugConsole.Log($"Ошибка в игровом цикле: {ex.Message}");
+                    Thread.Sleep(100);
                 }
-
-                Thread.Sleep(10);
             }
         }
+        private static BaseScreen GetCurrentScreen()
+        {
+            // Здесь нужно будет реализовать логику получения текущего экрана
+            // Это может быть через рефлексию или систему регистрации экранов
+            return null; // заглушка
+        }
+
         private static void ProcessGameKey(ConsoleKey key)
         {
             switch (key)
@@ -87,8 +123,7 @@ namespace SimpleDungeon
                     MoveWest();
                     break;
                 case ConsoleKey.I:
-                    _player.DisplayInventory();
-                    _needsRedraw = true;
+                    ScreenManager.PushScreen(new InventoryScreen(_player));
                     break;
                 case ConsoleKey.L:
                     _player.LookAround();
@@ -103,16 +138,14 @@ namespace SimpleDungeon
                     _needsRedraw = true;
                     break;
                 case ConsoleKey.C:
-                    CharacterScreen.Show(_player);
+                    ScreenManager.PushScreen(new CharacterScreen(_player));
                     _needsRedraw = true;
                     break;
                 case ConsoleKey.J:
-                    _player.QuestLog.DisplayQuestLog();
-                    _needsRedraw = true;
+                    ScreenManager.PushScreen(new QuestLogScreen(_player));
                     break;
                 case ConsoleKey.Escape:
-                    ShowGameMenu();
-                    _needsRedraw = true;
+                    ScreenManager.PushScreen(new GameMenuScreen(_player));
                     break;
                 case ConsoleKey.F5:
                     SaveManager.SaveGame(_player, "quicksave");
@@ -267,10 +300,16 @@ namespace SimpleDungeon
             {
                 case 0: // Новая игра
                     StartNewGame();
+                    ProcessKeyInput(); // ЗАПУСКАЕМ ИГРОВОЙ ЦИКЛ ЗДЕСЬ
                     break;
 
                 case 1: // Загрузить игру
                     ShowLoadGameMenu();
+                    // Если игра загружена, запускаем игровой цикл
+                    if (_player != null)
+                    {
+                        ProcessKeyInput();
+                    }
                     break;
 
                 case 2: // Выход
@@ -322,24 +361,34 @@ namespace SimpleDungeon
         }
         private static void StartNewGame()
         {
-            GameServices.Initialize();
+            try
+            {
+                GameServices.Initialize();
+                _player = GameServices.GameFactory.CreateNewPlayer();
+                _player.CurrentLocation = GameServices.WorldRepository.LocationByID(Constants.LOCATION_ID_VILLAGE);
 
-            _player = GameServices.GameFactory.CreateNewPlayer();
+                // Стартовые предметы
+                _player.Inventory.AddItem(GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_LEATHER_HELMET), 1);
+                _player.Inventory.AddItem(GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_SPIDER_SILK), 1);
+                _player.Inventory.AddItem(GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_LEATHER_ARMOR), 1);
+                _player.Inventory.AddItem(GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_LEATHER_GLOVES), 1);
+                _player.Inventory.AddItem(GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_LEATHER_BOOTS), 1);
+                _player.Inventory.AddItem(GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_RUSTY_SWORD), 1);
 
-            _player.CurrentLocation = GameServices.WorldRepository.LocationByID(Constants.LOCATION_ID_VILLAGE);
+                MessageSystem.ClearMessages();
+                MessageSystem.AddMessage("Добро пожаловать в игру!");
 
-            // Стартовые предметы
+                // Создаем экран
+                ScreenManager.PushScreen(new GameWorldScreen(_player));
 
-            _player.Inventory.AddItem(GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_LEATHER_HELMET), 1);
-            _player.Inventory.AddItem(GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_SPIDER_SILK), 1);
-            _player.Inventory.AddItem(GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_LEATHER_ARMOR), 1);
-            _player.Inventory.AddItem(GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_LEATHER_GLOVES), 1);
-            _player.Inventory.AddItem(GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_LEATHER_BOOTS), 1);
-            _player.Inventory.AddItem(GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_RUSTY_SWORD), 1);
-
-            Console.Clear();
-            //DisplayUI();
-            ProcessKeyInput();
+                // Запускаем игровой цикл
+                ProcessKeyInput();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при создании игры: {ex.Message}");
+                Console.ReadKey();
+            }
         }
         private static void ShowGameMenu()
         {

@@ -1,10 +1,4 @@
-﻿// StaticWorldRepository.cs
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-
-namespace Engine
+﻿namespace Engine
 {
     public class StaticWorldRepository : IWorldRepository
     {

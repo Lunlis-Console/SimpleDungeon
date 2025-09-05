@@ -1,13 +1,8 @@
-﻿// CombatRenderer.cs
-using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Engine
+﻿namespace Engine
 {
     public class CombatRenderer
     {
-        private readonly DoubleBufferRenderer _buffer;
+        private readonly BufferedRenderer _renderer;
         private CombatState _previousState;
 
         // Позиции элементов на экране
@@ -24,16 +19,16 @@ namespace Engine
         private const int PlayerSpeedLine = 20;
         private const int ActionsLine = 22;
 
-        public CombatRenderer(DoubleBufferRenderer buffer)
+        public CombatRenderer(BufferedRenderer renderer)
         {
-            _buffer = buffer;
+            _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));
             _previousState = new CombatState();
         }
 
         public void RenderCombatFrame(Player player, Monster monster, List<string> combatLog,
                                     int currentTurn, int playerSpeed, int monsterSpeed)
         {
-            _buffer.BeginFrame();
+            _renderer.BeginFrame();
 
             var currentState = new CombatState
             {
@@ -56,7 +51,7 @@ namespace Engine
             RenderStaticElements();
             RenderDynamicElements(currentState);
 
-            _buffer.EndFrame();
+            _renderer.EndFrame();
             _previousState = currentState;
         }
 
@@ -66,12 +61,12 @@ namespace Engine
             if (!_previousState.StaticElementsRendered)
             {
                 // Разделительная линия
-                _buffer.Write(0, SeparatorLine, new string('=', Console.WindowWidth));
+                _renderer.Write(0, SeparatorLine, new string('=', Console.WindowWidth));
 
                 // Заголовок действий
-                _buffer.Write(0, ActionsLine, "=========Действия========");
-                _buffer.Write(0, ActionsLine + 1, "| 1 - атаковать | 2 - заклинание |");
-                _buffer.Write(0, ActionsLine + 2, "| 3 - защищаться | 4 - бежать |");
+                _renderer.Write(0, ActionsLine, "=========Действия========");
+                _renderer.Write(0, ActionsLine + 1, "| 1 - атаковать | 2 - заклинание |");
+                _renderer.Write(0, ActionsLine + 2, "| 3 - защищаться | 4 - бежать |");
 
                 _previousState.StaticElementsRendered = true;
             }
@@ -100,14 +95,14 @@ namespace Engine
 
             if (status != _previousState.TurnStatus)
             {
-                _buffer.Write(0, TurnStatusLine, status.PadRight(Console.WindowWidth));
+                _renderer.Write(0, TurnStatusLine, status.PadRight(Console.WindowWidth));
                 _previousState.TurnStatus = status;
             }
 
             string turnText = $"================ ХОД {state.CurrentTurn} ================";
             if (turnText != _previousState.TurnText)
             {
-                _buffer.Write(0, TurnNumberLine, turnText.PadRight(Console.WindowWidth));
+                _renderer.Write(0, TurnNumberLine, turnText.PadRight(Console.WindowWidth));
                 _previousState.TurnText = turnText;
             }
         }
@@ -133,7 +128,7 @@ namespace Engine
                 state.MonsterAgility != _previousState.MonsterAgility)
             {
                 string stats = $"АТК: {state.MonsterAttack} | ЗЩТ: {state.MonsterDefence} | ЛОВ: {state.MonsterAgility}";
-                _buffer.Write(0, MonsterStatsLine, stats.PadRight(Console.WindowWidth));
+                _renderer.Write(0, MonsterStatsLine, stats.PadRight(Console.WindowWidth));
             }
         }
 
@@ -158,7 +153,7 @@ namespace Engine
                 state.PlayerAgility != _previousState.PlayerAgility)
             {
                 string stats = $"АТК: {state.PlayerAttack} | ЗЩТ: {state.PlayerDefence} | ЛОВ: {state.PlayerAgility}";
-                _buffer.Write(0, PlayerStatsLine, stats.PadRight(Console.WindowWidth));
+                _renderer.Write(0, PlayerStatsLine, stats.PadRight(Console.WindowWidth));
             }
         }
 
@@ -172,7 +167,7 @@ namespace Engine
             // Очищаем область лога
             for (int i = 0; i < maxLines; i++)
             {
-                _buffer.Write(0, y + i, new string(' ', Console.WindowWidth));
+                _renderer.Write(0, y + i, new string(' ', Console.WindowWidth));
             }
 
             // Рисуем новые сообщения
@@ -189,7 +184,7 @@ namespace Engine
                 ConsoleColor previousColor = Console.ForegroundColor;
                 Console.ForegroundColor = color;
 
-                _buffer.Write(0, y, message.PadRight(Console.WindowWidth));
+                _renderer.Write(0, y, message.PadRight(Console.WindowWidth));
 
                 // Восстанавливаем цвет
                 Console.ForegroundColor = previousColor;
@@ -224,7 +219,7 @@ namespace Engine
             ConsoleColor previousColor = Console.ForegroundColor;
             Console.ForegroundColor = color;
 
-            _buffer.Write(x, y, bar.PadRight(Console.WindowWidth));
+            _renderer.Write(x, y, bar.PadRight(Console.WindowWidth));
 
             // Восстанавливаем цвет
             Console.ForegroundColor = previousColor;
@@ -246,7 +241,7 @@ namespace Engine
             ConsoleColor previousColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Cyan;
 
-            _buffer.Write(x, y, bar.PadRight(Console.WindowWidth));
+            _renderer.Write(x, y, bar.PadRight(Console.WindowWidth));
 
             // Восстанавливаем цвет
             Console.ForegroundColor = previousColor;

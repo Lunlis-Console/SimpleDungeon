@@ -1,7 +1,4 @@
-﻿// IWorldRepository.cs
-using System.Collections.Generic;
-
-namespace Engine
+﻿namespace Engine
 {
     public interface IWorldRepository
     {

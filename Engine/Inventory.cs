@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Engine
+﻿namespace Engine
 {
     public class Inventory
     {
@@ -287,6 +283,7 @@ namespace Engine
                 _ => null
             };
         }
+
 
         public int CalculateTotalDefence()
         {

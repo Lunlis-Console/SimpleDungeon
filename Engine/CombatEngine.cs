@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using static DisplayUtilities;
-
-namespace Engine
+﻿namespace Engine
 {
     public class CombatEngine
     {
@@ -28,7 +22,7 @@ namespace Engine
 
             _worldRepository = worldRepository;
 
-            _combatRenderer = new CombatRenderer(GameServices.DoubleBufferRenderer);
+            _combatRenderer = GameServices.CombatRenderer;
         }
 
         private List<string> _combatLog = new List<string>();
@@ -303,7 +297,8 @@ namespace Engine
                     AddToCombatLog($"Вы достигли {Player.Level} уровня!");
                 }
 
-                GameServices.Renderer.RenderCombatState(Player, Monster, _combatLog, _currentTurn, Player.CurrentSpeed, Monster.CurrentSpeed);
+                _combatRenderer.RenderCombatFrame(Player, Monster, _combatLog, _currentTurn,
+                    Player.CurrentSpeed, Monster.CurrentSpeed);
                 Player.IsInCombat = false;
 
                 GameServices.OutputService.WriteLine("Нажмите любую клавишу, чтобы продолжить...");

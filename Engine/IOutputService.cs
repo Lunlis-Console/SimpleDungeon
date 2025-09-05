@@ -1,5 +1,4 @@
-﻿// IOutputService.cs
-namespace Engine
+﻿namespace Engine
 {
     public interface IOutputService
     {

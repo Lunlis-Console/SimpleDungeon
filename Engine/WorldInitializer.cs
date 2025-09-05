@@ -1,5 +1,4 @@
-﻿// WorldInitializer.cs
-namespace Engine
+﻿namespace Engine
 {
     public static class WorldInitializer
     {

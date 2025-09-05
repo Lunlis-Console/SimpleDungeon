@@ -1,19 +1,42 @@
-﻿// ConsoleOutputService.cs
-using System;
-
-namespace Engine
+﻿namespace Engine
 {
-    public class ConsoleOutputService : IOutputService
+    public class ConsoleOutputService : IOutputService, IDisposable
     {
-        public void Write(string message) => Console.Write(message);
-        public void WriteLine(string message) => Console.WriteLine(message);
-        public void Clear() => Console.Clear();
-        public void SetCursorPosition(int left, int top) => Console.SetCursorPosition(left, top);
+        private bool _disposed;
 
-        // Пустые реализации для совместимости
+        public void Write(string message)
+        {
+            if (_disposed) return;
+            Console.Write(message);
+        }
+
+        public void WriteLine(string message)
+        {
+            if (_disposed) return;
+            Console.WriteLine(message);
+        }
+
+        public void Clear()
+        {
+            if (_disposed) return;
+            Console.Clear();
+        }
+
+        public void SetCursorPosition(int left, int top)
+        {
+            if (_disposed) return;
+            Console.SetCursorPosition(left, top);
+        }
+
         public void BeginBuffer() { }
         public void EndBuffer() { }
         public void Render() { }
         public void RenderPartial(int left, int top, int width, int height) { }
+
+        public void Dispose()
+        {
+            _disposed = true;
+            Console.ResetColor();
+        }
     }
 }

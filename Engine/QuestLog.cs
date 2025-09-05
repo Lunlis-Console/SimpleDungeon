@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace Engine
+﻿namespace Engine
 {
     public class QuestLog
     {
+        private readonly Player _player;
+
         public List<Quest> ActiveQuests { get; set; }
         public List<Quest> CompletedQuests { get; set; }
 
-        public QuestLog()
+        public QuestLog(Player player)
         {
+            _player = player;
             ActiveQuests = new List<Quest>();
             CompletedQuests = new List<Quest>();
         }
@@ -36,43 +35,8 @@ namespace Engine
 
         public void DisplayQuestLog()
         {
-
-            if (ActiveQuests.Count == 0 && CompletedQuests.Count == 0)
-            {
-                Console.Clear();
-                Console.WriteLine("=========== ЖУРНАЛ КВЕСТОВ ===========");
-                Console.WriteLine("У вас нет активных или завершенных квестов.");
-                Console.WriteLine("\nНажмите любую клавишу чтобы вернуться...");
-                Console.ReadKey();
-                return;
-            }
-
-            var menuOptions = new List<MenuOption>();
-
-            // Активные квесты
-            foreach (var quest in ActiveQuests)
-            {
-                menuOptions.Add(new MenuOption($"АКТИВНО: {quest.Name}", () => ShowQuestDetails(quest)));
-            }
-
-            // Завершенные квесты
-            foreach (var quest in CompletedQuests)
-            {
-                menuOptions.Add(new MenuOption($"ЗАВЕРШЕНО: {quest.Name} ✓", () => ShowQuestDetails(quest)));
-            }
-
-            menuOptions.Add(new MenuOption("Назад", () => { }));
-
-            var selected = MenuSystem.SelectFromList(
-                menuOptions,
-                opt => opt.DisplayText,
-                "=========== ЖУРНАЛ КВЕСТОВ ===========",
-                "Клавиши 'W' 'S' для выбора, 'E' для просмотра, 'Q' для выхода"
-            );
-
-            selected?.Action();
+            ScreenManager.PushScreen(new QuestLogScreen(_player));
         }
-
         private void ShowQuestDetails(Quest quest)
         {
             Console.Clear();

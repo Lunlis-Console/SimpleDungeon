@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Engine
+﻿namespace Engine
 {
     public class Player : LivingCreature
     {
@@ -37,6 +30,7 @@ namespace Engine
         public Dictionary<string, int> MonstersKilledByType { get; set; }
 
         private readonly IWorldRepository _worldRepository;
+        private static bool _needsRedraw = true;
 
         public Player(int gold, int currentHP, int maximumHP, int currentEXP, int maximumEXP, int level,
             int baseAttack, int baseDefence, int agility, IWorldRepository worldRepository, Attributes attributes = null) :
@@ -52,7 +46,7 @@ namespace Engine
             BaseAgility = agility;
             CurrentSpeed = 0;
             Inventory = new Inventory();
-            QuestLog = new QuestLog();
+            QuestLog = new QuestLog(this);
             UnlockedTitles = new List<Title>();
             MonstersKilledByType = new Dictionary<string, int>();
             ActiveTitle = null;
@@ -66,13 +60,10 @@ namespace Engine
 
         public void MoveTo(Location newLocation)
         {
-            GameServices.Renderer.SetNeedsFullRedraw();
-
             if (newLocation != null)
             {
                 newLocation.SpawnMonsters(Level);
 
-                // Автоматически спавним предметы для активных квестов на сбор
                 foreach (var quest in QuestLog.ActiveQuests.OfType<CollectibleQuest>())
                 {
                     if (!quest.IsItemsSpawned)
@@ -82,8 +73,11 @@ namespace Engine
                 }
 
                 MessageSystem.ClearMessages();
+                MessageSystem.AddMessage($"Вы переместились в {newLocation.Name}");
             }
+
             CurrentLocation = newLocation;
+            // НЕ устанавливаем флаг перерисовки здесь - это сделает HandleInput
         }
 
         // При завершении квеста убираем предметы
@@ -123,38 +117,6 @@ namespace Engine
                 MoveTo(CurrentLocation.LocationToSouth);
             }
         }
-        public void DisplayInventory()
-        {
-            GameServices.Renderer.SetNeedsFullRedraw();
-
-            var allItems = PrepareInventoryItems();
-
-            if (allItems.Count == 0)
-            {
-                // Отрисовка пустого инвентаря через Renderer
-                var emptyData = new InventoryRenderData
-                {
-                    Items = new List<object>(),
-                    SelectedIndex = 0,
-                    Player = this,
-                    Title = "Инвентарь (пусто)"
-                };
-
-                GameServices.Renderer.RenderInventory(emptyData);
-                Console.WriteLine("\nНажмите любую клавишу чтобы вернуться...");
-                Console.ReadKey();
-                return;
-            }
-
-            // Используем обновленный SelectItemFromCombinedList
-            var selectedItem = InventoryUI.SelectItemFromCombinedList(allItems, this);
-
-            if (selectedItem != null)
-            {
-                HandleSelectedItem(selectedItem);
-            }
-        }
-        // Вспомогательный метод для подготовки списка предметов
         private List<object> PrepareInventoryItems()
         {
             var allItems = new List<object>();
