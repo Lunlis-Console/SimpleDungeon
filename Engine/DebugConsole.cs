@@ -30,8 +30,10 @@
         {
             _inputBuffer = "";
             _viewOffset = 0;
-            _needsRedraw = true;
         }
+
+        _needsRedraw = true;
+        ScreenManager.SetNeedsRedraw(); // Убедитесь, что эта строка есть
     }
 
     public static void Log(string message)
@@ -242,15 +244,16 @@
         }
     }
 
-    public static void HandleKey(ConsoleKey key, char keyChar = '\0')
+    public static void ProcessInput(ConsoleKeyInfo keyInfo)
     {
         if (!_enabled) return;
 
-        switch (key)
+        switch (keyInfo.Key)
         {
             case ConsoleKey.Escape:
                 _isVisible = false;
                 _needsRedraw = true;
+                ScreenManager.SetNeedsRedraw();
                 break;
 
             case ConsoleKey.Enter:
@@ -288,13 +291,19 @@
                 break;
 
             default:
-                if (!char.IsControl(keyChar) && keyChar != '\0')
+                // Используем keyInfo.KeyChar вместо keyChar
+                if (!char.IsControl(keyInfo.KeyChar) && keyInfo.KeyChar != '\0')
                 {
-                    _inputBuffer += keyChar;
+                    _inputBuffer += keyInfo.KeyChar;
                     _needsRedraw = true;
                 }
                 break;
         }
+    }
+
+    public static void HandleKey(ConsoleKey key, char keyChar = '\0')
+    {
+        
     }
 
     // Метод для глобального доступа из любого меню
@@ -302,27 +311,22 @@
     {
         if (!_enabled) return;
 
-        // Проверяем клавишу открытия консоли (например, F2)
-        if (Console.KeyAvailable)
-        {
-            var keyInfo = Console.ReadKey(true);
-            if (keyInfo.Key == ConsoleKey.F2 && !_isVisible)
-            {
-                Toggle();
-                return;
-            }
-        }
-
+        // Убрать проверку F3 здесь, так как она теперь обрабатывается в ProcessKeyInput
         if (_isVisible)
         {
             Update();
+
+            // После обновления консоли устанавливаем флаг перерисовки
+            if (_needsRedraw)
+            {
+                ScreenManager.SetNeedsRedraw();
+            }
         }
     }
-
     // Метод для глобальной отрисовки из любого меню
     public static void GlobalDraw()
     {
-        if (_isVisible && _enabled)
+        if (!_isVisible || !_enabled) return;
         {
             Draw();
         }

@@ -417,7 +417,7 @@
             _quests.Add(spiderSilk);
             _quests.Add(crateQuest);
 
-            DebugConsole.Log($"Trader quests: {villageTrader.QuestsToGive?.Count ?? 0}");
+            //DebugConsole.Log($"Trader quests: {villageTrader.QuestsToGive?.Count ?? 0}");
         }
 
         #endregion

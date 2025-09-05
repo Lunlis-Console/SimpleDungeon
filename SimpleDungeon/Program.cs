@@ -43,54 +43,51 @@ namespace SimpleDungeon
         {
             bool inGame = true;
 
-            // Первоначальная отрисовка
-            ScreenManager.SetNeedsRedraw();
-
             while (inGame)
             {
                 try
                 {
+                    DebugConsole.GlobalUpdate();
+                    // Обновляем входные данные
+                    InputManager.Update();
+
                     // Проверка изменения размера окна
                     GameServices.BufferedRenderer.CheckWindowResize();
 
-                    // Отрисовка только если нужно
+                    // Глобальные горячие клавиши (обрабатываются в первую очередь)
+                    if (InputManager.GetKeyDown(ConsoleKey.F3))
+                    {
+                        DebugConsole.Toggle();
+                        InputManager.Clear();
+                        continue;
+                    }
+
+                    // Если консоль видна - передаем управление ей
+                    if (DebugConsole.IsVisible)
+                    {
+                        var keyInfo = InputManager.GetKeyInfo();
+                        if (keyInfo.Key != ConsoleKey.NoName)
+                        {
+                            DebugConsole.ProcessInput(keyInfo);
+                        }
+                        continue;
+                    }
+
+                    // Обычная обработка ввода через ScreenManager
+                    var inputKey = InputManager.GetKeyInfo();
+                    if (inputKey.Key != ConsoleKey.NoName)
+                    {
+                        ScreenManager.HandleInput(inputKey);
+                    }
+
+                    // Отрисовка
                     if (ScreenManager.NeedsRedraw)
                     {
                         ScreenManager.RenderCurrentScreen();
+                        DebugConsole.GlobalDraw(); // Отрисовываем консоль поверх
                     }
 
-                    // Обработка ввода
-                    if (Console.KeyAvailable)
-                    {
-                        var keyInfo = Console.ReadKey(true);
-
-                        // Обработка выхода в меню
-                        if (keyInfo.Key == ConsoleKey.Escape)
-                        {
-                            inGame = false;
-                            continue;
-                        }
-
-                        if (keyInfo.Key == ConsoleKey.F3)
-                        {
-                            DebugConsole.Toggle();
-                            ScreenManager.SetNeedsRedraw();
-                            continue;
-                        }
-
-                        if (!DebugConsole.IsVisible)
-                        {
-                            ScreenManager.HandleInput(keyInfo);
-                            // HandleInput уже устанавливает _needsRedraw = true
-                        }
-                        else
-                        {
-                            DebugConsole.HandleKey(keyInfo.Key, keyInfo.KeyChar);
-                            ScreenManager.SetNeedsRedraw();
-                        }
-                    }
-
-                    Thread.Sleep(50); // Небольшая задержка
+                    Thread.Sleep(50);
                 }
                 catch (Exception ex)
                 {

@@ -56,6 +56,8 @@ namespace Engine
                 Console.OutputEncoding = Encoding.UTF8;
                 Console.CursorVisible = false;
 
+                DebugConsole.SetEnabled(true);
+
                 WorldRepository = new StaticWorldRepository();
                 WorldInitializer.InitializeWithDependencies(WorldRepository);
                 GameFactory = new GameFactory(WorldRepository);
