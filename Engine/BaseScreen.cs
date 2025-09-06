@@ -14,6 +14,7 @@ namespace Engine
         protected BaseScreen()
         {
             _renderer = GameServices.BufferedRenderer;
+
         }
 
         protected void RequestPartialRedraw()

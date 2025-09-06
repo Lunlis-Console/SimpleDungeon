@@ -13,6 +13,7 @@ namespace Engine
         private bool _needsFullRedraw = true;
         private bool _windowResized = false;
         private int _framesSinceFullRedraw = 0;
+        private bool _firstRender = true;
 
         public int Width => _width;
         public int Height => _height;
@@ -82,19 +83,28 @@ namespace Engine
 
         public void BeginFrame()
         {
-            if (_disposed) throw new ObjectDisposedException(nameof(EnhancedBufferedRenderer));
-
-            lock (_renderLock)
+            try
             {
-                // Проверяем изменение размера окна
-                if (Console.WindowWidth != _width || Console.WindowHeight != _height)
-                {
-                    DebugConsole.Log($"Window resized: {Console.WindowWidth}x{Console.WindowHeight}");
-                    InitializeBuffers();
-                    _needsFullRedraw = true;
-                }
+                if (_disposed) throw new ObjectDisposedException(nameof(EnhancedBufferedRenderer));
 
-                ClearBuffer(_backBuffer);
+                lock (_renderLock)
+                {
+                    // Проверяем изменение размера окна
+                    if (Console.WindowWidth != _width || Console.WindowHeight != _height)
+                    {
+                        DebugConsole.Log($"Window resized: {Console.WindowWidth}x{Console.WindowHeight}");
+                        InitializeBuffers();
+                        _needsFullRedraw = true;
+                    }
+
+                    ClearBuffer(_backBuffer);
+                }
+            
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.Log($"BeginFrame error {ex.Message}");
+                throw;
             }
         }
 
@@ -166,12 +176,16 @@ namespace Engine
             {
                 if (_needsFullRedraw || _windowResized)
                 {
+                    DebugConsole.Log("Calling RenderFull()");
+
                     RenderFull();
                     _needsFullRedraw = false;
                     _windowResized = false;
                 }
                 else
                 {
+                    DebugConsole.Log("Calling RenderPartial()");
+
                     RenderPartial();
                 }
             }

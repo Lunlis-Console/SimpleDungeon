@@ -24,9 +24,13 @@
 
         public override void Render()
         {
+
             try
             {
                 DebugConsole.Log("MainMenuScreen.Render() called");
+
+                // Отрисовывает весь экран в метода частичной отрисовки!!!
+                GameServices.BufferedRenderer.SetNeedsFullRedraw();
 
                 _renderer.BeginFrame();
                 ClearScreen();
