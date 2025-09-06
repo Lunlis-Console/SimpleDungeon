@@ -20,17 +20,17 @@ namespace SimpleDungeon
                 DebugConsole.Log("GameServices initialized successfully");
 
                 // Задержка 1 секунда перед показом меню
-                Thread.Sleep(1000);
+                //Thread.Sleep(1000);
 
-                // Блокируем обработку ввода на время задержки
-                var stopwatch = Stopwatch.StartNew();
-                while (stopwatch.ElapsedMilliseconds < 1000)
-                {
-                    // Очищаем буфер ввода, чтобы игнорировать любые нажатия клавиш
-                    while (Console.KeyAvailable)
-                        Console.ReadKey(true);
-                    Thread.Sleep(10);
-                }
+                //// Блокируем обработку ввода на время задержки
+                //var stopwatch = Stopwatch.StartNew();
+                //while (stopwatch.ElapsedMilliseconds < 1000)
+                //{
+                //    // Очищаем буфер ввода, чтобы игнорировать любые нажатия клавиш
+                //    while (Console.KeyAvailable)
+                //        Console.ReadKey(true);
+                //    Thread.Sleep(10);
+                //}
 
                 // Запускаем главное меню
                 ScreenManager.PushScreen(new MainMenuScreen());

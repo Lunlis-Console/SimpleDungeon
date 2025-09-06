@@ -109,14 +109,48 @@
         {
             RenderFooter("WASD - движение │ I - инвентарь │ C - персонаж │ J - квесты │ E - взаимодействие │ ESC - меню", -2);
 
-            string directions = "Доступно: ";
-            if (_currentLocation.LocationToNorth != null) directions += "Север(W) ";
-            if (_currentLocation.LocationToSouth != null) directions += "Юг(S) ";
-            if (_currentLocation.LocationToEast != null) directions += "Восток(D) ";
-            if (_currentLocation.LocationToWest != null) directions += "Запад(A) ";
+            //string directions = "Доступно: ";
+            //if (_currentLocation.LocationToNorth != null) directions += "Север(W) ";
+            //if (_currentLocation.LocationToSouth != null) directions += "Юг(S) ";
+            //if (_currentLocation.LocationToEast != null) directions += "Восток(D) ";
+            //if (_currentLocation.LocationToWest != null) directions += "Запад(A) ";
 
-            _renderer.Write(2, Console.WindowHeight - 4, directions);
+            //_renderer.Write(2, Console.WindowHeight - 4, directions);
+
+            // Добавляем компас в правый нижний угол
+            RenderCompass();
         }
+
+        private void RenderCompass()
+        {
+            int compassX = Console.WindowWidth - 10;
+            int compassY = Console.WindowHeight - 9;
+
+            bool north = _currentLocation.LocationToNorth != null;
+            bool south = _currentLocation.LocationToSouth != null;
+            bool east = _currentLocation.LocationToEast != null;
+            bool west = _currentLocation.LocationToWest != null;
+
+            ConsoleColor activeColor = ConsoleColor.Yellow;
+            ConsoleColor inactiveColor = ConsoleColor.DarkGray;
+
+            // Компас в виде креста
+            _renderer.Write(compassX + 3, compassY - 1, "N", north ? activeColor : inactiveColor);
+            _renderer.Write(compassX, compassY + 1, "W", west ? activeColor : inactiveColor);
+            _renderer.Write(compassX + 6, compassY + 1, "E", east ? activeColor : inactiveColor);
+            _renderer.Write(compassX + 3, compassY + 3, "S", south ? activeColor : inactiveColor);
+
+            // Соединительные линии
+            _renderer.Write(compassX + 3, compassY + 1, "+", ConsoleColor.DarkGray);
+            _renderer.Write(compassX + 1, compassY + 1, "─", ConsoleColor.DarkGray);
+            _renderer.Write(compassX + 2, compassY + 1, "─", ConsoleColor.DarkGray);
+            _renderer.Write(compassX + 4, compassY + 1, "─", ConsoleColor.DarkGray);
+            _renderer.Write(compassX + 5, compassY + 1, "─", ConsoleColor.DarkGray);
+            _renderer.Write(compassX + 3, compassY, "│", ConsoleColor.DarkGray);
+            _renderer.Write(compassX + 3, compassY + 2, "│", ConsoleColor.DarkGray);
+        }
+
+
 
         public override void HandleInput(ConsoleKeyInfo keyInfo)
         {

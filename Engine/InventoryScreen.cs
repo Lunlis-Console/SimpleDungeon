@@ -136,6 +136,7 @@
 
                 case ConsoleKey.Q:
                 case ConsoleKey.Escape:
+                case ConsoleKey.I:
                     ScreenManager.PopScreen();
                     break;
             }
