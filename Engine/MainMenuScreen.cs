@@ -78,8 +78,8 @@
         }
         private void RenderVersionInfo()
         {
-            string version = "Версия 1.0";
-            string copyright = "© 2024 Simple Dungeon";
+            string version = "Версия 1.0.0-alpha.1";
+            string copyright = "© 2025 Ilingin.prod";
 
             RenderCenteredText(Height - 4, version, ConsoleColor.DarkGray);
             RenderCenteredText(Height - 3, copyright, ConsoleColor.DarkGray);
