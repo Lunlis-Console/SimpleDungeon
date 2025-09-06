@@ -9,6 +9,7 @@
         {
             _player = player;
             _selectedIndex = 0;
+
         }
 
         public override void Render()
@@ -108,7 +109,7 @@
         public override void HandleInput(ConsoleKeyInfo keyInfo)
         {
             var titles = _player.UnlockedTitles;
-            if (titles.Count == 0) return;
+            //if (titles.Count == 0) return;
 
             switch (keyInfo.Key)
             {
@@ -131,8 +132,11 @@
                 case ConsoleKey.Escape:
                 case ConsoleKey.T:
                     ScreenManager.PopScreen();
+                    ScreenManager.RequestFullRedraw();
                     break;
             }
+
+
         }
 
         private void ToggleTitleActivation(Title title)

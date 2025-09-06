@@ -138,6 +138,7 @@
                 case ConsoleKey.Escape:
                 case ConsoleKey.I:
                     ScreenManager.PopScreen();
+                    ScreenManager.RequestFullRedraw();
                     break;
             }
         }

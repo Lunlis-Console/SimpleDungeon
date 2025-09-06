@@ -107,17 +107,8 @@
 
         private void RenderNavigation()
         {
-            RenderFooter("WASD - движение │ I - инвентарь │ C - персонаж │ J - квесты │ E - взаимодействие │ ESC - меню", -2);
+            RenderFooter("WASD - движение │ I - инвентарь │ C - персонаж │ J - журнал │ E - взаимодействие │ ESC - меню", -2);
 
-            //string directions = "Доступно: ";
-            //if (_currentLocation.LocationToNorth != null) directions += "Север(W) ";
-            //if (_currentLocation.LocationToSouth != null) directions += "Юг(S) ";
-            //if (_currentLocation.LocationToEast != null) directions += "Восток(D) ";
-            //if (_currentLocation.LocationToWest != null) directions += "Запад(A) ";
-
-            //_renderer.Write(2, Console.WindowHeight - 4, directions);
-
-            // Добавляем компас в правый нижний угол
             RenderCompass();
         }
 

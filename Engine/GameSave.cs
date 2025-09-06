@@ -9,6 +9,8 @@ namespace Engine
         public DateTime SaveDate { get; set; }
 
         // Данные игрока
+
+        public string Name { get; set; }
         public int Gold { get; set; }
         public int CurrentHP { get; set; }
         public int MaximumHP { get; set; }
@@ -86,6 +88,7 @@ namespace Engine
                 SaveName = saveName,
                 SaveDate = DateTime.Now,
 
+                Name = player.Name,
                 Gold = player.Gold,
                 CurrentHP = player.CurrentHP,
                 MaximumHP = player.TotalMaximumHP,
@@ -135,7 +138,7 @@ namespace Engine
 
             // Создаем игрока с передачей репозитория
             var player = new Player(
-                save.Gold, save.CurrentHP, save.MaximumHP,
+                save.Name, save.Gold, save.CurrentHP, save.MaximumHP,
                 save.CurrentEXP, save.MaximumEXP, save.Level,
                 save.BaseAttack, save.BaseDefence, save.BaseAgility,
                 GameServices.WorldRepository // Добавляем репозиторий

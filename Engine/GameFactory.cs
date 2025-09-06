@@ -11,13 +11,13 @@
 
         public Player CreateNewPlayer()
         {
-            return new Player(0, 100, 100, 0, 100, 1, 0, 0, 10, _worldRepository);
+            return new Player("Неизвестно", 0, 100, 100, 0, 100, 1, 0, 0, 10, _worldRepository);
         }
 
         public Player CreatePlayerFromSave(GameSave save)
         {
             var player = new Player(
-                save.Gold, save.CurrentHP, save.MaximumHP,
+                save.SaveName ,save.Gold, save.CurrentHP, save.MaximumHP,
                 save.CurrentEXP, save.MaximumEXP, save.Level,
                 save.BaseAttack, save.BaseDefence, save.BaseAgility,
                 _worldRepository

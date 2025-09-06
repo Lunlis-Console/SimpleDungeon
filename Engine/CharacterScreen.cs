@@ -7,10 +7,13 @@
         public CharacterScreen(Player player)
         {
             _player = player;
+
         }
 
         public override void Render()
         {
+
+
             _renderer.BeginFrame();
             ClearScreen();
 
@@ -27,15 +30,19 @@
         private void RenderCharacterInfo()
         {
             int y = 4;
-            string titleInfo = _player.ActiveTitle != null ? $"[{_player.ActiveTitle.Name}]" : "";
+            // Активный титул под именем игрока
+            string titleInfo = _player.ActiveTitle != null ?
+                $"Титул: {_player.ActiveTitle.Name}" : "Титул: отсутствует";
 
-            _renderer.Write(2, y, $"Игрок {titleInfo}");
+            _renderer.Write(2, y, $"Имя: {_player.Name}");
             _renderer.Write(40, y, $"Уровень: {_player.Level}");
             y++;
-
-            _renderer.Write(2, y, $"Опыт: {_player.CurrentEXP:N0}/{_player.MaximumEXP:N0}");
-            _renderer.Write(40, y, $"Золото: {_player.Gold:N0}");
+            _renderer.Write(40, y, $"Опыт: {_player.CurrentEXP:N0}/{_player.MaximumEXP:N0}");
+            _renderer.Write(2, y, titleInfo);
+            y++;
+            _renderer.Write(2, y, $"Золото: {_player.Gold:N0}");
             y += 2;
+            
         }
 
         private void RenderAttributes()
@@ -139,6 +146,11 @@
                 case ConsoleKey.Escape:
                 case ConsoleKey.C:
                     ScreenManager.PopScreen();
+                    var previousScreen = ScreenManager.CurrentScreen;
+                    if (previousScreen != null)
+                    {
+                        previousScreen.Render(); // ← явная перерисовка
+                    }
                     break;
 
                 case ConsoleKey.T:

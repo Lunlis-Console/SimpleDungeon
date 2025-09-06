@@ -2,6 +2,7 @@
 {
     public class Player : LivingCreature
     {
+        public string Name { get; set; }
         public int Gold { get; set; }
         public int CurrentEXP { get; set; }
         public int MaximumEXP { get; set; }
@@ -32,10 +33,11 @@
         private readonly IWorldRepository _worldRepository;
         private static bool _needsRedraw = true;
 
-        public Player(int gold, int currentHP, int maximumHP, int currentEXP, int maximumEXP, int level,
+        public Player(string name, int gold, int currentHP, int maximumHP, int currentEXP, int maximumEXP, int level,
             int baseAttack, int baseDefence, int agility, IWorldRepository worldRepository, Attributes attributes = null) :
             base(currentHP, maximumHP)
         {
+            Name = name;
             Gold = gold;
             CurrentEXP = currentEXP;
             MaximumEXP = maximumEXP;

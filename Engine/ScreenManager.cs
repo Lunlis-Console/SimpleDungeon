@@ -46,7 +46,7 @@ public static class ScreenManager
             }
 
             currentScreen.Render();
-            _needsRedraw = false;
+            //_needsRedraw = false;
         }
     }
 
