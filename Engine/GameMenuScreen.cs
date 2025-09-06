@@ -162,15 +162,8 @@
 
         private void ReturnToMainMenu()
         {
-            if (ConfirmAction("Вернуться в главное меню? Несохраненный прогресс будет потерян."))
-            {
-                // Вместо ScreenManager.ReturnToMainScreen() используем:
-                while (ScreenManager.ScreenCount > 0)
-                {
-                    ScreenManager.PopScreen();
-                }
-                // Теперь ProcessKeyInput() автоматически завершится и вернет в главное меню
-            }
+            // Вместо старой реализации:
+            ScreenManager.PushScreen(new UnifiedReturnScreen());
         }
 
         private void ExitGame()
