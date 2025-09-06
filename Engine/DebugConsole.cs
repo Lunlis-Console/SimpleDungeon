@@ -9,6 +9,8 @@ public static class DebugConsole
     private const int MAX_MESSAGES = 200;
     private static bool _needsRedraw = false;
     private static bool _enabled = true; // Флаг включения/выключения консоли
+    private static bool _needsRedrawAfterHide = false;
+    public static bool NeedsRedrawAfterHide => _needsRedrawAfterHide;
 
     public static bool IsVisible => _isVisible;
     public static bool Enabled => _enabled;
@@ -23,11 +25,17 @@ public static class DebugConsole
         }
     }
 
+    public static void ResetRedrawFlag()
+    {
+        _needsRedrawAfterHide = false;
+    }
+
     public static void Toggle()
     {
         if (!_enabled) return;
 
         _isVisible = !_isVisible;
+
         if (_isVisible)
         {
             _inputBuffer = "";
@@ -35,12 +43,14 @@ public static class DebugConsole
         }
         else
         {
-            // ДОБАВЬТЕ ЭТО - при скрытии консоли нужна полная перерисовка
+            // Устанавливаем флаг необходимости перерисовки после скрытия
+            _needsRedrawAfterHide = true;
             GameServices.BufferedRenderer.SetNeedsFullRedraw();
+            ScreenManager.RequestFullRedraw();
         }
 
         _needsRedraw = true;
-        ScreenManager.SetNeedsRedraw();
+        ScreenManager.RequestFullRedraw();
     }
 
     public static void Log(string message)
@@ -260,9 +270,9 @@ public static class DebugConsole
             case ConsoleKey.Escape:
                 _isVisible = false;
                 _needsRedraw = true;
-                // ДОБАВЬТЕ ЭТУ СТРОКУ - принудительная полная перерисовка
+                // При скрытии консоли запрашиваем полную перерисовку
                 GameServices.BufferedRenderer.SetNeedsFullRedraw();
-                ScreenManager.SetNeedsRedraw();
+                ScreenManager.RequestFullRedraw(); // ← Добавить
                 break;
 
             case ConsoleKey.Enter:
@@ -328,7 +338,7 @@ public static class DebugConsole
             // После обновления консоли устанавливаем флаг перерисовки
             if (_needsRedraw)
             {
-                ScreenManager.SetNeedsRedraw();
+                ScreenManager.RequestPartialRedraw();
             }
         }
     }
@@ -342,7 +352,9 @@ public static class DebugConsole
         else if (_needsRedraw)
         {
             // Если консоль скрыта, но нужна перерисовка, сбрасываем флаг
+            // и запрашиваем перерисовку основного экрана
             _needsRedraw = false;
+            ScreenManager.RequestFullRedraw(); // ← Добавить
         }
     }
 }

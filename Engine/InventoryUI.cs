@@ -203,21 +203,20 @@
             int selectedIndex = 0;
             ConsoleKey key;
 
-            // Позиционируем меню по центру экрана
-            int menuWidth = Math.Max(title.Length + 4, actions.Max(a => a.Length) + 6);
-            int menuHeight = actions.Count + 6;
-            int left = (Console.WindowWidth - menuWidth) / 2;
-            int top = (Console.WindowHeight - menuHeight) / 2;
-
-            // Используем двойную буферизацию для меню
-            var menuBuffer = new BufferedRenderer(GameServices.OutputService);
-            menuBuffer.BeginFrame();
+            // Используем основной рендерер вместо создания нового
+            var renderer = GameServices.BufferedRenderer;
 
             try
             {
                 do
                 {
-                    menuBuffer.BeginFrame();
+                    renderer.BeginFrame();
+
+                    // Позиционируем меню по центру экрана
+                    int menuWidth = Math.Max(title.Length + 4, actions.Max(a => a.Length) + 6);
+                    int menuHeight = actions.Count + 6;
+                    int left = (Console.WindowWidth - menuWidth) / 2;
+                    int top = (Console.WindowHeight - menuHeight) / 2;
 
                     // Рендерим полупрозрачный фон для меню
                     for (int y = top; y < top + menuHeight; y++)
@@ -226,36 +225,37 @@
                         {
                             if (x >= 0 && x < Console.WindowWidth && y >= 0 && y < Console.WindowHeight)
                             {
-                                menuBuffer.Write(x, y, " ");
+                                renderer.Write(x, y, " ", ConsoleColor.White, ConsoleColor.DarkGray);
                             }
                         }
                     }
 
                     // Рамка меню
-                    menuBuffer.Write(left, top, "╔" + new string('═', menuWidth - 2) + "╗");
-                    menuBuffer.Write(left, top + menuHeight - 1, "╚" + new string('═', menuWidth - 2) + "╝");
+                    renderer.Write(left, top, "╔" + new string('═', menuWidth - 2) + "╗", ConsoleColor.White);
+                    renderer.Write(left, top + menuHeight - 1, "╚" + new string('═', menuWidth - 2) + "╝", ConsoleColor.White);
 
                     for (int y = top + 1; y < top + menuHeight - 1; y++)
                     {
-                        menuBuffer.Write(left, y, "║");
-                        menuBuffer.Write(left + menuWidth - 1, y, "║");
+                        renderer.Write(left, y, "║", ConsoleColor.White);
+                        renderer.Write(left + menuWidth - 1, y, "║", ConsoleColor.White);
                     }
 
                     // Заголовок
-                    menuBuffer.Write(left + 2, top + 2, title);
+                    renderer.Write(left + 2, top + 2, title, ConsoleColor.Yellow);
 
                     // Пункты меню
                     for (int i = 0; i < actions.Count; i++)
                     {
                         int yPos = top + 4 + i;
                         string prefix = i == selectedIndex ? "> " : "  ";
-                        menuBuffer.Write(left + 2, yPos, prefix + actions[i]);
+                        ConsoleColor color = i == selectedIndex ? ConsoleColor.Green : ConsoleColor.White;
+                        renderer.Write(left + 2, yPos, prefix + actions[i], color);
                     }
 
                     // Подсказка управления
-                    menuBuffer.Write(left + 2, top + menuHeight - 2, "W/S - Выбор, E - Выбрать, Q - Назад");
+                    renderer.Write(left + 2, top + menuHeight - 2, "W/S - Выбор, E - Выбрать, Q - Назад", ConsoleColor.DarkGray);
 
-                    menuBuffer.EndFrame();
+                    renderer.EndFrame();
 
                     key = Console.ReadKey(true).Key;
 
@@ -272,13 +272,12 @@
                         case ConsoleKey.E:
                             return actions[selectedIndex];
                     }
-
                 } while (true);
             }
             finally
             {
                 // После закрытия меню принудительно перерисовываем основной экран
-                GameServices.BufferedRenderer.SetNeedsFullRedraw();
+                ScreenManager.RequestFullRedraw();
             }
         }
         private static void RenderMenuOverlay(int left, int top, int width, int height)

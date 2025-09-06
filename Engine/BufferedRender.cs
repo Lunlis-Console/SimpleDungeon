@@ -73,19 +73,21 @@ namespace Engine
         {
             if (_disposed) throw new ObjectDisposedException(nameof(BufferedRenderer));
 
-            //DebugConsole.Log($"BufferedRenderer: BeginFrame - Window: {Console.WindowWidth}x{Console.WindowHeight}");
+            DebugConsole.Log($"BeginFrame - Buffer: {_width}x{_height}, Window: {Console.WindowWidth}x{Console.WindowHeight}");
 
             // Проверяем изменение размера окна
             if (Console.WindowWidth != _width || Console.WindowHeight != _height)
             {
-                DebugConsole.Log("BufferedRenderer: Window resized, reinitializing buffers");
+                DebugConsole.Log("Window resized, reinitializing buffers");
                 InitializeBuffers();
                 _needsFullRedraw = true;
             }
 
             ClearBuffer(_backBuffer);
-        }
 
+            // Тестовый вывод
+            _backBuffer[0, 0] = new CharInfo('X', ConsoleColor.Red, ConsoleColor.Black);
+        }
         public void EndFrame()
         {
             if (_disposed) throw new ObjectDisposedException(nameof(BufferedRenderer));
@@ -148,7 +150,7 @@ namespace Engine
             if (_needsFullRedraw)
             {
                 RenderFull();
-                _needsFullRedraw = false;
+                // НЕ сбрасываем здесь - сбросим после успешной отрисовки
             }
             else
             {
@@ -199,6 +201,7 @@ namespace Engine
             }
 
             Console.ResetColor();
+            _needsFullRedraw = false;
         }
 
         private void RenderPartial()
@@ -220,17 +223,13 @@ namespace Engine
             Console.ResetColor();
         }
 
-        public void SetNeedsFullRedraw()
-        {
-            _needsFullRedraw = true;
-        }
 
         public bool CheckWindowResize()
         {
             if (Console.WindowWidth != _width || Console.WindowHeight != _height)
             {
                 InitializeBuffers();
-                SetNeedsFullRedraw();
+                ScreenManager.RequestFullRedraw();
                 return true;
             }
             return false;
@@ -250,6 +249,11 @@ namespace Engine
                 Console.Clear();
                 _disposed = true;
             }
+        }
+
+        public void SetNeedsFullRedraw()
+        {
+            _needsFullRedraw = true;
         }
     }
 }

@@ -1,65 +1,96 @@
-﻿using Engine;
-
-public static class ScreenManager
+﻿namespace Engine
 {
-    private static Stack<BaseScreen> _screenStack = new Stack<BaseScreen>();
-    private static bool _needsRedraw = true;
-
-    public static void PushScreen(BaseScreen screen)
+    public static class ScreenManager
     {
-        _screenStack.Push(screen);
-        _needsRedraw = true;
-    }
+        private static readonly Stack<BaseScreen> _screenStack = new Stack<BaseScreen>();
+        private static bool _needsRedraw = true;
+        private static bool _needsFullRedraw = false;
 
-    public static void PopScreen()
-    {
-        if (_screenStack.Count > 1)
-            _screenStack.Pop();
-        _needsRedraw = true;
-    }
+        public static int ScreenCount => _screenStack.Count;
 
-    public static void RenderCurrentScreen()
-    {
-        if (_screenStack.Count == 0)
+        public static void PushScreen(BaseScreen screen)
         {
-            DebugConsole.Log("ScreenManager: No screens in stack");
-            return;
+            _screenStack.Push(screen);
+            RequestFullRedraw();
         }
 
-        var currentScreen = _screenStack.Peek();
-        //DebugConsole.Log($"ScreenManager: Rendering {currentScreen.GetType().Name}");
-
-        try
+        public static BaseScreen PopScreen()
         {
-            currentScreen.Render();
-            //DebugConsole.Log("ScreenManager: Render completed successfully");
-        }
-        catch (Exception ex)
-        {
-            DebugConsole.Log($"ScreenManager: Render failed: {ex.Message}");
+            if (_screenStack.Count > 0)
+            {
+                var screen = _screenStack.Pop();
+                RequestFullRedraw();
+                return screen;
+            }
+            return null;
         }
 
-        _needsRedraw = false;
-    }
+        public static BaseScreen CurrentScreen => _screenStack.Count > 0 ? _screenStack.Peek() : null;
 
-    public static void HandleInput(ConsoleKeyInfo keyInfo)
-    {
-        if (_screenStack.Count == 0) return;
-        _screenStack.Peek().HandleInput(keyInfo);
-        _needsRedraw = true; // После ввода запрашиваем перерисовку
-    }
-
-    public static bool NeedsRedraw => _needsRedraw;
-    public static void SetNeedsRedraw() => _needsRedraw = true;
-
-    public static void ReturnToMainScreen()
-    {
-        while (_screenStack.Count > 1)
+        public static void HandleInput(ConsoleKeyInfo keyInfo)
         {
-            _screenStack.Pop();
+            var currentScreen = CurrentScreen;
+            if (currentScreen != null)
+            {
+                currentScreen.HandleInput(keyInfo);
+            }
         }
-        _needsRedraw = true;
-    }
 
-    public static int ScreenCount => _screenStack.Count;
+        public static void RenderCurrentScreen()
+        {
+            var currentScreen = CurrentScreen;
+            if (currentScreen != null)
+            {
+                if (_needsFullRedraw)
+                {
+                    GameServices.BufferedRenderer.SetNeedsFullRedraw();
+                    _needsFullRedraw = false;
+                }
+
+                currentScreen.Render();
+                _needsRedraw = false;
+            }
+        }
+
+        public static void Update()
+        {
+            var currentScreen = CurrentScreen;
+            if (currentScreen != null)
+            {
+                currentScreen.Update();
+            }
+        }
+
+        public static void RequestPartialRedraw()
+        {
+            _needsRedraw = true;
+        }
+
+        public static void RequestFullRedraw()
+        {
+            _needsRedraw = true;
+            _needsFullRedraw = true;
+        }
+
+        public static void ForceRedraw()
+        {
+            RequestFullRedraw();
+            RenderCurrentScreen();
+        }
+
+        public static void ReturnToMainScreen()
+        {
+            while (_screenStack.Count > 1)
+            {
+                _screenStack.Pop();
+            }
+            RequestFullRedraw();
+        }
+
+        public static void ClearAllScreens()
+        {
+            _screenStack.Clear();
+            RequestFullRedraw();
+        }
+    }
 }

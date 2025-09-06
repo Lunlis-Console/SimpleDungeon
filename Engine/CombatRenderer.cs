@@ -2,7 +2,7 @@
 {
     public class CombatRenderer
     {
-        private readonly BufferedRenderer _renderer;
+        private readonly EnhancedBufferedRenderer _renderer;
         private CombatState _previousState;
 
         // Позиции элементов на экране
@@ -19,7 +19,7 @@
         private const int PlayerSpeedLine = 20;
         private const int ActionsLine = 22;
 
-        public CombatRenderer(BufferedRenderer renderer)
+        public CombatRenderer(EnhancedBufferedRenderer renderer)
         {
             _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));
             _previousState = new CombatState();
@@ -53,6 +53,11 @@
 
             _renderer.EndFrame();
             _previousState = currentState;
+        }
+
+        public void SetNeedsFullRedraw()
+        {
+            _previousState = new CombatState();
         }
 
         private void RenderStaticElements()
@@ -262,10 +267,6 @@
             };
         }
 
-        public void SetNeedsFullRedraw()
-        {
-            _previousState = new CombatState();
-        }
     }
 
     // Класс для хранения состояния боя

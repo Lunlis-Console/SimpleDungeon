@@ -12,12 +12,11 @@
 
             // Небольшая задержка для инициализации
             Thread.Sleep(50);
-            ScreenManager.SetNeedsRedraw();
+            ScreenManager.RequestPartialRedraw();
         }
 
         public override void Render()
         {
-
             _renderer.BeginFrame();
             ClearScreen();
 
@@ -125,19 +124,19 @@
             {
                 case ConsoleKey.W:
                     MoveNorth();
-                    ScreenManager.SetNeedsRedraw(); // Явно запрашиваем перерисовку
+                    ScreenManager.RequestPartialRedraw(); // Явно запрашиваем перерисовку
                     break;
                 case ConsoleKey.S:
                     MoveSouth();
-                    ScreenManager.SetNeedsRedraw();
+                    ScreenManager.RequestPartialRedraw();
                     break;
                 case ConsoleKey.A:
                     MoveWest();
-                    ScreenManager.SetNeedsRedraw();
+                    ScreenManager.RequestPartialRedraw();
                     break;
                 case ConsoleKey.D:
                     MoveEast();
-                    ScreenManager.SetNeedsRedraw();
+                    ScreenManager.RequestPartialRedraw();
                     break;
                 case ConsoleKey.I:
                     ScreenManager.PushScreen(new InventoryScreen(_player));
@@ -172,7 +171,7 @@
             _player.MoveTo(newLocation);
             _currentLocation = newLocation;
             MessageSystem.AddMessage($"Вы переместились в {newLocation.Name}");
-            ScreenManager.SetNeedsRedraw();
+            ScreenManager.RequestPartialRedraw();
         }
     }
 }

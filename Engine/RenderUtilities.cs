@@ -2,7 +2,7 @@
 {
     public static class RenderUtilities
     {
-        public static void RenderHealthBar(BufferedRenderer renderer, int x, int y,
+        public static void RenderHealthBar(EnhancedBufferedRenderer renderer, int x, int y,
             int current, int max, string label = "Здоровье", int width = 20)
         {
             current = Math.Max(current, 0);
@@ -26,7 +26,7 @@
             renderer.Write(x, y, bar, color);
         }
 
-        public static void RenderProgressBar(BufferedRenderer renderer, int x, int y,
+        public static void RenderProgressBar(EnhancedBufferedRenderer renderer, int x, int y,
             int current, int max, string label, ConsoleColor color = ConsoleColor.Cyan, int width = 20)
         {
             float percentage = (float)current / max;
@@ -41,13 +41,13 @@
             renderer.Write(x, y, bar, color);
         }
 
-        public static void RenderCenteredText(BufferedRenderer renderer, int y, string text, ConsoleColor color)
+        public static void RenderCenteredText(EnhancedBufferedRenderer renderer, int y, string text, ConsoleColor color)
         {
             int x = (Console.WindowWidth - text.Length) / 2;
             renderer.Write(Math.Max(0, x), y, text, color);
         }
 
-        public static void RenderBox(BufferedRenderer renderer, int x, int y, int width, int height,
+        public static void RenderBox(EnhancedBufferedRenderer renderer, int x, int y, int width, int height,
                                    string title = "", ConsoleColor borderColor = ConsoleColor.Gray)
         {
             // Верхняя граница
@@ -72,7 +72,7 @@
             renderer.Write(x, y + height - 1, "╚" + new string('═', width - 2) + "╝", borderColor);
         }
 
-        public static void RenderSelectionList<T>(BufferedRenderer renderer, int x, int y,
+        public static void RenderSelectionList<T>(EnhancedBufferedRenderer renderer, int x, int y,
             List<T> items, int selectedIndex, Func<T, string> displaySelector,
             string title = "", ConsoleColor selectedColor = ConsoleColor.Green)
         {
@@ -93,7 +93,7 @@
             }
         }
 
-        public static void RenderStatsBlock(BufferedRenderer renderer, int x, int y,
+        public static void RenderStatsBlock(EnhancedBufferedRenderer renderer, int x, int y,
             int attack, int defence, int agility, int evasion)
         {
             renderer.Write(x, y, $"АТК: {attack} │ ЗЩТ: {defence} │ ЛОВ: {agility} │ УКЛ: {evasion}%",

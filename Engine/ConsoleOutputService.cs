@@ -19,7 +19,9 @@
         public void Clear()
         {
             if (_disposed) return;
-            Console.Clear();
+            // Вместо Console.Clear() используем буферизованный подход
+            // или просто ничего не делаем, так как BufferedRenderer сам управляет очисткой
+            // Console.Clear();  // ❌ УБРАТЬ ЭТУ СТРОКУ!
         }
 
         public void SetCursorPosition(int left, int top)

@@ -5,7 +5,7 @@
         public static void ShowMessage(string message)
         {
             MessageSystem.AddMessage(message);
-            ScreenManager.SetNeedsRedraw();
+            ScreenManager.RequestPartialRedraw();
         }
 
         public static void ReturnToGameWorld()
@@ -14,12 +14,12 @@
             {
                 ScreenManager.PopScreen();
             }
-            ScreenManager.SetNeedsRedraw();
+            ScreenManager.RequestPartialRedraw();
         }
 
         public static void RefreshCurrentScreen()
         {
-            ScreenManager.SetNeedsRedraw();
+            ScreenManager.RequestPartialRedraw();
         }
     }
 }

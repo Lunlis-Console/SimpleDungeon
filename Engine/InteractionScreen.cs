@@ -248,7 +248,7 @@
                 if (selectedAction != "Назад")
                 {
                     npc.ExecuteAction(_player, selectedAction);
-                    ScreenManager.SetNeedsRedraw();
+                    ScreenManager.RequestPartialRedraw();
                 }
             });
         }
@@ -321,7 +321,7 @@
                 }
             }
 
-            ScreenManager.SetNeedsRedraw();
+            ScreenManager.RequestPartialRedraw();
         }
     }
 }

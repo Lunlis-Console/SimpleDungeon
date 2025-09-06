@@ -7,12 +7,12 @@ namespace Engine
         private static IWorldRepository _worldRepository;
         private static IOutputService _outputService;
         private static IGameFactory _gameFactory;
-        private static BufferedRenderer _bufferedRenderer;
+        private static EnhancedBufferedRenderer _bufferedRenderer;
         private static CombatRenderer _combatRenderer;
 
-        public static BufferedRenderer BufferedRenderer
+        public static EnhancedBufferedRenderer BufferedRenderer
         {
-            get => _bufferedRenderer ??= new BufferedRenderer(OutputService);
+            get => _bufferedRenderer ??= new EnhancedBufferedRenderer();
             set => _bufferedRenderer = value;
         }
 
@@ -56,22 +56,14 @@ namespace Engine
                 Console.OutputEncoding = Encoding.UTF8;
                 Console.CursorVisible = false;
 
-                DebugConsole.SetEnabled(true);
+                // Инициализируем рендерер первым
+                BufferedRenderer = new EnhancedBufferedRenderer();
 
-                WorldRepository = new StaticWorldRepository();
-                WorldInitializer.InitializeWithDependencies(WorldRepository);
-                GameFactory = new GameFactory(WorldRepository);
-                OutputService = new ConsoleOutputService();
-
-                // Инициализируем в правильном порядке
-                BufferedRenderer = new BufferedRenderer(OutputService);
-                CombatRenderer = new CombatRenderer(BufferedRenderer);
-
-                DebugConsole.Log("Game services initialized successfully");
+                // Остальная инициализация...
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"Failed to initialize game services: {ex.Message}");
+                DebugConsole.Log($"Failed to initialize: {ex.Message}");
                 throw;
             }
         }

@@ -9,6 +9,7 @@
         public string MonsterActionMessage { get; private set; }
         private readonly IWorldRepository _worldRepository;
         private readonly CombatRenderer _combatRenderer;
+        private CombatState _previousState;
 
         public CombatEngine(Player player, Monster monster, IWorldRepository worldRepository)
         {
@@ -22,7 +23,7 @@
 
             _worldRepository = worldRepository;
 
-            _combatRenderer = GameServices.CombatRenderer;
+            _combatRenderer = new CombatRenderer(GameServices.BufferedRenderer);
         }
 
         private List<string> _combatLog = new List<string>();

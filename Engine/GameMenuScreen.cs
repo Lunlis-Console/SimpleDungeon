@@ -136,7 +136,7 @@
                 MessageSystem.AddMessage("Игра сохранена с автоматическим названием");
             }
 
-            ScreenManager.SetNeedsRedraw();
+            ScreenManager.RequestPartialRedraw();
         }
 
         private void ShowLoadGameMenu()
@@ -155,7 +155,7 @@
         private void ShowSettingsMenu()
         {
             MessageSystem.AddMessage("Система настроек в разработке!");
-            ScreenManager.SetNeedsRedraw();
+            ScreenManager.RequestPartialRedraw();
         }
 
         private void ReturnToMainMenu()

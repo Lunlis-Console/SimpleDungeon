@@ -4,74 +4,63 @@ namespace Engine
 {
     public abstract class BaseScreen
     {
-        protected readonly BufferedRenderer _renderer;
+        protected readonly EnhancedBufferedRenderer _renderer;
+        protected bool _needsRedraw = true;
+
+        public virtual int Width => _renderer.Width;
+        public virtual int Height => _renderer.Height;
 
         protected BaseScreen()
         {
             _renderer = GameServices.BufferedRenderer;
         }
 
-        protected void SoftClearScreen()
-        {
-            try
-            {
-                // Для BufferedRenderer
-                _renderer.FillArea(0, 0, Console.WindowWidth, Console.WindowHeight, ' ',
-                                 ConsoleColor.White, ConsoleColor.Black);
-            }
-            catch
-            {
-                // Fallback на консольный метод
-                try
-                {
-                    int currentTop = Console.CursorTop;
-                    int currentLeft = Console.CursorLeft;
-
-                    Console.SetCursorPosition(0, 0);
-                    for (int i = 0; i < Console.WindowHeight; i++)
-                    {
-                        Console.Write(new string(' ', Console.WindowWidth));
-                    }
-                    Console.SetCursorPosition(currentLeft, currentTop);
-                }
-                catch
-                {
-                    Console.Clear();
-                }
-            }
-        }
-
-
-        public abstract void Render();
-        public abstract void HandleInput(ConsoleKeyInfo keyInfo);
-
-        protected void RenderHeader(string title, int yOffset = 0, ConsoleColor color = ConsoleColor.Yellow)
-        {
-            int y = yOffset;
-            int width = Console.WindowWidth;
-
-            // Очищаем область заголовка
-            _renderer.FillArea(0, y, width, 3, ' ', ConsoleColor.White, ConsoleColor.Black);
-
-            _renderer.Write(0, y, new string('═', width), ConsoleColor.Gray);
-            RenderUtilities.RenderCenteredText(_renderer, y + 1, title, color);
-            _renderer.Write(0, y + 2, new string('═', width), ConsoleColor.Gray);
-        }
-
-        protected void RenderFooter(string instructions, int yOffset = 0)
-        {
-            int y = Console.WindowHeight - 3 + yOffset;
-            int width = Console.WindowWidth;
-
-            _renderer.Write(0, y, new string('═', width), ConsoleColor.Gray);
-            _renderer.Write(2, y + 1, instructions, ConsoleColor.DarkGray);
-        }
-
         protected void ClearScreen()
         {
-            // Заменяем старый ClearScreen на безопасную версию
-            SoftClearScreen();
+            _renderer.FillArea(0, 0, Width, Height, ' ', ConsoleColor.White, ConsoleColor.Black);
         }
+
+        protected void ClearArea(int x, int y, int width, int height)
+        {
+            _renderer.FillArea(x, y, width, height, ' ', ConsoleColor.White, ConsoleColor.Black);
+        }
+
+        protected void RenderText(int x, int y, string text, ConsoleColor color = ConsoleColor.White)
+        {
+            // Обеспечиваем безопасное позиционирование
+            x = Math.Max(0, Math.Min(x, Width - 1));
+            y = Math.Max(0, Math.Min(y, Height - 1));
+
+            if (!string.IsNullOrEmpty(text) && y < Height)
+            {
+                _renderer.Write(x, y, text, color);
+            }
+        }
+
+        protected void RenderCenteredText(int y, string text, ConsoleColor color = ConsoleColor.White)
+        {
+            if (string.IsNullOrEmpty(text)) return;
+
+            int x = (Width - text.Length) / 2;
+            RenderText(Math.Max(0, x), Math.Max(0, y), text, color);
+        }
+
+        protected void RenderButton(int x, int y, string text, bool isSelected = false)
+        {
+            var bgColor = isSelected ? ConsoleColor.DarkGreen : ConsoleColor.DarkGray;
+            var fgColor = isSelected ? ConsoleColor.White : ConsoleColor.Gray;
+
+            // Ограничиваем размер кнопки шириной экрана
+            int buttonWidth = Math.Min(text.Length + 4, Width - x);
+            int buttonHeight = Math.Min(3, Height - y);
+
+            _renderer.FillArea(x, y, buttonWidth, buttonHeight, ' ', fgColor, bgColor);
+            RenderText(x + 2, y + 1, text, fgColor);
+        }
+
+        public abstract void Render();
+
+        public abstract void HandleInput(ConsoleKeyInfo keyInfo);
 
         protected List<string> WrapText(string text, int maxWidth)
         {
@@ -79,6 +68,9 @@ namespace Engine
 
             if (string.IsNullOrEmpty(text))
                 return lines;
+
+            // Учитываем границы экрана
+            maxWidth = Math.Min(maxWidth, Width - 4);
 
             var words = text.Split(' ');
             var currentLine = new StringBuilder();
@@ -103,42 +95,44 @@ namespace Engine
             return lines;
         }
 
-        protected void RenderWrappedText(int x, int y, string text, int maxWidth, ConsoleColor color = ConsoleColor.White)
+        protected void RenderFooter(string instructions, int yOffset = 0)
         {
-            var lines = WrapText(text, maxWidth);
-            foreach (var line in lines)
+            int y = Math.Max(0, Math.Min(Height - 3 + yOffset, Height - 1));
+            int width = Math.Min(Width, Console.WindowWidth);
+
+            // Очищаем область футера
+            _renderer.FillArea(0, y, width, 3, ' ', ConsoleColor.White, ConsoleColor.Black);
+
+            _renderer.Write(0, y, new string('═', width), ConsoleColor.Gray);
+            _renderer.Write(2, y + 1, instructions, ConsoleColor.DarkGray);
+        }
+
+        protected void RenderHeader(string title, int yOffset = 0, ConsoleColor color = ConsoleColor.Yellow)
+        {
+            int y = Math.Max(0, yOffset);
+            int width = Math.Min(Width, Console.WindowWidth);
+
+            // Очищаем область заголовка
+            _renderer.FillArea(0, y, width, 3, ' ', ConsoleColor.White, ConsoleColor.Black);
+
+            _renderer.Write(0, y, new string('═', width), ConsoleColor.Gray);
+            RenderCenteredText(y + 1, title, color);
+            _renderer.Write(0, y + 2, new string('═', width), ConsoleColor.Gray);
+        }
+
+        public virtual void Update()
+        {
+            // Базовая реализация, может быть переопределена
+            if (_needsRedraw)
             {
-                _renderer.Write(x, y, line, color);
-                y++;
+                Render();
+                _needsRedraw = false;
             }
         }
 
-        protected void RenderDialogBox(string title, string message, List<string> options, int selectedIndex = 0)
+        public void RequestRedraw()
         {
-            int boxWidth = Math.Min(60, Console.WindowWidth - 4);
-            int boxHeight = 8 + options.Count;
-            int boxX = (Console.WindowWidth - boxWidth) / 2;
-            int boxY = (Console.WindowHeight - boxHeight) / 2;
-
-            // Фон
-            _renderer.FillArea(boxX, boxY, boxWidth, boxHeight, ' ', ConsoleColor.White, ConsoleColor.DarkBlue);
-
-            // Рамка
-            RenderUtilities.RenderBox(_renderer, boxX, boxY, boxWidth, boxHeight, title, ConsoleColor.White);
-
-            // Сообщение
-            RenderWrappedText(boxX + 2, boxY + 2, message, boxWidth - 4, ConsoleColor.White);
-
-            // Опции
-            int optionsY = boxY + boxHeight - options.Count - 2;
-            for (int i = 0; i < options.Count; i++)
-            {
-                bool isSelected = i == selectedIndex;
-                ConsoleColor color = isSelected ? ConsoleColor.Green : ConsoleColor.White;
-                string prefix = isSelected ? "> " : "  ";
-
-                _renderer.Write(boxX + 2, optionsY + i, prefix + options[i], color);
-            }
+            _needsRedraw = true;
         }
     }
 }
