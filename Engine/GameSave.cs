@@ -71,7 +71,7 @@ namespace Engine
 
     public static class SaveManager
     {
-        private static readonly string SavesDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Saves");
+        public static readonly string SavesDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Saves");
 
         static SaveManager()
         {

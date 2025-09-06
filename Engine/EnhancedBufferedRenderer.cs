@@ -176,7 +176,7 @@ namespace Engine
             {
                 if (_needsFullRedraw || _windowResized)
                 {
-                    DebugConsole.Log("Calling RenderFull()");
+                    //DebugConsole.Log("Calling RenderFull()");
 
                     RenderFull();
                     _needsFullRedraw = false;

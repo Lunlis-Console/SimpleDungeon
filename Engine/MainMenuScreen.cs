@@ -27,7 +27,7 @@
 
             try
             {
-                DebugConsole.Log("MainMenuScreen.Render() called");
+                //DebugConsole.Log("MainMenuScreen.Render() called");
 
                 // Отрисовывает весь экран в метода частичной отрисовки!!!
                 GameServices.BufferedRenderer.SetNeedsFullRedraw();
@@ -42,7 +42,7 @@
 
                 _renderer.EndFrame();
 
-                DebugConsole.Log("Main menu rendered successfully");
+                //DebugConsole.Log("Main menu rendered successfully");
             }
             catch (Exception ex)
             {

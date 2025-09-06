@@ -87,7 +87,7 @@
             int rightColumn = Console.WindowWidth / 2 + 2;
             int y = 18;
 
-            _renderer.Write(rightColumn, y, "=== СТАТИСТИКА ===", ConsoleColor.Yellow);
+            _renderer.Write(rightColumn, y, "=== ПАРАМЕТРЫ ===", ConsoleColor.Yellow);
             y += 2;
 
             _renderer.Write(rightColumn, y, $"Здоровье: {_player.CurrentHP}/{_player.TotalMaximumHP}");
@@ -108,7 +108,7 @@
             return item switch
             {
                 InventoryItem invItem => $"{invItem.Details.Name} x{invItem.Quantity}",
-                InventoryUI.EquipmentSlotItem eqItem => $"[Экипировано] {eqItem}",
+                InventoryUI.EquipmentSlotItem eqItem => $"[Надето] {eqItem}",
                 _ => item?.ToString() ?? "Неизвестный предмет"
             };
         }
@@ -149,76 +149,15 @@
 
             var selectedItem = _displayItems[_selectedIndex];
 
-            if (selectedItem is InventoryItem inventoryItem)
-            {
-                // Используем существующую логику контекстного меню
-                InventoryUI.ShowItemContextMenu(_player, inventoryItem);
-                _displayItems = InventoryUI.PrepareInventoryItems(_player); // Обновляем список
-            }
-            else if (selectedItem is InventoryUI.EquipmentSlotItem equipmentItem)
-            {
-                ShowEquipmentContextMenu(equipmentItem.Equipment);
-            }
+            // Вместо показа контекстного меню, переходим на новый экран действий
+            ScreenManager.PushScreen(new InventoryItemActionScreen(_player, selectedItem));
         }
 
-        private void ShowEquipmentContextMenu(Equipment equipment)
+        public void RefreshInventoryList()
         {
-            var actions = new List<string> { "Снять", "Осмотреть", "Назад" };
-
-            int menuWidth = 30;
-            int menuHeight = actions.Count + 4;
-            int left = (Console.WindowWidth - menuWidth) / 2;
-            int top = (Console.WindowHeight - menuHeight) / 2;
-
-            // Сохраняем текущий экран
-            _renderer.BeginFrame();
-
-            // Рисуем полупрозрачный фон
-            for (int y = top; y < top + menuHeight; y++)
-            {
-                for (int x = left; x < left + menuWidth; x++)
-                {
-                    if (x >= 0 && x < Console.WindowWidth && y >= 0 && y < Console.WindowHeight)
-                    {
-                        _renderer.Write(x, y, "░");
-                    }
-                }
-            }
-
-            // Рамка меню
-            _renderer.Write(left, top, "╔" + new string('═', menuWidth - 2) + "╗");
-            _renderer.Write(left, top + menuHeight - 1, "╚" + new string('═', menuWidth - 2) + "╝");
-
-            for (int y = top + 1; y < top + menuHeight - 1; y++)
-            {
-                _renderer.Write(left, y, "║");
-                _renderer.Write(left + menuWidth - 1, y, "║");
-            }
-
-            // Заголовок
-            _renderer.Write(left + 2, top + 2, $"Действие: {equipment.Name}");
-
-            // Пункты меню
-            for (int i = 0; i < actions.Count; i++)
-            {
-                _renderer.Write(left + 2, top + 4 + i, $"{i + 1}. {actions[i]}");
-            }
-
-            _renderer.EndFrame();
-
-            // Обработка выбора
-            var key = Console.ReadKey(true);
-            switch (key.Key)
-            {
-                case ConsoleKey.D1:
-                    _player.UnequipItem(equipment);
-                    break;
-                case ConsoleKey.D2:
-                    equipment.Read();
-                    break;
-            }
-
             _displayItems = InventoryUI.PrepareInventoryItems(_player);
+            _selectedIndex = Math.Min(_selectedIndex, _displayItems.Count - 1);
+            RequestRedraw();
         }
     }
 }

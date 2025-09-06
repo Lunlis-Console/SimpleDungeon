@@ -125,23 +125,23 @@
 
             // Добавляем экипированные предметы как EquipmentSlotItem
             if (Inventory.Helmet != null)
-                allItems.Add(new InventoryUI.EquipmentSlotItem("Шлем", Inventory.Helmet));
+                allItems.Add(new InventoryUI.EquipmentSlotItem(Inventory.Helmet));
             if (Inventory.Armor != null)
-                allItems.Add(new InventoryUI.EquipmentSlotItem("Броня", Inventory.Armor));
+                allItems.Add(new InventoryUI.EquipmentSlotItem(Inventory.Armor));
             if (Inventory.Gloves != null)
-                allItems.Add(new InventoryUI.EquipmentSlotItem("Перчатки", Inventory.Gloves));
+                allItems.Add(new InventoryUI.EquipmentSlotItem(Inventory.Gloves));
             if (Inventory.Boots != null)
-                allItems.Add(new InventoryUI.EquipmentSlotItem("Ботинки", Inventory.Boots));
+                allItems.Add(new InventoryUI.EquipmentSlotItem(Inventory.Boots));
             if (Inventory.MainHand != null)
-                allItems.Add(new InventoryUI.EquipmentSlotItem("Оружие", Inventory.MainHand));
+                allItems.Add(new InventoryUI.EquipmentSlotItem(Inventory.MainHand));
             if (Inventory.OffHand != null)
-                allItems.Add(new InventoryUI.EquipmentSlotItem("Щит", Inventory.OffHand));
+                allItems.Add(new InventoryUI.EquipmentSlotItem(Inventory.OffHand));
             if (Inventory.Amulet != null)
-                allItems.Add(new InventoryUI.EquipmentSlotItem("Амулет", Inventory.Amulet));
+                allItems.Add(new InventoryUI.EquipmentSlotItem(Inventory.Amulet));
             if (Inventory.Ring1 != null)
-                allItems.Add(new InventoryUI.EquipmentSlotItem("Кольцо 1", Inventory.Ring1));
+                allItems.Add(new InventoryUI.EquipmentSlotItem(Inventory.Ring1));
             if (Inventory.Ring2 != null)
-                allItems.Add(new InventoryUI.EquipmentSlotItem("Кольцо 2", Inventory.Ring2));
+                allItems.Add(new InventoryUI.EquipmentSlotItem(Inventory.Ring2));
 
             // Добавляем предметы из инвентаря
             allItems.AddRange(Inventory.Items.Cast<object>());
@@ -211,15 +211,17 @@
             }
         }
 
-        public void EquipItem(InventoryItem item)
+        public bool EquipItem(InventoryItem item)
         {
             if (Inventory.EquipItem(item))
             {
                 MessageSystem.AddMessage($"Надето: {item.Details.Name}.");
+                return true;
             }
             else
             {
                 MessageSystem.AddMessage("Это не предмет экипировки или слот занят!");
+                return false;
             }
         }
 
@@ -228,15 +230,17 @@
             Inventory.RemoveItem(item, quantity);
         }
 
-        public void UnequipItem(Equipment equipment)
+        public bool UnequipItem(Equipment equipment)
         {
             if (Inventory.UnequipItem(equipment))
             {
                 MessageSystem.AddMessage($"Снято: {equipment.Name}.");
+                return true;
             }
             else
             {
                 MessageSystem.AddMessage("Не удалось снять предмет.");
+                return false;
             }
         }
 

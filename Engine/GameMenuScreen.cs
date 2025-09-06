@@ -123,22 +123,8 @@
 
         private void ShowSaveGameMenu()
         {
-            Console.Clear();
-            Console.Write("Введите название сохранения: ");
-            string saveName = Console.ReadLine();
-
-            if (!string.IsNullOrWhiteSpace(saveName))
-            {
-                SaveManager.SaveGame(_player, saveName);
-                MessageSystem.AddMessage($"Игра сохранена: {saveName}");
-            }
-            else
-            {
-                SaveManager.SaveGame(_player, $"save_{DateTime.Now:yyyyMMdd_HHmmss}");
-                MessageSystem.AddMessage("Игра сохранена с автоматическим названием");
-            }
-
-            ScreenManager.RequestPartialRedraw();
+            // Заменяем старую реализацию с Console.ReadLine():
+            ScreenManager.PushScreen(new UnifiedSaveGameScreen(_player));
         }
 
         private void ShowLoadGameMenu()
@@ -168,19 +154,8 @@
 
         private void ExitGame()
         {
-            if (ConfirmAction("Выйти из игры?"))
-            {
-                Environment.Exit(0);
-            }
-        }
-
-        private bool ConfirmAction(string message)
-        {
-            // Простая реализация подтверждения
-            Console.Clear();
-            Console.WriteLine(message);
-            Console.WriteLine("Нажмите Y для подтверждения или любую другую клавишу для отмены");
-            return Console.ReadKey(true).Key == ConsoleKey.Y;
+            // Заменяем старую реализацию:
+            ScreenManager.PushScreen(new UnifiedExitScreen());
         }
     }
 }

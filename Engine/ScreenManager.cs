@@ -91,4 +91,17 @@ public static class ScreenManager
         _screenStack.Clear();
         RequestFullRedraw();
     }
+
+    public static T GetScreen<T>() where T : BaseScreen
+    {
+        // Ищем экран в стеке (кроме текущего активного)
+        foreach (var screen in _screenStack)
+        {
+            if (screen is T result && screen != CurrentScreen)
+            {
+                return result;
+            }
+        }
+        return null;
+    }
 }
