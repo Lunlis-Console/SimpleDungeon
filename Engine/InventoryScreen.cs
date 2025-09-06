@@ -120,16 +120,17 @@
                 case ConsoleKey.W:
                 case ConsoleKey.UpArrow:
                     _selectedIndex = Math.Max(0, _selectedIndex - 1);
+                    RequestPartialRedraw(); // ← ДОБАВЛЯЕМ ЭТУ СТРОЧКУ
                     break;
 
                 case ConsoleKey.S:
                 case ConsoleKey.DownArrow:
                     _selectedIndex = Math.Min(_displayItems.Count - 1, _selectedIndex + 1);
+                    RequestPartialRedraw(); // ← ДОБАВЛЯЕМ ЭТУ СТРОЧКУ
                     break;
 
                 case ConsoleKey.E:
                 case ConsoleKey.Enter:
-                case ConsoleKey.Spacebar:
                     HandleItemSelection();
                     break;
 

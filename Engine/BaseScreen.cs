@@ -6,6 +6,7 @@ namespace Engine
     {
         protected readonly EnhancedBufferedRenderer _renderer;
         protected bool _needsRedraw = true;
+        protected bool _needsFullRedraw = true; // Первая отрисовка всегда полная
 
         public virtual int Width => _renderer.Width;
         public virtual int Height => _renderer.Height;
@@ -13,6 +14,20 @@ namespace Engine
         protected BaseScreen()
         {
             _renderer = GameServices.BufferedRenderer;
+        }
+
+        protected void RequestPartialRedraw()
+        {
+            _needsRedraw = true;
+            _needsFullRedraw = false;
+            ScreenManager.RequestPartialRedraw();
+        }
+
+        protected void RequestFullRedraw()
+        {
+            _needsRedraw = true;
+            _needsFullRedraw = true;
+            ScreenManager.RequestFullRedraw();
         }
 
         protected void ClearScreen()
@@ -122,11 +137,11 @@ namespace Engine
 
         public virtual void Update()
         {
-            // Базовая реализация, может быть переопределена
             if (_needsRedraw)
             {
                 Render();
                 _needsRedraw = false;
+                _needsFullRedraw = false;
             }
         }
 

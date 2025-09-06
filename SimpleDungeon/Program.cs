@@ -45,29 +45,23 @@ namespace SimpleDungeon
         }
         private static void MainGameLoop()
         {
-            int frameCount = 0;
-            const int targetFps = 30;
-            const int frameDelay = 1000 / targetFps;
             var stopwatch = new Stopwatch();
-            var lastWindowCheck = Stopwatch.StartNew();
             stopwatch.Start();
+            var lastWindowCheck = stopwatch.ElapsedMilliseconds;
 
             while (_running)
             {
-                frameCount++;
-                long startTime = stopwatch.ElapsedMilliseconds;
-
                 try
                 {
                     // Проверяем изменение размера окна каждые 500ms
-                    if (lastWindowCheck.ElapsedMilliseconds > 500)
+                    if (stopwatch.ElapsedMilliseconds - lastWindowCheck > 500)
                     {
                         if (GameServices.BufferedRenderer.CheckWindowResize())
                         {
                             ScreenManager.RequestFullRedraw();
                             DebugConsole.Log("Window resize handled");
                         }
-                        lastWindowCheck.Restart();
+                        lastWindowCheck = stopwatch.ElapsedMilliseconds;
                     }
 
                     // Обработка ввода
@@ -78,7 +72,7 @@ namespace SimpleDungeon
                         if (keyInfo.Key == ConsoleKey.F3)
                         {
                             DebugConsole.Toggle();
-                            ScreenManager.RequestFullRedraw();
+                            // Консоль сама запросит нужный тип перерисовки
                             continue;
                         }
 
@@ -103,23 +97,12 @@ namespace SimpleDungeon
                         DebugConsole.GlobalDraw();
                     }
 
-                    // Контроль FPS
-                    long frameTime = stopwatch.ElapsedMilliseconds - startTime;
-                    if (frameTime < frameDelay)
-                    {
-                        Thread.Sleep((int)(frameDelay - frameTime));
-                    }
-
-                    // Периодическая полная перерисовка для предотвращения артефактов
-                    if (frameCount % 60 == 0)
-                    {
-                        ScreenManager.RequestFullRedraw();
-                    }
+                    // Небольшая задержка для снижения нагрузки
+                    Thread.Sleep(16); // ~60 FPS
                 }
                 catch (Exception ex)
                 {
                     DebugConsole.Log($"Game loop error: {ex.Message}");
-                    // При ошибке запрашиваем полную перерисовку
                     ScreenManager.RequestFullRedraw();
                     Thread.Sleep(100);
                 }

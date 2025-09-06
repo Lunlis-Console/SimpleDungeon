@@ -12,6 +12,7 @@ namespace Engine
         private bool _disposed;
         private bool _needsFullRedraw = true;
         private bool _windowResized = false;
+        private int _framesSinceFullRedraw = 0;
 
         public int Width => _width;
         public int Height => _height;
@@ -90,7 +91,7 @@ namespace Engine
                 {
                     DebugConsole.Log($"Window resized: {Console.WindowWidth}x{Console.WindowHeight}");
                     InitializeBuffers();
-                    ScreenManager.RequestFullRedraw();
+                    _needsFullRedraw = true;
                 }
 
                 ClearBuffer(_backBuffer);
@@ -177,7 +178,6 @@ namespace Engine
             catch (Exception ex)
             {
                 DebugConsole.Log($"Render error: {ex.Message}");
-                // При ошибке рендеринга запрашиваем полную перерисовку
                 _needsFullRedraw = true;
             }
         }

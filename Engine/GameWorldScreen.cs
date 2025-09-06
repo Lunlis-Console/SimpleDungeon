@@ -124,34 +124,37 @@
             {
                 case ConsoleKey.W:
                     MoveNorth();
-                    ScreenManager.RequestPartialRedraw(); // Явно запрашиваем перерисовку
+                    RequestPartialRedraw(); // Только сообщение изменилось
                     break;
+
                 case ConsoleKey.S:
                     MoveSouth();
-                    ScreenManager.RequestPartialRedraw();
+                    RequestPartialRedraw();
                     break;
+
                 case ConsoleKey.A:
                     MoveWest();
-                    ScreenManager.RequestPartialRedraw();
+                    RequestPartialRedraw();
                     break;
+
                 case ConsoleKey.D:
                     MoveEast();
-                    ScreenManager.RequestPartialRedraw();
+                    RequestPartialRedraw();
                     break;
-                case ConsoleKey.I:
+
+                case ConsoleKey.I: // Инвентарь
                     ScreenManager.PushScreen(new InventoryScreen(_player));
+                    RequestFullRedraw(); // Полная перерисовка при открытии
                     break;
-                case ConsoleKey.C:
+
+                case ConsoleKey.C: // Персонаж
                     ScreenManager.PushScreen(new CharacterScreen(_player));
+                    RequestFullRedraw();
                     break;
-                case ConsoleKey.J:
-                    ScreenManager.PushScreen(new QuestLogScreen(_player));
-                    break;
-                case ConsoleKey.E:
-                    ScreenManager.PushScreen(new InteractionScreen(_player, _currentLocation));
-                    break;
-                case ConsoleKey.Escape:
+
+                case ConsoleKey.Escape: // Меню
                     ScreenManager.PushScreen(new GameMenuScreen(_player));
+                    RequestFullRedraw();
                     break;
             }
         }

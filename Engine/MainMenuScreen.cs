@@ -87,25 +87,25 @@
                 case ConsoleKey.W:
                 case ConsoleKey.UpArrow:
                     _selectedIndex = Math.Max(0, _selectedIndex - 1);
+                    RequestPartialRedraw(); // Только частичное обновление
                     break;
 
                 case ConsoleKey.S:
                 case ConsoleKey.DownArrow:
                     _selectedIndex = Math.Min(_menuItems.Length - 1, _selectedIndex + 1);
+                    RequestPartialRedraw(); // Только частичное обновление
                     break;
 
                 case ConsoleKey.E:
                 case ConsoleKey.Enter:
                     ExecuteSelectedAction();
+                    // Здесь будет автоматически вызвана полная перерисовка при смене экрана
                     break;
 
                 case ConsoleKey.Escape:
                     Environment.Exit(0);
                     break;
             }
-
-            // Всегда запрашиваем перерисовку после обработки ввода
-            ScreenManager.RequestPartialRedraw();
         }
         private void ExecuteSelectedAction()
         {
