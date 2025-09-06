@@ -198,63 +198,57 @@ namespace Engine
 
         private void RenderFull()
         {
-            Console.CursorVisible = false;
-
-            // Используем безопасный метод очистки
             try
             {
-                Console.Clear();
-            }
-            catch
-            {
-                // Альтернативный метод очистки если Console.Clear() fails
-                Console.SetCursorPosition(0, 0);
-                Console.Write(new string(' ', Console.WindowWidth * Console.WindowHeight));
-                Console.SetCursorPosition(0, 0);
-            }
+                Console.CursorVisible = false;
 
-            for (int y = 0; y < _height; y++)
-            {
-                Console.SetCursorPosition(0, y);
-
-                ConsoleColor currentForeground = _frontBuffer[0, y].Foreground;
-                ConsoleColor currentBackground = _frontBuffer[0, y].Background;
-
-                Console.ForegroundColor = currentForeground;
-                Console.BackgroundColor = currentBackground;
-
-                StringBuilder line = new StringBuilder();
-
-                for (int x = 0; x < _width; x++)
+                // Вместо Console.Clear() используем построчный вывод
+                // это избегает мерцания от полной очистки экрана
+                for (int y = 0; y < _height; y++)
                 {
-                    var charInfo = _frontBuffer[x, y];
+                    Console.SetCursorPosition(0, y);
 
-                    if (charInfo.Foreground != currentForeground ||
-                        charInfo.Background != currentBackground)
+                    // Быстрый вывод всей строки сразу
+                    StringBuilder line = new StringBuilder();
+                    ConsoleColor currentFg = _frontBuffer[0, y].Foreground;
+                    ConsoleColor currentBg = _frontBuffer[0, y].Background;
+
+                    Console.ForegroundColor = currentFg;
+                    Console.BackgroundColor = currentBg;
+
+                    for (int x = 0; x < _width; x++)
                     {
-                        if (line.Length > 0)
+                        var charInfo = _frontBuffer[x, y];
+
+                        // Если цвет изменился, выводим накопленную строку
+                        if (charInfo.Foreground != currentFg || charInfo.Background != currentBg)
                         {
                             Console.Write(line.ToString());
                             line.Clear();
+                            currentFg = charInfo.Foreground;
+                            currentBg = charInfo.Background;
+                            Console.ForegroundColor = currentFg;
+                            Console.BackgroundColor = currentBg;
                         }
 
-                        currentForeground = charInfo.Foreground;
-                        currentBackground = charInfo.Background;
-
-                        Console.ForegroundColor = currentForeground;
-                        Console.BackgroundColor = currentBackground;
+                        line.Append(charInfo.Character);
                     }
 
-                    line.Append(charInfo.Character);
+                    // Выводим оставшуюся часть строки
+                    if (line.Length > 0)
+                    {
+                        Console.Write(line.ToString());
+                    }
                 }
 
-                if (line.Length > 0)
-                {
-                    Console.Write(line.ToString());
-                }
+                Console.ResetColor();
+                _needsFullRedraw = false;
             }
-
-            Console.ResetColor();
+            catch (Exception ex)
+            {
+                DebugConsole.Log($"RenderFull error: {ex.Message}");
+                _needsFullRedraw = true;
+            }
         }
 
         private void RenderPartial()
