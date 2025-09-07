@@ -55,7 +55,7 @@
 
                 if (isSelected)
                 {
-                    RenderCenteredText(y, $"> {_options[i]}", ConsoleColor.Green);
+                    RenderCenteredText(y, $"► {_options[i]}", ConsoleColor.Green);
                 }
                 else
                 {

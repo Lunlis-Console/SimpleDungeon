@@ -85,7 +85,7 @@
             for (int i = 0; i < items.Count; i++)
             {
                 bool isSelected = i == selectedIndex;
-                string prefix = isSelected ? "> " : "  ";
+                string prefix = isSelected ? "► " : "  ";
                 ConsoleColor color = isSelected ? selectedColor : ConsoleColor.White;
 
                 string displayText = displaySelector(items[i]);

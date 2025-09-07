@@ -15,6 +15,18 @@
             _lastSelectedItem = null;
         }
 
+        public class MenuOption
+        {
+            public string DisplayText { get; set; }
+            public Action Action { get; set; }
+
+            public MenuOption(string displayText, Action action)
+            {
+                DisplayText = displayText;
+                Action = action;
+            }
+        }
+
         public override void Render()
         {
             _renderer.BeginFrame();
@@ -38,7 +50,7 @@
 
                 if (isSelected)
                 {
-                    _renderer.Write(2, startY + i, "> ");
+                    _renderer.Write(2, startY + i, "► ");
                     _renderer.Write(4, startY + i, itemText, ConsoleColor.Green);
                 }
                 else
@@ -176,54 +188,6 @@
             }
             return false;
         }
-
-        private void RenderEquipmentInfo()
-        {
-            int rightColumn = Console.WindowWidth / 2 + 2;
-            int y = 4;
-
-            _renderer.Write(rightColumn, y, "=== ЭКИПИРОВКА ===", ConsoleColor.Yellow);
-            y += 2;
-
-            RenderEquipmentSlot(rightColumn, ref y, "Оружие:", _player.Inventory.MainHand);
-            RenderEquipmentSlot(rightColumn, ref y, "Щит:", _player.Inventory.OffHand);
-            RenderEquipmentSlot(rightColumn, ref y, "Шлем:", _player.Inventory.Helmet);
-            RenderEquipmentSlot(rightColumn, ref y, "Броня:", _player.Inventory.Armor);
-            RenderEquipmentSlot(rightColumn, ref y, "Перчатки:", _player.Inventory.Gloves);
-            RenderEquipmentSlot(rightColumn, ref y, "Ботинки:", _player.Inventory.Boots);
-            RenderEquipmentSlot(rightColumn, ref y, "Амулет:", _player.Inventory.Amulet);
-            RenderEquipmentSlot(rightColumn, ref y, "Кольцо:", _player.Inventory.Ring1);
-            RenderEquipmentSlot(rightColumn, ref y, "Кольцо:", _player.Inventory.Ring2);
-        }
-
-        private void RenderEquipmentSlot(int x, ref int y, string slotName, Equipment equipment)
-        {
-            string equipmentName = equipment?.Name ?? "Пусто";
-            _renderer.Write(x, y, $"{slotName,-10} {equipmentName}");
-            y++;
-        }
-
-        private void RenderPlayerStats()
-        {
-            int rightColumn = Console.WindowWidth / 2 + 2;
-            int y = 18;
-
-            _renderer.Write(rightColumn, y, "=== ПАРАМЕТРЫ ===", ConsoleColor.Yellow);
-            y += 2;
-
-            _renderer.Write(rightColumn, y, $"Здоровье: {_player.CurrentHP}/{_player.TotalMaximumHP}");
-            y++;
-            _renderer.Write(rightColumn, y, $"Атака: {_player.Attack}");
-            y++;
-            _renderer.Write(rightColumn, y, $"Защита: {_player.Defence}");
-            y++;
-            _renderer.Write(rightColumn, y, $"Ловкость: {_player.Agility}");
-            y++;
-            _renderer.Write(rightColumn, y, $"Золото: {_player.Gold}");
-            y++;
-            _renderer.Write(rightColumn, y, $"Уровень: {_player.Level}");
-        }
-
         private string GetItemDisplayText(object item)
         {
             return item switch
@@ -324,6 +288,89 @@
 
             var selectedItem = _displayItems[_selectedIndex];
             ScreenManager.PushScreen(new InventoryItemActionScreen(_player, selectedItem));
+        }
+
+        private void InteractWithNPC(NPC npc)
+        {
+            var actions = npc.GetAvailableActions(_player);
+
+            string selectedAction = MenuSystem.SelectFromList(
+                actions,
+                action => action,
+                $"Взаимодействие с {npc.Name}",
+                "W/S - выбор, E - подтвердить, Q - отмена"
+            );
+
+            if (selectedAction != null)
+            {
+                switch (selectedAction)
+                {
+                    case "Поговорить":
+                        npc.Talk(_player);
+                        break;
+
+                    case "Торговля":
+                        if (npc.Trader != null)
+                        {
+                            npc.Trader.InitializeShop(_player);
+                            new TradeSystem(npc.Trader, _player).StartTrade();
+                        }
+                        break;
+
+                    case "Задания":
+                        ShowQuestMenu(npc, _player);
+                        break;
+
+                    case "Осмотреть":
+                        npc.Examine(_player);
+                        break;
+                }
+
+                ScreenManager.RequestPartialRedraw();
+            }
+        }
+        private void ShowQuestMenu(NPC npc, Player player)
+        {
+            var menuOptions = new List<MenuOption>();
+
+            // Доступные квесты
+            var availableQuests = npc.QuestsToGive?
+                .Where(q => !player.QuestLog.ActiveQuests.Contains(q) &&
+                           !player.QuestLog.CompletedQuests.Contains(q))
+                .ToList() ?? new List<Quest>();
+
+            foreach (var quest in availableQuests)
+            {
+                menuOptions.Add(new MenuOption($"Принять: {quest.Name}", () =>
+                {
+                    player.QuestLog.AddQuest(quest);
+                    MessageSystem.AddMessage($"Квест принят: {quest.Name}");
+                }));
+            }
+
+            // Квесты для сдачи
+            var completableQuests = player.QuestLog.ActiveQuests?
+                .Where(q => q.CheckCompletion(player))
+                .ToList() ?? new List<Quest>();
+
+            foreach (var quest in completableQuests)
+            {
+                menuOptions.Add(new MenuOption($"Сдать: {quest.Name} ✓", () =>
+                {
+                    player.QuestLog.CompleteQuest(quest, player);
+                    MessageSystem.AddMessage($"Квест завершен: {quest.Name}");
+                }));
+            }
+
+            menuOptions.Add(new MenuOption("Назад", () => { }));
+
+            var selected = MenuSystem.SelectFromList(
+                menuOptions,
+                opt => opt.DisplayText,
+                $"Задания - {npc.Name}"
+            );
+
+            selected?.Action();
         }
     }
 }

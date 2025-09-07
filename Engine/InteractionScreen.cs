@@ -71,15 +71,15 @@
 
                 string prefix = entity.Type switch
                 {
-                    EntityType.Monster => "⚔️ ",
-                    EntityType.NPC => "🗣️ ",
-                    EntityType.Item => "📦 ",
-                    _ => "• "
+                    EntityType.Monster => "",
+                    EntityType.NPC => "",
+                    EntityType.Item => "",
+                    _ => ""
                 };
 
                 if (isSelected)
                 {
-                    _renderer.Write(2, y, "> ");
+                    _renderer.Write(2, y, "► ");
                     _renderer.Write(4, y, prefix + entity.DisplayName, ConsoleColor.Green);
                 }
                 else
@@ -290,7 +290,7 @@
                     bool isSelected = i == selectedIndex;
                     if (isSelected)
                     {
-                        _renderer.Write(2, 4 + i, "> ");
+                        _renderer.Write(2, 4 + i, "► ");
                         _renderer.Write(4, 4 + i, actions[i], ConsoleColor.Green);
                     }
                     else

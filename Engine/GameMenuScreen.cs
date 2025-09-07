@@ -40,7 +40,7 @@
                 bool isSelected = i == _selectedIndex;
                 if (isSelected)
                 {
-                    _renderer.Write(2, 4 + i, "> ");
+                    _renderer.Write(2, 4 + i, "► ");
                     _renderer.Write(4, 4 + i, options[i], ConsoleColor.Green);
                 }
                 else

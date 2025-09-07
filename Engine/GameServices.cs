@@ -33,10 +33,46 @@ namespace Engine
 
         public static IWorldRepository WorldRepository
         {
-            get => _worldRepository ??= new StaticWorldRepository();
+            get
+            {
+                if (_worldRepository == null)
+                {
+                    string jsonPath = Path.Combine("Data", "game_data.json");
+                    string fullPath = Path.GetFullPath(jsonPath);
+
+                    DebugConsole.Log($"Путь к JSON: {fullPath}");
+                    DebugConsole.Log($"Файл существует: {File.Exists(jsonPath)}");
+                    DebugConsole.Log($"Директория существует: {Directory.Exists(Path.GetDirectoryName(jsonPath))}");
+
+                    if (!File.Exists(jsonPath))
+                    {
+                        throw new FileNotFoundException($"JSON файл не найден: {fullPath}");
+                    }
+
+                    // Пытаемся загрузить из JSON
+                    if (File.Exists(jsonPath))
+                    {
+                        try
+                        {
+                            _worldRepository = new JsonWorldRepository(jsonPath);
+                            DebugConsole.Log("Данные загружены из JSON");
+                        }
+                        catch (Exception ex)
+                        {
+                            DebugConsole.Log($"❌ Ошибка загрузки JSON: {ex.Message}");
+                            // Fallback больше не нужен!
+                            throw new Exception("Не удалось загрузить игровые данные из JSON");
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception($"JSON файл не найден: {jsonPath}");
+                    }
+                }
+                return _worldRepository;
+            }
             set => _worldRepository = value;
         }
-
         public static IOutputService OutputService
         {
             get => _outputService ??= new ConsoleOutputService();

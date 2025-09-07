@@ -101,7 +101,7 @@
                 if (isSelectedSection && i == _selectedIndex)
                 {
                     Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.Write("> ");
+                    Console.Write("► ");
                 }
                 else
                 {

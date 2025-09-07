@@ -38,7 +38,7 @@
                 bool isSelected = i == _selectedIndex;
                 if (isSelected)
                 {
-                    _renderer.Write(2, y, "> ");
+                    _renderer.Write(2, y, "► ");
                     _renderer.Write(4, y, _saves[i], ConsoleColor.Green);
                 }
                 else

@@ -41,19 +41,19 @@ namespace Engine
         }
     }
 
-    public class InventoryItemData
-    {
-        public int ItemID { get; set; }
-        public int Quantity { get; set; }
+    //public class InventoryItemData
+    //{
+    //    public int ItemID { get; set; }
+    //    public int Quantity { get; set; }
 
-        public InventoryItemData() { }
+    //    public InventoryItemData() { }
 
-        public InventoryItemData(int itemID, int quantity)
-        {
-            ItemID = itemID;
-            Quantity = quantity;
-        }
-    }
+    //    public InventoryItemData(int itemID, int quantity)
+    //    {
+    //        ItemID = itemID;
+    //        Quantity = quantity;
+    //    }
+    //}
 
     public class EquipmentItemData
     {

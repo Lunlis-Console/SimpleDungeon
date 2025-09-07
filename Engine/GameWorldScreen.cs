@@ -212,6 +212,9 @@
                     _player.QuestLog.DisplayQuestLog();
                     RequestFullRedraw();
                     break;
+                case ConsoleKey.F2: // Перезагрузка данных
+                    ReloadGameData();
+                    break;
                 case ConsoleKey.Escape: // Меню
                     ScreenManager.PushScreen(new GameMenuScreen(_player));
                     RequestFullRedraw();
@@ -235,6 +238,20 @@
             _currentLocation = newLocation;
             MessageSystem.AddMessage($"Вы переместились в {newLocation.Name}");
             ScreenManager.RequestPartialRedraw();
+        }
+
+        private void ReloadGameData()
+        {
+            try
+            {
+                GameServices.WorldRepository = new JsonWorldRepository("game_data.json");
+                DebugConsole.Log("Игровые данные перезагружены");
+                RequestFullRedraw();
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.Log($"Ошибка перезагрузки: {ex.Message}");
+            }
         }
     }
 }

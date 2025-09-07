@@ -10,27 +10,19 @@ namespace SimpleDungeon
 
         public static void Main(string[] args)
         {
+            DebugConsole.Initialize();
+
+            
             Console.Title = "Simple Dungeon";
             Console.CursorVisible = false;
 
             try
             {
-                Console.WriteLine("Initializing GameServices...");
-                GameServices.Initialize();
+                DebugConsole.Log("Initializing GameServices...");
+
+                var repository = GameServices.WorldRepository;
+
                 DebugConsole.Log("GameServices initialized successfully");
-
-                // Задержка 1 секунда перед показом меню
-                //Thread.Sleep(1000);
-
-                //// Блокируем обработку ввода на время задержки
-                //var stopwatch = Stopwatch.StartNew();
-                //while (stopwatch.ElapsedMilliseconds < 1000)
-                //{
-                //    // Очищаем буфер ввода, чтобы игнорировать любые нажатия клавиш
-                //    while (Console.KeyAvailable)
-                //        Console.ReadKey(true);
-                //    Thread.Sleep(10);
-                //}
 
                 // Запускаем главное меню
                 ScreenManager.PushScreen(new MainMenuScreen());
@@ -39,7 +31,7 @@ namespace SimpleDungeon
                 Thread.Sleep(200); // Увеличиваем задержку
                 ScreenManager.ForceRedraw();
                 ScreenManager.RenderCurrentScreen();
-                DebugConsole.Log("Initial render completed");
+                //DebugConsole.Log("Initial render completed");
 
                 // Главный игровой цикл
                 MainGameLoop();

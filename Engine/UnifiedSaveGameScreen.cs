@@ -146,7 +146,7 @@
 
                     if (isSelected)
                     {
-                        _renderer.Write(2, y, "> ", ConsoleColor.Green);
+                        _renderer.Write(2, y, "► ", ConsoleColor.Green);
                         _renderer.Write(4, y, displayName, ConsoleColor.Green);
                     }
                     else

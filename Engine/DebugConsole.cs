@@ -10,10 +10,83 @@ public static class DebugConsole
     private static bool _needsRedraw = false;
     private static bool _enabled = true; // Флаг включения/выключения консоли
     private static bool _needsRedrawAfterHide = false;
-    public static bool NeedsRedrawAfterHide => _needsRedrawAfterHide;
 
+    // Добавляем путь к файлу логов
+    private static readonly string _logFilePath = "debug_console.log";
+    private static bool _logToFile = false; // Флаг для включения/выключения записи в файл
+    public static bool NeedsRedrawAfterHide => _needsRedrawAfterHide;
     public static bool IsVisible => _isVisible;
     public static bool Enabled => _enabled;
+
+    static DebugConsole()
+    {
+        Initialize();
+    }
+
+    public static void Initialize()
+    {
+        // Автоматически включаем запись в файл при старте
+        SetFileLogging(true);
+
+        // Автоматически показываем консоль при старте (опционально)
+        _isVisible = true;
+        _needsRedraw = true;
+
+        Log("Консоль отладки инициализирована");
+        Log($"Запись логов в файл: {Path.GetFullPath(_logFilePath)}");
+    }
+
+    // Включить/выключить запись в файл
+    public static void SetFileLogging(bool enable)
+    {
+        _logToFile = enable;
+        if (enable)
+        {
+            Log("Запись логов в файл включена");
+        }
+        else
+        {
+            Log("Запись логов в файл выключена");
+        }
+    }
+
+    // Метод для записи в файл
+    private static void WriteToLogFile(string message)
+    {
+        if (!_logToFile) return;
+
+        try
+        {
+            using (StreamWriter writer = new StreamWriter(_logFilePath, true))
+            {
+                writer.WriteLine(message);
+            }
+        }
+        catch (Exception ex)
+        {
+            // В случае ошибки записи, выводим сообщение в консоль
+            Console.WriteLine($"Ошибка записи в файл логов: {ex.Message}");
+        }
+    }
+
+    // Очистка файла логов
+    public static void ClearLogFile()
+    {
+        try
+        {
+            if (File.Exists(_logFilePath))
+            {
+                File.WriteAllText(_logFilePath, string.Empty);
+                Log("Файл логов очищен");
+            }
+        }
+        catch (Exception ex)
+        {
+            Log($"Ошибка очистки файла логов: {ex.Message}");
+        }
+    }
+
+
 
     // Включить/выключить консоль полностью
     public static void SetEnabled(bool enabled)
@@ -57,7 +130,12 @@ public static class DebugConsole
     {
         if (!_enabled) return;
 
-        _logMessages.Add($"[{DateTime.Now:HH:mm:ss}] {message}");
+        string formattedMessage = $"[{DateTime.Now:HH:mm:ss}] {message}";
+        _logMessages.Add(formattedMessage);
+
+        // Записываем в файл
+        WriteToLogFile(formattedMessage);
+
         if (_logMessages.Count > MAX_MESSAGES)
         {
             _logMessages.RemoveAt(0);
@@ -200,7 +278,7 @@ public static class DebugConsole
         // Ввод
         Console.ForegroundColor = ConsoleColor.Green;
         Console.SetCursorPosition(4, 3 + height);
-        string inputDisplay = "> " + _inputBuffer;
+        string inputDisplay = "► " + _inputBuffer;
         if (inputDisplay.Length > width - 2)
             inputDisplay = inputDisplay.Substring(0, width - 2);
         Console.Write(inputDisplay.PadRight(width - 2));

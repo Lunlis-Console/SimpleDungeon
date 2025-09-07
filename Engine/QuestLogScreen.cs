@@ -63,7 +63,7 @@
 
                 if (isSelected)
                 {
-                    _renderer.Write(2, y, "> ");
+                    _renderer.Write(2, y, "► ");
                     _renderer.Write(4, y, displayText, ConsoleColor.Green);
                 }
                 else

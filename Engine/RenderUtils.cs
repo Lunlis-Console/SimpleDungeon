@@ -31,7 +31,7 @@ namespace Engine
             {
                 bool isSelected = i == selectedIndex;
                 ConsoleColor color = isSelected ? ConsoleColor.Green : ConsoleColor.White;
-                string prefix = isSelected ? "> " : "  ";
+                string prefix = isSelected ? "► " : "  ";
 
                 renderer.Write(boxX + 2, optionsY + i, prefix + options[i], color);
             }

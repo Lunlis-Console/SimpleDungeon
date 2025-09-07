@@ -28,7 +28,7 @@
                     if (i == selectedIndex)
                     {
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.Write(">");
+                        Console.Write("►");
                     }
                     else
                     {

@@ -26,7 +26,7 @@
 
                 if (i == inventoryData.SelectedIndex)
                 {
-                    renderer.Write(0, y, "> ", ConsoleColor.Green);
+                    renderer.Write(0, y, "► ", ConsoleColor.Green);
                     renderer.Write(2, y, displayText, ConsoleColor.Green);
                 }
                 else
@@ -112,7 +112,7 @@
                     if (i == selectedIndex)
                     {
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.Write(">");
+                        Console.Write("►");
                     }
                     else
                     {

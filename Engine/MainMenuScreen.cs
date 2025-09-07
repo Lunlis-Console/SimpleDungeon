@@ -8,6 +8,7 @@
             "НОВАЯ ИГРА",
             "ЗАГРУЗИТЬ ИГРУ",
             "НАСТРОЙКИ",
+            "ЭКСПОРТ ДАННЫХ",
             "ВЫХОД"
         };
 
@@ -65,7 +66,7 @@
                 {
                     // Явно очищаем старую позицию курсора
                     _renderer.Write(x - 2, y, "  "); // Очищаем старый курсор
-                    _renderer.Write(x - 2, y, "> ", ConsoleColor.Green);
+                    _renderer.Write(x - 2, y, "► ", ConsoleColor.Green);
                     _renderer.Write(x, y, displayText, ConsoleColor.Green);
                 }
                 else
@@ -118,16 +119,16 @@
                 case 0: // Новая игра
                     StartNewGame();
                     break;
-
                 case 1: // Загрузить игру
                     ShowLoadGameMenu();
                     break;
-
                 case 2: // Настройки
                     ShowSettingsMenu();
                     break;
-
-                case 3: // Выход
+                case 3: // Экспорт данных (добавьте эту опцию)
+                    ExportGameData();
+                    break;
+                case 4: // Выход
                     Environment.Exit(0);
                     break;
             }
@@ -173,6 +174,18 @@
         private void ShowSettingsMenu()
         {
             MessageSystem.AddMessage("Система настроек в разработке!");
+        }
+        private void ExportGameData()
+        {
+            try
+            {
+                DataExporter.ExportGameDataToJson("game_data.json");
+                DebugConsole.Log("Данные экспортированы в game_data.json");
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.Log($"Ошибка экспорта: {ex.Message}");
+            }
         }
     }
 }
