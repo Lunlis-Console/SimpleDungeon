@@ -279,15 +279,15 @@
         public int MonsterMaxHP { get; set; }
         public int MonsterSpeed { get; set; }
         public int CurrentTurn { get; set; }
-        public List<string> CombatLog { get; set; }
+        public List<string> CombatLog { get; set; } = new List<string>();
         public int PlayerAttack { get; set; }
         public int PlayerDefence { get; set; }
         public int PlayerAgility { get; set; }
         public int MonsterAttack { get; set; }
         public int MonsterDefence { get; set; }
         public int MonsterAgility { get; set; }
-        public string TurnStatus { get; set; }
-        public string TurnText { get; set; }
+        public string TurnStatus { get; set; } = string.Empty;
+        public string TurnText { get; set; } = string.Empty;
         public bool StaticElementsRendered { get; set; }
     }
 }

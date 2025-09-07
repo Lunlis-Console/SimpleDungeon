@@ -302,19 +302,19 @@
                     Player.CurrentSpeed, Monster.CurrentSpeed);
                 Player.IsInCombat = false;
 
-                GameServices.OutputService.WriteLine("Нажмите любую клавишу, чтобы продолжить...");
+                //GameServices.OutputService.WriteLine("Нажмите любую клавишу, чтобы продолжить...");
                 Console.ReadKey(true);
             }
             else if (Player.CurrentHP <= 0)
             {
                 Player.CurrentHP = 0;
                 Console.ForegroundColor = ConsoleColor.Red;
-                GameServices.OutputService.WriteLine("ВЫ ПОГИБЛИ!");
+                //GameServices.OutputService.WriteLine("ВЫ ПОГИБЛИ!");
                 Console.ResetColor();
 
                 MessageSystem.AddMessage("Вы пали в бою...");
                 Player.IsInCombat = false;
-                GameServices.OutputService.WriteLine("Нажмите любую клавишу, чтобы продолжить...");
+                //GameServices.OutputService.WriteLine("Нажмите любую клавишу, чтобы продолжить...");
                 Console.ReadKey(true);
             }
         }

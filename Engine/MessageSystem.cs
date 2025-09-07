@@ -8,7 +8,7 @@
 
         public class MessageData
         {
-            public string Text { get; set; }
+            public string Text { get; set; } = string.Empty;
             public DateTime CreatedTime { get; set; }
             public float Alpha { get; set; } = 1.0f;
         }

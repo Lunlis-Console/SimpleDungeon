@@ -6,7 +6,7 @@ namespace Engine
 {
     public static class RenderUtils
     {
-        public static void RenderDialogBox(BufferedRenderer renderer,
+        public static void RenderDialogBox(EnhancedBufferedRenderer renderer,
             string title, string message, List<string> options, int selectedIndex = 0)
         {
             int boxWidth = Math.Min(60, Console.WindowWidth - 4);
@@ -37,7 +37,7 @@ namespace Engine
             }
         }
 
-        public static void RenderBox(BufferedRenderer renderer,
+        public static void RenderBox(EnhancedBufferedRenderer renderer,
             int x, int y, int width, int height, string title = "")
         {
             // Верхняя граница
@@ -61,7 +61,7 @@ namespace Engine
             renderer.Write(x, y + height - 1, "╚" + new string('═', width - 2) + "╝");
         }
 
-        public static void RenderWrappedText(BufferedRenderer renderer,
+        public static void RenderWrappedText(EnhancedBufferedRenderer renderer,
             int x, int y, string text, int maxWidth, ConsoleColor color = ConsoleColor.White)
         {
             var lines = WrapText(text, maxWidth);

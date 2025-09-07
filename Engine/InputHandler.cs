@@ -14,9 +14,5 @@
             }
         }
 
-        public static string WaitForInput()
-        {
-            return Console.ReadLine();
-        }
     }
 }

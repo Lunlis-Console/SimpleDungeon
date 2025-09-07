@@ -17,11 +17,11 @@ namespace Engine
     public class ItemData
     {
         public int ID { get; set; }
-        public string Name { get; set; }
-        public string NamePlural { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string NamePlural { get; set; } = string.Empty;
         public ItemType Type { get; set; }
         public int Price { get; set; }
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         // Для Equipment
         public int? AttackBonus { get; set; }
@@ -36,13 +36,13 @@ namespace Engine
     public class MonsterData
     {
         public int ID { get; set; }
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         public int Level { get; set; }
         public int CurrentHP { get; set; }
         public int MaximumHP { get; set; }
         public int RewardEXP { get; set; }
         public int RewardGold { get; set; }
-        public Attributes Attributes { get; set; }
+        public Attributes Attributes { get; set; } = new Attributes();
         public List<LootItemData> LootTable { get; set; } = new List<LootItemData>();
     }
 
@@ -56,8 +56,8 @@ namespace Engine
     public class LocationData
     {
         public int ID { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
         public List<MonsterSpawnData> MonsterSpawns { get; set; } = new List<MonsterSpawnData>();
         public List<int> NPCsHere { get; set; } = new List<int>();
         public List<int> MonsterTemplates { get; set; } = new List<int>();
@@ -77,14 +77,14 @@ namespace Engine
     public class QuestData
     {
         public int ID { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
         public int RewardEXP { get; set; }
         public int RewardGold { get; set; }
         public int? QuestGiverID { get; set; }
         public List<QuestItemData> QuestItems { get; set; } = new List<QuestItemData>();
         public List<InventoryItemData> RewardItems { get; set; } = new List<InventoryItemData>();
-        public string QuestType { get; set; } // "Standard" или "Collectible"
+        public string QuestType { get; set; } = string.Empty; // "Standard" или "Collectible"
         public List<CollectibleSpawnData> SpawnLocations { get; set; } = new List<CollectibleSpawnData>();
     }
 
@@ -97,16 +97,16 @@ namespace Engine
     public class NPCData
     {
         public int ID { get; set; }
-        public string Name { get; set; }
-        public string Greeting { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Greeting { get; set; } = string.Empty;
         public List<int> QuestsToGive { get; set; } = new List<int>();
-        public MerchantData Merchant { get; set; }
+        public MerchantData Merchant { get; set; } = new MerchantData();
     }
 
     public class MerchantData
     {
-        public string Name { get; set; }
-        public string ShopGreeting { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string ShopGreeting { get; set; } = string.Empty;
         public int Gold { get; set; }
         public List<InventoryItemData> ItemsForSale { get; set; } = new List<InventoryItemData>();
     }
@@ -114,15 +114,15 @@ namespace Engine
     public class TitleData
     {
         public int ID { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public string RequirementType { get; set; }
-        public string RequirementTarget { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string RequirementType { get; set; } = string.Empty;
+        public string RequirementTarget { get; set; } = string.Empty;
         public int RequirementAmount { get; set; }
         public int AttackBonus { get; set; }
         public int DefenceBonus { get; set; }
         public int HealthBonus { get; set; }
-        public string BonusAgainstType { get; set; }
+        public string BonusAgainstType { get; set; } = string.Empty;
         public int BonusAgainstAmount { get; set; }
     }
 

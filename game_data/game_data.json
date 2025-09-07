@@ -1,0 +1,761 @@
+{
+  "Items": [
+    {
+      "ID": 1001,
+      "Name": "Крысиное мясо",
+      "NamePlural": "Крысиное мясо",
+      "Type": 10,
+      "Price": 5,
+      "Description": "Data/Descriptions/rat_meat.txt",
+      "AttackBonus": null,
+      "DefenceBonus": null,
+      "AgilityBonus": null,
+      "HealthBonus": null,
+      "AmountToHeal": 5
+    },
+    {
+      "ID": 1002,
+      "Name": "Слабое зелье лечения",
+      "NamePlural": "",
+      "Type": 10,
+      "Price": 10,
+      "Description": "",
+      "AttackBonus": null,
+      "DefenceBonus": null,
+      "AgilityBonus": null,
+      "HealthBonus": null,
+      "AmountToHeal": 25
+    },
+    {
+      "ID": 1101,
+      "Name": "Ржавый меч",
+      "NamePlural": "",
+      "Type": 5,
+      "Price": 10,
+      "Description": "",
+      "AttackBonus": 10,
+      "DefenceBonus": 0,
+      "AgilityBonus": 10,
+      "HealthBonus": 0,
+      "AmountToHeal": null
+    },
+    {
+      "ID": 1102,
+      "Name": "Железный меч",
+      "NamePlural": "",
+      "Type": 5,
+      "Price": 10,
+      "Description": "",
+      "AttackBonus": 15,
+      "DefenceBonus": 0,
+      "AgilityBonus": 10,
+      "HealthBonus": 0,
+      "AmountToHeal": null
+    },
+    {
+      "ID": 1103,
+      "Name": "Железный двуручник",
+      "NamePlural": "",
+      "Type": 6,
+      "Price": 100,
+      "Description": "",
+      "AttackBonus": 25,
+      "DefenceBonus": 0,
+      "AgilityBonus": 10,
+      "HealthBonus": 0,
+      "AmountToHeal": null
+    },
+    {
+      "ID": 1201,
+      "Name": "Кожаный шлем",
+      "NamePlural": "",
+      "Type": 1,
+      "Price": 10,
+      "Description": "",
+      "AttackBonus": 0,
+      "DefenceBonus": 1,
+      "AgilityBonus": 0,
+      "HealthBonus": 0,
+      "AmountToHeal": null
+    },
+    {
+      "ID": 1202,
+      "Name": "Кожаная броня",
+      "NamePlural": "",
+      "Type": 2,
+      "Price": 10,
+      "Description": "",
+      "AttackBonus": 0,
+      "DefenceBonus": 2,
+      "AgilityBonus": 0,
+      "HealthBonus": 0,
+      "AmountToHeal": null
+    },
+    {
+      "ID": 1203,
+      "Name": "Кожаные перчатки",
+      "NamePlural": "",
+      "Type": 3,
+      "Price": 10,
+      "Description": "",
+      "AttackBonus": 0,
+      "DefenceBonus": 1,
+      "AgilityBonus": 0,
+      "HealthBonus": 0,
+      "AmountToHeal": null
+    },
+    {
+      "ID": 1204,
+      "Name": "Кожаные сапоги",
+      "NamePlural": "",
+      "Type": 4,
+      "Price": 10,
+      "Description": "",
+      "AttackBonus": 0,
+      "DefenceBonus": 1,
+      "AgilityBonus": 0,
+      "HealthBonus": 0,
+      "AmountToHeal": null
+    },
+    {
+      "ID": 1205,
+      "Name": "Железный шлем",
+      "NamePlural": "",
+      "Type": 1,
+      "Price": 50,
+      "Description": "",
+      "AttackBonus": 0,
+      "DefenceBonus": 5,
+      "AgilityBonus": 0,
+      "HealthBonus": 0,
+      "AmountToHeal": null
+    },
+    {
+      "ID": 1206,
+      "Name": "Железная броня",
+      "NamePlural": "",
+      "Type": 2,
+      "Price": 100,
+      "Description": "",
+      "AttackBonus": 0,
+      "DefenceBonus": 10,
+      "AgilityBonus": 0,
+      "HealthBonus": 0,
+      "AmountToHeal": null
+    },
+    {
+      "ID": 1207,
+      "Name": "Железные перчатки",
+      "NamePlural": "",
+      "Type": 3,
+      "Price": 40,
+      "Description": "",
+      "AttackBonus": 0,
+      "DefenceBonus": 2,
+      "AgilityBonus": 0,
+      "HealthBonus": 0,
+      "AmountToHeal": null
+    },
+    {
+      "ID": 1208,
+      "Name": "Железные сапоги",
+      "NamePlural": "",
+      "Type": 4,
+      "Price": 40,
+      "Description": "",
+      "AttackBonus": 0,
+      "DefenceBonus": 2,
+      "AgilityBonus": 0,
+      "HealthBonus": 0,
+      "AmountToHeal": null
+    },
+    {
+      "ID": 1301,
+      "Name": "Железный щит",
+      "NamePlural": "",
+      "Type": 7,
+      "Price": 50,
+      "Description": "",
+      "AttackBonus": 0,
+      "DefenceBonus": 10,
+      "AgilityBonus": 0,
+      "HealthBonus": 0,
+      "AmountToHeal": null
+    },
+    {
+      "ID": 1401,
+      "Name": "Фамильное кольцо",
+      "NamePlural": "",
+      "Type": 9,
+      "Price": 100,
+      "Description": "",
+      "AttackBonus": 1,
+      "DefenceBonus": 1,
+      "AgilityBonus": 1,
+      "HealthBonus": 1,
+      "AmountToHeal": null
+    },
+    {
+      "ID": 1402,
+      "Name": "Золотое кольцо",
+      "NamePlural": "",
+      "Type": 9,
+      "Price": 50,
+      "Description": "",
+      "AttackBonus": 0,
+      "DefenceBonus": 2,
+      "AgilityBonus": 0,
+      "HealthBonus": 0,
+      "AmountToHeal": null
+    },
+    {
+      "ID": 1403,
+      "Name": "Дорогое ожерелье",
+      "NamePlural": "",
+      "Type": 8,
+      "Price": 50,
+      "Description": "",
+      "AttackBonus": 0,
+      "DefenceBonus": 0,
+      "AgilityBonus": 0,
+      "HealthBonus": 10,
+      "AmountToHeal": null
+    },
+    {
+      "ID": 1501,
+      "Name": "Паучий шелк",
+      "NamePlural": "",
+      "Type": 0,
+      "Price": 10,
+      "Description": "",
+      "AttackBonus": null,
+      "DefenceBonus": null,
+      "AgilityBonus": null,
+      "HealthBonus": null,
+      "AmountToHeal": null
+    },
+    {
+      "ID": 1601,
+      "Name": "Ящик с товарами",
+      "NamePlural": "Потерянный ящик торговца",
+      "Type": 11,
+      "Price": 0,
+      "Description": "",
+      "AttackBonus": null,
+      "DefenceBonus": null,
+      "AgilityBonus": null,
+      "HealthBonus": null,
+      "AmountToHeal": null
+    },
+    {
+      "ID": 1602,
+      "Name": "Ящик с инструментами",
+      "NamePlural": "Потерянный ящик торговца",
+      "Type": 11,
+      "Price": 0,
+      "Description": "",
+      "AttackBonus": null,
+      "DefenceBonus": null,
+      "AgilityBonus": null,
+      "HealthBonus": null,
+      "AmountToHeal": null
+    },
+    {
+      "ID": 1603,
+      "Name": "Ящик с припасами",
+      "NamePlural": "Потерянный ящик торговца",
+      "Type": 11,
+      "Price": 0,
+      "Description": "",
+      "AttackBonus": null,
+      "DefenceBonus": null,
+      "AgilityBonus": null,
+      "HealthBonus": null,
+      "AmountToHeal": null
+    },
+    {
+      "ID": 1604,
+      "Name": "Ящик с украшениями",
+      "NamePlural": "Потерянный ящик торговца",
+      "Type": 11,
+      "Price": 0,
+      "Description": "",
+      "AttackBonus": null,
+      "DefenceBonus": null,
+      "AgilityBonus": null,
+      "HealthBonus": null,
+      "AmountToHeal": null
+    }
+  ],
+  "Monsters": [
+    {
+      "ID": 2001,
+      "Name": "Крыса",
+      "Level": 1,
+      "CurrentHP": 10,
+      "MaximumHP": 10,
+      "RewardEXP": 5,
+      "RewardGold": 5,
+      "Attributes": {
+        "Strength": 8,
+        "Constitution": 6,
+        "Dexterity": 12,
+        "Intelligence": 2,
+        "Wisdom": 4,
+        "Charisma": 3
+      },
+      "LootTable": [
+        {
+          "ItemID": 1402,
+          "DropPercentage": 25,
+          "IsUnique": false
+        },
+        {
+          "ItemID": 1001,
+          "DropPercentage": 100,
+          "IsUnique": false
+        }
+      ]
+    },
+    {
+      "ID": 2002,
+      "Name": "Паук",
+      "Level": 1,
+      "CurrentHP": 25,
+      "MaximumHP": 25,
+      "RewardEXP": 10,
+      "RewardGold": 5,
+      "Attributes": {
+        "Strength": 12,
+        "Constitution": 10,
+        "Dexterity": 10,
+        "Intelligence": 6,
+        "Wisdom": 5,
+        "Charisma": 4
+      },
+      "LootTable": [
+        {
+          "ItemID": 1403,
+          "DropPercentage": 25,
+          "IsUnique": false
+        },
+        {
+          "ItemID": 1501,
+          "DropPercentage": 60,
+          "IsUnique": false
+        }
+      ]
+    },
+    {
+      "ID": 2003,
+      "Name": "Матерая крыса",
+      "Level": 1,
+      "CurrentHP": 30,
+      "MaximumHP": 30,
+      "RewardEXP": 20,
+      "RewardGold": 10,
+      "Attributes": {
+        "Strength": 12,
+        "Constitution": 10,
+        "Dexterity": 10,
+        "Intelligence": 6,
+        "Wisdom": 5,
+        "Charisma": 4
+      },
+      "LootTable": [
+        {
+          "ItemID": 1401,
+          "DropPercentage": 25,
+          "IsUnique": false
+        },
+        {
+          "ItemID": 1001,
+          "DropPercentage": 100,
+          "IsUnique": false
+        },
+        {
+          "ItemID": 1001,
+          "DropPercentage": 100,
+          "IsUnique": false
+        },
+        {
+          "ItemID": 1001,
+          "DropPercentage": 100,
+          "IsUnique": false
+        }
+      ]
+    },
+    {
+      "ID": 2004,
+      "Name": "Матерый паук",
+      "Level": 1,
+      "CurrentHP": 50,
+      "MaximumHP": 50,
+      "RewardEXP": 40,
+      "RewardGold": 25,
+      "Attributes": {
+        "Strength": 12,
+        "Constitution": 10,
+        "Dexterity": 10,
+        "Intelligence": 6,
+        "Wisdom": 5,
+        "Charisma": 4
+      },
+      "LootTable": [
+        {
+          "ItemID": 1403,
+          "DropPercentage": 25,
+          "IsUnique": false
+        },
+        {
+          "ItemID": 1501,
+          "DropPercentage": 60,
+          "IsUnique": false
+        }
+      ]
+    }
+  ],
+  "Locations": [
+    {
+      "ID": 3001,
+      "Name": "Деревня",
+      "Description": "Здесь вы родились, тут безопасно.",
+      "MonsterSpawns": [],
+      "NPCsHere": [
+        4001,
+        4002,
+        4003,
+        4004
+      ],
+      "MonsterTemplates": [],
+      "ScaleMonstersToPlayerLevel": true,
+      "LocationToNorth": 3002,
+      "LocationToEast": 3004,
+      "LocationToSouth": 3003,
+      "LocationToWest": 3005
+    },
+    {
+      "ID": 3002,
+      "Name": "Северная Поляна",
+      "Description": "Поляна к северу от деревни, тут обитают крысы.",
+      "MonsterSpawns": [],
+      "NPCsHere": [],
+      "MonsterTemplates": [],
+      "ScaleMonstersToPlayerLevel": true,
+      "LocationToNorth": null,
+      "LocationToEast": null,
+      "LocationToSouth": 3001,
+      "LocationToWest": null
+    },
+    {
+      "ID": 3003,
+      "Name": "Южная Поляна",
+      "Description": "Поляна к югу от деревни, тут обитают крысы.",
+      "MonsterSpawns": [
+        {
+          "MonsterTemplateID": 2003,
+          "Level": 1,
+          "SpawnWeight": 1
+        }
+      ],
+      "NPCsHere": [],
+      "MonsterTemplates": [],
+      "ScaleMonstersToPlayerLevel": true,
+      "LocationToNorth": 3001,
+      "LocationToEast": null,
+      "LocationToSouth": null,
+      "LocationToWest": null
+    },
+    {
+      "ID": 3004,
+      "Name": "Восточная Поляна",
+      "Description": "Поляна к востоку от деревни, тут обитают пауки.",
+      "MonsterSpawns": [
+        {
+          "MonsterTemplateID": 2002,
+          "Level": 1,
+          "SpawnWeight": 1
+        },
+        {
+          "MonsterTemplateID": 2002,
+          "Level": 1,
+          "SpawnWeight": 1
+        },
+        {
+          "MonsterTemplateID": 2002,
+          "Level": 1,
+          "SpawnWeight": 1
+        }
+      ],
+      "NPCsHere": [],
+      "MonsterTemplates": [],
+      "ScaleMonstersToPlayerLevel": true,
+      "LocationToNorth": null,
+      "LocationToEast": null,
+      "LocationToSouth": null,
+      "LocationToWest": 3001
+    },
+    {
+      "ID": 3005,
+      "Name": "Западная Поляна",
+      "Description": "Поляна к западу от деревни, тут обитают пауки.",
+      "MonsterSpawns": [
+        {
+          "MonsterTemplateID": 2002,
+          "Level": 1,
+          "SpawnWeight": 1
+        },
+        {
+          "MonsterTemplateID": 2002,
+          "Level": 1,
+          "SpawnWeight": 1
+        },
+        {
+          "MonsterTemplateID": 2002,
+          "Level": 1,
+          "SpawnWeight": 1
+        },
+        {
+          "MonsterTemplateID": 2004,
+          "Level": 1,
+          "SpawnWeight": 1
+        }
+      ],
+      "NPCsHere": [],
+      "MonsterTemplates": [],
+      "ScaleMonstersToPlayerLevel": true,
+      "LocationToNorth": null,
+      "LocationToEast": 3001,
+      "LocationToSouth": null,
+      "LocationToWest": null
+    }
+  ],
+  "Quests": [
+    {
+      "ID": 5001,
+      "Name": "Охота на крыс",
+      "Description": "Избавь деревню от надоедливых крыс. Принеси 5 кусков крысиного мяса.",
+      "RewardEXP": 50,
+      "RewardGold": 25,
+      "QuestGiverID": 4002,
+      "QuestItems": [
+        {
+          "ItemID": 1001,
+          "Quantity": 5
+        }
+      ],
+      "RewardItems": [
+        {
+          "ItemID": 1002,
+          "Quantity": 5
+        }
+      ],
+      "QuestType": "Standard",
+      "SpawnLocations": []
+    },
+    {
+      "ID": 5002,
+      "Name": "Шелк паука",
+      "Description": "Собери 3 паучьих шелка для местного ремесленника.",
+      "RewardEXP": 75,
+      "RewardGold": 100,
+      "QuestGiverID": 4003,
+      "QuestItems": [
+        {
+          "ItemID": 1501,
+          "Quantity": 3
+        }
+      ],
+      "RewardItems": [
+        {
+          "ItemID": 1002,
+          "Quantity": 10
+        }
+      ],
+      "QuestType": "Standard",
+      "SpawnLocations": []
+    },
+    {
+      "ID": 5003,
+      "Name": "Потерянные ящики",
+      "Description": "Торговец потерял 4 ящика с товарами. Помоги найти их!",
+      "RewardEXP": 100,
+      "RewardGold": 200,
+      "QuestGiverID": 4001,
+      "QuestItems": [
+        {
+          "ItemID": 1601,
+          "Quantity": 1
+        },
+        {
+          "ItemID": 1602,
+          "Quantity": 1
+        },
+        {
+          "ItemID": 1603,
+          "Quantity": 1
+        },
+        {
+          "ItemID": 1604,
+          "Quantity": 1
+        }
+      ],
+      "RewardItems": [],
+      "QuestType": "Collectible",
+      "SpawnLocations": [
+        {
+          "LocationID": 3002,
+          "ItemID": 1601,
+          "Quantity": 1
+        },
+        {
+          "LocationID": 3003,
+          "ItemID": 1602,
+          "Quantity": 1
+        },
+        {
+          "LocationID": 3004,
+          "ItemID": 1603,
+          "Quantity": 1
+        },
+        {
+          "LocationID": 3005,
+          "ItemID": 1604,
+          "Quantity": 1
+        }
+      ]
+    }
+  ],
+  "NPCs": [
+    {
+      "ID": 4001,
+      "Name": "Купец Зарубий",
+      "Greeting": "Добро пожаловать в нашу деревню! Есть чем поторговать?",
+      "QuestsToGive": [],
+      "Merchant": {
+        "Name": "Купец Зарубий",
+        "ShopGreeting": "Добро пожаловать в мою лавку! Есть чем поторговать?",
+        "Gold": 1500,
+        "ItemsForSale": [
+          {
+            "ItemID": 1002,
+            "Quantity": 25
+          },
+          {
+            "ItemID": 1102,
+            "Quantity": 1
+          },
+          {
+            "ItemID": 1201,
+            "Quantity": 1
+          },
+          {
+            "ItemID": 1202,
+            "Quantity": 1
+          },
+          {
+            "ItemID": 1301,
+            "Quantity": 1
+          },
+          {
+            "ItemID": 1205,
+            "Quantity": 1
+          },
+          {
+            "ItemID": 1206,
+            "Quantity": 1
+          },
+          {
+            "ItemID": 1207,
+            "Quantity": 1
+          },
+          {
+            "ItemID": 1208,
+            "Quantity": 1
+          },
+          {
+            "ItemID": 1103,
+            "Quantity": 1
+          }
+        ]
+      }
+    },
+    {
+      "ID": 4002,
+      "Name": "Староста деревня",
+      "Greeting": "Добро пожаловать в нашу деревню, путник! Нам нужна твоя помощь.",
+      "QuestsToGive": [],
+      "Merchant": {
+        "Name": "",
+        "ShopGreeting": "",
+        "Gold": 0,
+        "ItemsForSale": []
+      }
+    },
+    {
+      "ID": 4003,
+      "Name": "Ремесленник",
+      "Greeting": "Приветствую! Ищу качественные материалы для своих изделий.",
+      "QuestsToGive": [],
+      "Merchant": {
+        "Name": "",
+        "ShopGreeting": "",
+        "Gold": 0,
+        "ItemsForSale": []
+      }
+    },
+    {
+      "ID": 4004,
+      "Name": "Охотник",
+      "Greeting": "Эй, ищешь работу? У меня есть пара заданий для смельчака.",
+      "QuestsToGive": [],
+      "Merchant": {
+        "Name": "",
+        "ShopGreeting": "",
+        "Gold": 0,
+        "ItemsForSale": []
+      }
+    }
+  ],
+  "Titles": [
+    {
+      "ID": 6001,
+      "Name": "Истребитель Крыс",
+      "Description": "Убийца 50 крыс",
+      "RequirementType": "MonsterKill",
+      "RequirementTarget": "Rat",
+      "RequirementAmount": 50,
+      "AttackBonus": 0,
+      "DefenceBonus": 0,
+      "HealthBonus": 0,
+      "BonusAgainstType": "Rat",
+      "BonusAgainstAmount": 25
+    },
+    {
+      "ID": 6002,
+      "Name": "Охотник на Пауков",
+      "Description": "Убийца 30 пауков",
+      "RequirementType": "MonsterKill",
+      "RequirementTarget": "Spider",
+      "RequirementAmount": 30,
+      "AttackBonus": 0,
+      "DefenceBonus": 0,
+      "HealthBonus": 0,
+      "BonusAgainstType": "Spider",
+      "BonusAgainstAmount": 20
+    },
+    {
+      "ID": 6003,
+      "Name": "Опытный Искатель Приключений",
+      "Description": "Убийца 100 монстров",
+      "RequirementType": "TotalMonstersKilled",
+      "RequirementTarget": "",
+      "RequirementAmount": 100,
+      "AttackBonus": 2,
+      "DefenceBonus": 2,
+      "HealthBonus": 10,
+      "BonusAgainstType": "",
+      "BonusAgainstAmount": 0
+    }
+  ]
+}

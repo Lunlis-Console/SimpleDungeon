@@ -2,10 +2,10 @@
 
 public class InventoryRenderData
 {
-    public List<object> Items { get; set; }
+    public List<object> Items { get; set; } = new List<object>();
     public int SelectedIndex { get; set; }
-    public Player Player { get; set; }
-    public string Title { get; set; }
+    public Player Player { get; set; } 
+    public string Title { get; set; } = string.Empty;
 
     // Вспомогательные свойства для удобства доступа
     public Inventory Inventory => Player.Inventory;

@@ -297,6 +297,7 @@
                 ItemType.Amulet => Amulet,
                 ItemType.Ring => null, // Для колец возвращаем null, так как их два
                 _ => null
+
             };
         }
 
