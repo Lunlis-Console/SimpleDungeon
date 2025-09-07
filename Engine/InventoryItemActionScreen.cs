@@ -532,7 +532,7 @@
             }
 
             // После выполнения действия возвращаемся в инвентарь
-            ScreenManager.PopScreen();
+            //ScreenManager.PopScreen();
         }
 
         private void HandleInventoryItemAction(InventoryItem inventoryItem, string action)
@@ -542,6 +542,8 @@
                 case "Использовать":
                     _player.UseItemToHeal(inventoryItem);
                     MessageSystem.AddMessage($"Использовано: {inventoryItem.Details.Name}");
+                    RefreshParentInventory();
+                    ScreenManager.PopScreen();
                     break;
 
                 case "Надеть":
@@ -551,17 +553,8 @@
                         if (success)
                         {
                             MessageSystem.AddMessage($"Надето: {inventoryItem.Details.Name}");
-
-                            // Обновляем данные экрана действий
-                            InitializeItemInfo();
-                            InitializeAvailableActions();
-                            RequestRedraw(); // Перерисовываем текущий экран
-
-                            // Обновляем экран инвентаря в фоне
-                            var inventoryScreen = ScreenManager.GetScreen<InventoryScreen>();
-                            inventoryScreen?.RefreshInventoryList();
-
-                            return; // Выходим, чтобы не закрывать экран
+                            RefreshParentInventory();
+                            ScreenManager.PopScreen();
                         }
                     }
                     else
@@ -569,13 +562,14 @@
                         MessageSystem.AddMessage("Предмет уже экипирован!");
                     }
                     break;
-
                 case "Осмотреть":
                     ScreenManager.PushScreen(new ItemDetailScreen(_player, inventoryItem.Details));
                     break;
 
                 case "Выбросить":
                     HandleItemDiscard(inventoryItem);
+                    RefreshParentInventory();
+                    ScreenManager.PopScreen();
                     break;
             }
         }
@@ -589,17 +583,8 @@
                     if (success)
                     {
                         MessageSystem.AddMessage($"Снято: {equipment.Name}");
-
-                        // Обновляем данные экрана действий
-                        InitializeItemInfo();
-                        InitializeAvailableActions();
-                        RequestRedraw(); // Перерисовываем текущий экран
-
-                        // Обновляем экран инвентаря в фоне
-                        var inventoryScreen = ScreenManager.GetScreen<InventoryScreen>();
-                        inventoryScreen?.RefreshInventoryList();
-
-                        return; // Выходим, чтобы не закрывать экран
+                        RefreshParentInventory();
+                        ScreenManager.PopScreen();
                     }
                     break;
 
@@ -619,6 +604,13 @@
                 _player.Inventory.RemoveItem(item);
                 MessageSystem.AddMessage($"Предмет {item.Details.Name} выброшен");
             }
+        }
+
+        // Новый метод для обновления родительского экрана инвентаря
+        private void RefreshParentInventory()
+        {
+            var inventoryScreen = ScreenManager.GetScreen<InventoryScreen>();
+            inventoryScreen?.RefreshInventoryList();
         }
     }
 }

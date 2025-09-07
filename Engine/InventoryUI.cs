@@ -101,7 +101,7 @@
             {
                 Console.Clear();
 
-                MessageSystem.DisplayMessages();
+                //MessageSystem.DisplayMessages();
 
                 Console.WriteLine($"{title}");
                 Console.WriteLine("Клавиши 'W' 'S' для выбора, 'E' для подтверждения, 'Q' для выхода");
@@ -204,7 +204,7 @@
         }
         public class EquipmentSlotItem
         {
-            public string SlotName { get; }
+            public string SlotName { get; set; }
             public Equipment Equipment { get; }
 
             public EquipmentSlotItem(Equipment equipment)
@@ -214,7 +214,7 @@
 
             public override string ToString()
             {
-                return $"{SlotName}{Equipment.Name}";
+                return $"{Equipment.Name}";
             }
         }
 
@@ -223,30 +223,37 @@
         {
             var allItems = new List<object>();
 
-            // Добавляем экипированные предметы как EquipmentSlotItem
+            // Добавляем экипированные предметы
             if (player.Inventory.Helmet != null)
-                allItems.Add(new EquipmentSlotItem(player.Inventory.Helmet));
-            if (player.Inventory.Armor != null)
-                allItems.Add(new EquipmentSlotItem(player.Inventory.Armor));
-            if (player.Inventory.Gloves != null)
-                allItems.Add(new EquipmentSlotItem(player.Inventory.Gloves));
-            if (player.Inventory.Boots != null)
-                allItems.Add(new EquipmentSlotItem(player.Inventory.Boots));
-            if (player.Inventory.MainHand != null)
-                allItems.Add(new EquipmentSlotItem(player.Inventory.MainHand));
-            if (player.Inventory.OffHand != null)
-                allItems.Add(new EquipmentSlotItem(player.Inventory.OffHand));
-            if (player.Inventory.Amulet != null)
-                allItems.Add(new EquipmentSlotItem(player.Inventory.Amulet));
-            if (player.Inventory.Ring1 != null)
-                allItems.Add(new EquipmentSlotItem(player.Inventory.Ring1));
-            if (player.Inventory.Ring2 != null)
-                allItems.Add(new EquipmentSlotItem(player.Inventory.Ring2));
+                allItems.Add(new EquipmentSlotItem(player.Inventory.Helmet) { SlotName = "Шлем" });
 
-            // Добавляем предметы из инвентаря, но фильтруем уже экипированные
-            foreach (var item in player.Inventory.Items.ToList()) // ToList() для копирования коллекции
+            if (player.Inventory.Armor != null)
+                allItems.Add(new EquipmentSlotItem(player.Inventory.Armor) { SlotName = "Броня" });
+
+            if (player.Inventory.Gloves != null)
+                allItems.Add(new EquipmentSlotItem(player.Inventory.Gloves) { SlotName = "Перчатки" });
+
+            if (player.Inventory.Boots != null)
+                allItems.Add(new EquipmentSlotItem(player.Inventory.Boots) { SlotName = "Ботинки" });
+
+            if (player.Inventory.MainHand != null)
+                allItems.Add(new EquipmentSlotItem(player.Inventory.MainHand) { SlotName = "Оружие" });
+
+            if (player.Inventory.OffHand != null)
+                allItems.Add(new EquipmentSlotItem(player.Inventory.OffHand) { SlotName = "Щит" });
+
+            if (player.Inventory.Amulet != null)
+                allItems.Add(new EquipmentSlotItem(player.Inventory.Amulet) { SlotName = "Амулет" });
+
+            if (player.Inventory.Ring1 != null)
+                allItems.Add(new EquipmentSlotItem(player.Inventory.Ring1) { SlotName = "Кольцо 1" });
+
+            if (player.Inventory.Ring2 != null)
+                allItems.Add(new EquipmentSlotItem(player.Inventory.Ring2) { SlotName = "Кольцо 2" });
+
+            // Добавляем предметы из инвентаря, исключая экипированные
+            foreach (var item in player.Inventory.Items.ToList())
             {
-                // Пропускаем экипированные предметы
                 if (!IsItemEquipped(player, item.Details))
                 {
                     allItems.Add(item);

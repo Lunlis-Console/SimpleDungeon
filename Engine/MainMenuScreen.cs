@@ -37,7 +37,7 @@
 
                 RenderHeader("SIMPLE DUNGEON", 2, ConsoleColor.Magenta);
                 RenderMenuOptions();
-                RenderFooter("W/S - выбор │ E - выбрать │ ESC - выход", 2);
+                RenderFooter("W/S - выбор │ E - выбрать │ ESC - выход", 0);
                 RenderVersionInfo();
 
                 _renderer.EndFrame();
@@ -81,8 +81,8 @@
             string version = "Версия 1.0.0-alpha.1";
             string copyright = "© 2025 Ilingin.prod";
 
-            RenderCenteredText(Height - 4, version, ConsoleColor.DarkGray);
-            RenderCenteredText(Height - 3, copyright, ConsoleColor.DarkGray);
+            RenderCenteredText(Height - 5, version, ConsoleColor.DarkGray);
+            RenderCenteredText(Height - 4, copyright, ConsoleColor.DarkGray);
         }
         public override void HandleInput(ConsoleKeyInfo keyInfo)
         {

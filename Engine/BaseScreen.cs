@@ -119,8 +119,8 @@ namespace Engine
             // Очищаем область футера
             _renderer.FillArea(0, y, width, 3, ' ', ConsoleColor.White, ConsoleColor.Black);
 
-            _renderer.Write(0, y - 1, new string('═', width), ConsoleColor.Gray);
-            _renderer.Write(2, y, instructions, ConsoleColor.DarkGray);
+            _renderer.Write(0, y, new string('═', width), ConsoleColor.Gray);
+            _renderer.Write(2, y + 1, instructions, ConsoleColor.DarkGray);
         }
 
         protected void RenderHeader(string title, int yOffset = 0, ConsoleColor color = ConsoleColor.Yellow)

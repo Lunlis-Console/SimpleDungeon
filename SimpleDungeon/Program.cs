@@ -76,6 +76,8 @@ namespace SimpleDungeon
                         lastWindowCheck = stopwatch.ElapsedMilliseconds;
                     }
 
+                    MessageSystem.UpdateMessages();
+
                     // Обработка ввода
                     if (Console.KeyAvailable)
                     {

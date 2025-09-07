@@ -19,17 +19,13 @@
         {
             _renderer.BeginFrame();
             ClearScreen();
-
-            // Очищаем сообщения если их слишком много
-            if (MessageSystem.messages.Count > 5)
-            {
-                MessageSystem.ClearMessages();
-            }
-
-            RenderMessages();
+        
             RenderLocationInfo();
             RenderCreatures();
             RenderGroundItems();
+
+            RenderMessages();
+
             RenderNavigation();
 
             _renderer.EndFrame();
@@ -37,31 +33,66 @@
 
         private void RenderMessages()
         {
-            int y = 0;
-            foreach (var message in MessageSystem.messages)
+            int maxMessages = 3;
+            int messageAreaHeight = 3;
+            int startY = Height - 3 - messageAreaHeight; // Начинаем над футером
+
+            // Очищаем область сообщений
+            _renderer.FillArea(0, startY, Width, messageAreaHeight, ' ', ConsoleColor.White, ConsoleColor.Black);
+
+            // Берем самые новые сообщения (последние добавленные)
+            var messagesToShow = MessageSystem.Messages.Take(maxMessages).ToArray();
+
+            // Рендерим снизу вверх - новые сообщения появляются внизу, старые поднимаются
+            for (int i = 0; i < messagesToShow.Length; i++)
             {
-                _renderer.Write(2, y, $"• {message}");
-                y++;
+                var messageData = messagesToShow[i];
+
+                // Новые сообщения внизу, старые поднимаются вверх
+                int y = startY + (maxMessages - 1 - i);
+
+                if (y >= startY && y < Height - 3)
+                {
+                    ConsoleColor color = CalculateMessageColor(messageData.Alpha);
+
+                    string displayText = messageData.Text;
+                    if (displayText.Length > Width - 4)
+                    {
+                        displayText = displayText.Substring(0, Width - 7) + "...";
+                    }
+
+                    _renderer.Write(2, y, $"• {displayText}", color);
+                }
             }
+        }
+        private ConsoleColor CalculateMessageColor(float alpha)
+        {
+            if (alpha > 0.7f) return ConsoleColor.Gray;
+            if (alpha > 0.4f) return ConsoleColor.DarkGray;
+            return ConsoleColor.DarkGray; // Почти невидимый
         }
 
         private void RenderLocationInfo()
         {
-            int y = MessageSystem.messages.Count + 2;
-            RenderHeader(_currentLocation.Name, y);
+            int y = 0;
 
+            RenderHeader(_currentLocation.Name, y);
             y += 3;
+
             var descriptionLines = WrapText(_currentLocation.Description, Console.WindowWidth - 4);
             foreach (var line in descriptionLines)
             {
-                _renderer.Write(2, y, line);
-                y++;
+                if (y < Height - 9) // Не заходим на область сообщений
+                {
+                    _renderer.Write(2, y, line);
+                    y++;
+                }
             }
         }
 
         private void RenderCreatures()
         {
-            int y = MessageSystem.messages.Count + 6;
+            int y = 6;
 
             // Монстры
             var monsters = _currentLocation.FindMonsters();
@@ -107,7 +138,7 @@
 
         private void RenderNavigation()
         {
-            RenderFooter("WASD - движение │ I - инвентарь │ C - персонаж │ J - журнал │ E - взаимодействие │ ESC - меню", -2);
+            RenderFooter("WASD - движение │ I - инвентарь │ C - персонаж │ J - журнал │ E - взаимодействие │ ESC - меню", 0);
 
             RenderCompass();
         }
@@ -140,9 +171,6 @@
             _renderer.Write(compassX + 3, compassY, "│", ConsoleColor.DarkGray);
             _renderer.Write(compassX + 3, compassY + 2, "│", ConsoleColor.DarkGray);
         }
-
-
-
         public override void HandleInput(ConsoleKeyInfo keyInfo)
         {
             switch (keyInfo.Key)
@@ -176,6 +204,8 @@
                     ScreenManager.PushScreen(new CharacterScreen(_player));
                     RequestFullRedraw();
                     break;
+                //case ConsoleKey.E:
+                //    ScreenManager.PushScreen(new );
 
                 case ConsoleKey.Escape: // Меню
                     ScreenManager.PushScreen(new GameMenuScreen(_player));

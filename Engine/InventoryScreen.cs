@@ -71,8 +71,8 @@
             RenderEquipmentSlot(rightColumn, ref y, "Перчатки:", _player.Inventory.Gloves);
             RenderEquipmentSlot(rightColumn, ref y, "Ботинки:", _player.Inventory.Boots);
             RenderEquipmentSlot(rightColumn, ref y, "Амулет:", _player.Inventory.Amulet);
-            RenderEquipmentSlot(rightColumn, ref y, "Кольцо 1:", _player.Inventory.Ring1);
-            RenderEquipmentSlot(rightColumn, ref y, "Кольцо 2:", _player.Inventory.Ring2);
+            RenderEquipmentSlot(rightColumn, ref y, "Кольцо:", _player.Inventory.Ring1);
+            RenderEquipmentSlot(rightColumn, ref y, "Кольцо:", _player.Inventory.Ring2);
         }
 
         private void RenderEquipmentSlot(int x, ref int y, string slotName, Equipment equipment)
