@@ -22,10 +22,17 @@
         public event Action OnInventoryChanged;
         public event Action OnEquipmentChanged;
 
+        private readonly Player _player;
+
         public Inventory()
         {
             Items = new List<InventoryItem>();
             EquippedItems = new List<EquipmentItem>();
+        }
+
+        public Inventory(Player player)
+        {
+            _player = player ?? throw new ArgumentNullException(nameof(player));
         }
 
         public void AddItem(Item item, int quantity = 1)
@@ -304,14 +311,17 @@
 
         public int CalculateTotalDefence()
         {
-            return (Helmet?.DefenceBonus ?? 0) +
-                   (Armor?.DefenceBonus ?? 0) +
-                   (Gloves?.DefenceBonus ?? 0) +
-                   (Boots?.DefenceBonus ?? 0) +
-                   (OffHand?.DefenceBonus ?? 0) +
-                   (Amulet?.DefenceBonus ?? 0) +
-                   (Ring1?.DefenceBonus ?? 0) +
-                   (Ring2?.DefenceBonus ?? 0);
+            int baseDef = (Helmet?.DefenceBonus ?? 0) +
+                          (Armor?.DefenceBonus ?? 0) +
+                          (Gloves?.DefenceBonus ?? 0) +
+                          (Boots?.DefenceBonus ?? 0) +
+                          (OffHand?.DefenceBonus ?? 0) +
+                          (Amulet?.DefenceBonus ?? 0) +
+                          (Ring1?.DefenceBonus ?? 0) +
+                          (Ring2?.DefenceBonus ?? 0);
+
+            // учесть временный бафф
+            return baseDef + (_player?.TemporaryDefenceBuff ?? 0);
         }
 
         public int CalculateTotalAttack()

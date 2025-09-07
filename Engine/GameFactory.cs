@@ -11,7 +11,7 @@
 
         public Player CreateNewPlayer()
         {
-            return new Player("Неизвестно", 0, 100, 100, 0, 100, 1, 0, 0, 10, _worldRepository);
+            return new Player("Странник", 0, 100, 100, 0, 100, 1, 0, 0, 10, _worldRepository);
         }
 
         public Player CreatePlayerFromSave(GameSave save)

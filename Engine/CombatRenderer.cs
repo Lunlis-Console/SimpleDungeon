@@ -1,293 +1,303 @@
-﻿namespace Engine
+﻿using System;
+using System.Collections.Generic;
+
+namespace Engine
 {
     public class CombatRenderer
     {
-        private readonly EnhancedBufferedRenderer _renderer;
-        private CombatState _previousState;
+        private readonly EnhancedBufferedRenderer _r;
 
-        // Позиции элементов на экране
-        private const int TurnStatusLine = 0;
-        private const int TurnNumberLine = 1;
-        private const int MonsterNameLine = 3;
-        private const int MonsterHealthLine = 4;
-        private const int MonsterSpeedLine = 5;
-        private const int MonsterStatsLine = 6;
-        private const int SeparatorLine = 7;
-        private const int CombatLogStartLine = 8;
-        private const int PlayerStatsLine = 18;
-        private const int PlayerHealthLine = 19;
-        private const int PlayerSpeedLine = 20;
-        private const int ActionsLine = 22;
+        public int Left { get; set; } = 2;
+        public int RightMargin { get; set; } = 2;
 
         public CombatRenderer(EnhancedBufferedRenderer renderer)
         {
-            _renderer = renderer ?? throw new ArgumentNullException(nameof(renderer));
-            _previousState = new CombatState();
+            _r = renderer ?? throw new ArgumentNullException(nameof(renderer));
         }
 
-        public void RenderCombatFrame(Player player, Monster monster, List<string> combatLog,
-                                    int currentTurn, int playerSpeed, int monsterSpeed)
+        /// <summary>
+        /// Рисует кадр боя.
+        /// </summary>
+        public void RenderCombatFrame(object player, object monster, List<string> combatLog, int currentTurn,
+            bool isPlayerTurnReady, bool isEnemyActing, bool isMonsterPreparing = false)
         {
-            _renderer.BeginFrame();
+            int width = _r.Width;
+            int height = _r.Height;
 
-            var currentState = new CombatState
+            // Минимум места
+            if (width < 40 || height < 14)
             {
-                PlayerHP = player.CurrentHP,
-                PlayerMaxHP = player.TotalMaximumHP,
-                PlayerSpeed = playerSpeed,
-                MonsterHP = monster.CurrentHP,
-                MonsterMaxHP = monster.MaximumHP,
-                MonsterSpeed = monsterSpeed,
-                CurrentTurn = currentTurn,
-                CombatLog = combatLog,
-                PlayerAttack = player.Attack,
-                PlayerDefence = player.Defence,
-                PlayerAgility = player.Agility,
-                MonsterAttack = monster.Attack,
-                MonsterDefence = monster.Defence,
-                MonsterAgility = monster.Agility
-            };
-
-            RenderStaticElements();
-            RenderDynamicElements(currentState);
-
-            _renderer.EndFrame();
-            _previousState = currentState;
-        }
-
-        public void SetNeedsFullRedraw()
-        {
-            _previousState = new CombatState();
-        }
-
-        private void RenderStaticElements()
-        {
-            // Эти элементы рисуем только один раз
-            if (!_previousState.StaticElementsRendered)
-            {
-                // Разделительная линия
-                _renderer.Write(0, SeparatorLine, new string('=', Console.WindowWidth));
-
-                // Заголовок действий
-                _renderer.Write(0, ActionsLine, "=========Действия========");
-                _renderer.Write(0, ActionsLine + 1, "| 1 - атаковать | 2 - заклинание |");
-                _renderer.Write(0, ActionsLine + 2, "| 3 - защищаться | 4 - бежать |");
-
-                _previousState.StaticElementsRendered = true;
-            }
-        }
-
-        private void RenderDynamicElements(CombatState currentState)
-        {
-            // Статус хода
-            RenderTurnStatus(currentState);
-
-            // Информация о монстре
-            RenderMonsterInfo(currentState);
-
-            // Лог боя
-            RenderCombatLog(currentState.CombatLog);
-
-            // Информация о игроке
-            RenderPlayerInfo(currentState);
-        }
-
-        private void RenderTurnStatus(CombatState state)
-        {
-            string status = state.PlayerSpeed >= 100 ? "=== ВАШ ХОД ===" :
-                          state.MonsterSpeed >= 100 ? "=== ХОД МОНСТРА ===" :
-                          "=== НАПОЛНЕНИЕ ШКАЛЫ СКОРОСТИ ===";
-
-            if (status != _previousState.TurnStatus)
-            {
-                _renderer.Write(0, TurnStatusLine, status.PadRight(Console.WindowWidth));
-                _previousState.TurnStatus = status;
+                _r.FillArea(0, 0, width, height, ' ', ConsoleColor.White, ConsoleColor.Black);
+                _r.Write(0, 0, "Окно слишком мало для отрисовки боя (min 40x14).", ConsoleColor.Yellow, ConsoleColor.Black);
+                return;
             }
 
-            string turnText = $"================ ХОД {state.CurrentTurn} ================";
-            if (turnText != _previousState.TurnText)
+            // Верхняя рамка / заголовок
+            string top = "┌" + new string('─', Math.Max(0, width - 2)) + "┐";
+            string bottomTop = "└" + new string('─', Math.Max(0, width - 2)) + "┘";
+            _r.Write(0, 0, top, ConsoleColor.DarkGray, ConsoleColor.Black);
+
+            string title = $"БОЙ";
+            if (title.Length > width - 4) title = title.Substring(0, width - 7) + "...";
+            int pad = Math.Max(0, (width - 2 - title.Length) / 2);
+            string titleLine = "│" + new string(' ', pad) + title + new string(' ', Math.Max(0, (width - 2) - title.Length - pad)) + "│";
+            _r.Write(0, 1, titleLine, ConsoleColor.Yellow, ConsoleColor.Black);
+            _r.Write(0, 2, bottomTop, ConsoleColor.DarkGray, ConsoleColor.Black);
+
+            // Нижняя рамка
+            int bottomFrameTop = height - 3;
+            int bottomFrameRow = height - 2;
+            int bottomFrameBottom = height - 1;
+            string bottomTopFrame = "┌" + new string('─', Math.Max(0, width - 2)) + "┐";
+            string bottomBottomFrame = "└" + new string('─', Math.Max(0, width - 2)) + "┘";
+            _r.Write(0, bottomFrameTop, bottomTopFrame, ConsoleColor.DarkGray, ConsoleColor.Black);
+
+            // Контролы внизу (центруем)
+            string controls = "1-Атаковать  2-Заклинание  3-Защита  4-Бежать  Q-Выход";
+            if (controls.Length > width - 4) controls = "1-атака 2-магия 3-защ 4-бежать Q-выход";
+            int ctlPad = Math.Max(0, (width - 2 - controls.Length) / 2);
+            string controlsLine = "│" + new string(' ', ctlPad) + controls + new string(' ', Math.Max(0, (width - 2) - controls.Length - ctlPad)) + "│";
+            _r.Write(0, bottomFrameRow, controlsLine, ConsoleColor.DarkGray, ConsoleColor.Black);
+            _r.Write(0, bottomFrameBottom, bottomBottomFrame, ConsoleColor.DarkGray, ConsoleColor.Black);
+
+            // Контент-область
+            int contentTop = 3;
+            int contentBottom = bottomFrameTop - 1; // inclusive
+            int contentHeight = contentBottom - contentTop + 1;
+
+            // Разметка зон
+            int monsterNameRow = contentTop;
+            int monsterHpRow = contentTop + 1;
+            int monsterSpeedRow = contentTop + 2;
+
+            int playerSpeedRow = contentBottom - 4;  // скорость игрока
+            int playerHpTextRow = contentBottom - 3;
+            int playerHpBarRow = contentBottom - 2;
+            int statusRow = contentBottom - 1; // индикатор чьего хода
+
+            // Очистка рабочей области
+            _r.FillArea(1, contentTop, Math.Max(1, width - 2), contentHeight, ' ', ConsoleColor.White, ConsoleColor.Black);
+
+            // --- MONSTER ---
+            string monsterName = SafeGetString(monster, new[] { "Name", "name" }) ?? "Монстр";
+            int mNameX = Math.Max(1, (width - monsterName.Length) / 2);
+            _r.Write(mNameX, monsterNameRow, monsterName, ConsoleColor.Red, ConsoleColor.Black);
+
+            int mCurrent = SafeGetInt(monster, new[] { "CurrentHP", "HP", "Health", "HitPoints" });
+            int mMax = Math.Max(1, SafeGetInt(monster, new[] { "MaximumHP", "MaxHP", "MaxHealth", "HitPointsMax" }));
+            int barWidth = Math.Min(48, width - Left - RightMargin - 12);
+            barWidth = Math.Max(8, barWidth);
+            int mBarX = Math.Max(Left, (width - barWidth) / 2);
+            DrawBar(mBarX, monsterHpRow, barWidth, mCurrent, mMax, ConsoleColor.DarkMagenta, ConsoleColor.DarkGray);
+
+            string mHpText = $"{mCurrent}/{mMax}";
+            int mHpTextX = Math.Min(width - RightMargin - mHpText.Length, mBarX + barWidth + 2);
+            _r.Write(mHpTextX, monsterHpRow, mHpText, ConsoleColor.Yellow, ConsoleColor.Black);
+
+            // Monster speed (centered)
+            int mSpeed = SafeGetInt(monster, new[] { "CurrentSpeed", "Speed" });
+            int mSpeedBarWidth = Math.Max(6, barWidth / 3);
+            int mSpeedX = Math.Max(Left, (width - mSpeedBarWidth) / 2);
+            DrawSpeedBar(mSpeedX, monsterSpeedRow, mSpeedBarWidth, mSpeed, 100);
+            string mSpeedNum = $"{mSpeed}/100";
+            _r.Write(Math.Min(width - RightMargin - mSpeedNum.Length, mSpeedX + mSpeedBarWidth + 2), monsterSpeedRow, mSpeedNum, ConsoleColor.Cyan, ConsoleColor.Black);
+
+            // --- PLAYER ---
+            int pCurrent = SafeGetInt(player, new[] { "CurrentHP", "HP", "Health", "HitPoints" });
+            int pMax = Math.Max(1, SafeGetInt(player, new[] { "MaximumHP", "MaxHP", "MaxHealth", "HitPointsMax" }));
+            int pSpeed = SafeGetInt(player, new[] { "CurrentSpeed", "Speed" });
+
+            int pBarWidth = Math.Min(48, width - Left - RightMargin - 12);
+            pBarWidth = Math.Max(8, pBarWidth);
+            int pBarX = Math.Max(Left, (width - pBarWidth) / 2);
+
+            // Player speed: centered (исправление — раньше использовался pBarX, теперь центрируем по width)
+            int pSpeedBarWidth = Math.Max(6, pBarWidth / 3);
+            int pSpeedX = Math.Max(Left, (width - pSpeedBarWidth) / 2);
+            DrawSpeedBar(pSpeedX, playerSpeedRow, pSpeedBarWidth, pSpeed, 100);
+            string pSpeedNum = $"{pSpeed}/100";
+            _r.Write(Math.Min(width - RightMargin - pSpeedNum.Length, pSpeedX + pSpeedBarWidth + 2), playerSpeedRow, pSpeedNum, ConsoleColor.Cyan, ConsoleColor.Black);
+
+            string playerName = SafeGetString(player, new[] { "Name", "name" }) ?? "Игрок";
+            string pHpLabel = $"{playerName}";
+            int pHpLabelX = Math.Max(1, (width - pHpLabel.Length) / 2);
+            _r.Write(pHpLabelX, playerHpTextRow, pHpLabel, ConsoleColor.Green, ConsoleColor.Black);
+
+            DrawBar(pBarX, playerHpBarRow, pBarWidth, pCurrent, pMax, ConsoleColor.DarkMagenta, ConsoleColor.DarkGray);
+            string pHpText = $"{pCurrent}/{pMax}";
+            _r.Write(Math.Min(width - RightMargin - pHpText.Length, pBarX + pBarWidth + 2), playerHpBarRow, pHpText, ConsoleColor.Green, ConsoleColor.Black);
+
+            // --- ИНДИКАТОР ЧЬЕГО ХОДА ---
+            string ownership = null;
+            ConsoleColor ownershipColor = ConsoleColor.White;
+
+            if (isEnemyActing)
             {
-                _renderer.Write(0, TurnNumberLine, turnText.PadRight(Console.WindowWidth));
-                _previousState.TurnText = turnText;
+                ownership = $"ХОД: {monsterName}";
+                ownershipColor = ConsoleColor.Red;
             }
+            else if (isMonsterPreparing)
+            {
+                ownership = $"Готовится: {monsterName}";
+                ownershipColor = ConsoleColor.Cyan;
+            }
+            else if (isPlayerTurnReady)
+            {
+                ownership = "ВАШ ХОД";
+                ownershipColor = ConsoleColor.Yellow;
+            }
+            else
+            {
+                if (mSpeed > pSpeed) { ownership = $"ХОД: {monsterName}"; ownershipColor = ConsoleColor.Red; }
+                else if (pSpeed > mSpeed) { ownership = "ВАШ ХОД"; ownershipColor = ConsoleColor.Green; }
+                else ownership = null;
+            }
+
+            if (!string.IsNullOrEmpty(ownership))
+            {
+                string outStr = ownership;
+                if (outStr.Length > width - 4) outStr = outStr.Substring(0, width - 7) + "...";
+                int ox = Math.Max(0, (width - outStr.Length) / 2);
+                _r.Write(ox, statusRow, outStr, ownershipColor, ConsoleColor.Black);
+            }
+            else
+            {
+                _r.FillArea(1, statusRow, Math.Max(1, width - 2), 1, ' ', ConsoleColor.White, ConsoleColor.Black);
+            }
+
+            // --- ЛОГ: зона сокращена на 1 строку сверху, чтобы не перекрывать скорость ---
+            int logTop = monsterSpeedRow + 2;     // было +1, теперь +2 — одну строку сверху уменьшаем
+            int logBottom = playerSpeedRow - 1;
+            if (logBottom < logTop) logBottom = logTop;
+            int logHeight = Math.Max(1, logBottom - logTop + 1);
+
+            int maxVisible = Math.Min(6, logHeight);
+
+            var filtered = new List<string>();
+            if (combatLog != null)
+            {
+                foreach (var line in combatLog)
+                {
+                    if (string.IsNullOrWhiteSpace(line)) continue;
+                    var t = line.Trim();
+                    if (t == "=== ВАШ ХОД ===") continue;
+                    if (t.EndsWith("готовится атаковать...")) continue;
+                    filtered.Add(line);
+                }
+            }
+
+            int visibleCount = Math.Min(maxVisible, filtered.Count);
+            int start = Math.Max(0, filtered.Count - visibleCount);
+
+            // Показываем последние visibleCount строк, прикреплённо к logTop (не центрируем вертикально — так меньше мерцаний)
+            for (int i = 0; i < visibleCount; i++)
+            {
+                string line = filtered[start + i];
+                if (line.Length > width - 6) line = line.Substring(0, width - 9) + "...";
+                int lx = Math.Max(1, (width - line.Length) / 2);
+                _r.Write(lx, logTop + i, line, ConsoleColor.White, ConsoleColor.Black);
+            }
+
+            // Индикатор количества скрытых сообщений — размещаем одну строку выше логTop, если есть место
+            if (filtered.Count > visibleCount)
+            {
+                string more = $"... {filtered.Count - visibleCount} пред.";
+                int mx = Math.Max(1, (width - more.Length) / 2);
+                int my = logTop - 1;
+                if (my >= contentTop) _r.Write(mx, my, more, ConsoleColor.DarkGray, ConsoleColor.Black);
+            }
+
+            // Готово
         }
 
-        private void RenderMonsterInfo(CombatState state)
+        // Рисует HP-полосу (рамка [ ] + цветная заливка)
+        private void DrawBar(int left, int top, int width, int value, int maxValue, ConsoleColor filledBg, ConsoleColor emptyBg)
         {
-            // Здоровье монстра
-            if (state.MonsterHP != _previousState.MonsterHP ||
-                state.MonsterMaxHP != _previousState.MonsterMaxHP)
-            {
-                RenderHealthBar(0, MonsterHealthLine, state.MonsterHP, state.MonsterMaxHP, "Здоровье");
-            }
+            if (width < 4) width = 4;
+            int inner = Math.Max(1, width - 2);
+            int filled = (int)Math.Round((double)inner * value / Math.Max(1, maxValue));
+            filled = Math.Clamp(filled, 0, inner);
 
-            // Скорость монстра
-            if (state.MonsterSpeed != _previousState.MonsterSpeed)
-            {
-                RenderSpeedBar(0, MonsterSpeedLine, state.MonsterSpeed, "Скорость");
-            }
+            _r.Write(left, top, "[", ConsoleColor.Gray, ConsoleColor.Black);
+            if (filled > 0)
+                _r.FillArea(left + 1, top, filled, 1, ' ', filledBg, filledBg);
 
-            // Статы монстра
-            if (state.MonsterAttack != _previousState.MonsterAttack ||
-                state.MonsterDefence != _previousState.MonsterDefence ||
-                state.MonsterAgility != _previousState.MonsterAgility)
-            {
-                string stats = $"АТК: {state.MonsterAttack} | ЗЩТ: {state.MonsterDefence} | ЛОВ: {state.MonsterAgility}";
-                _renderer.Write(0, MonsterStatsLine, stats.PadRight(Console.WindowWidth));
-            }
+            int emptyLen = inner - filled;
+            if (emptyLen > 0)
+                _r.FillArea(left + 1 + filled, top, emptyLen, 1, ' ', ConsoleColor.White, emptyBg);
+
+            _r.Write(left + width - 1, top, "]", ConsoleColor.Gray, ConsoleColor.Black);
         }
 
-        private void RenderPlayerInfo(CombatState state)
+        // Рисует speed bar как '_' внутри скобок
+        private void DrawSpeedBar(int left, int top, int width, int value, int maxValue)
         {
-            // Здоровье игрока
-            if (state.PlayerHP != _previousState.PlayerHP ||
-                state.PlayerMaxHP != _previousState.PlayerMaxHP)
-            {
-                RenderHealthBar(0, PlayerHealthLine, state.PlayerHP, state.PlayerMaxHP, "Здоровье");
-            }
+            if (width < 6) width = 6;
+            int inner = Math.Max(1, width - 2);
+            int filled = (int)Math.Round((double)inner * value / Math.Max(1, maxValue));
+            filled = Math.Clamp(filled, 0, inner);
 
-            // Скорость игрока
-            if (state.PlayerSpeed != _previousState.PlayerSpeed)
-            {
-                RenderSpeedBar(0, PlayerSpeedLine, state.PlayerSpeed, "Скорость");
-            }
-
-            // Статы игрока
-            if (state.PlayerAttack != _previousState.PlayerAttack ||
-                state.PlayerDefence != _previousState.PlayerDefence ||
-                state.PlayerAgility != _previousState.PlayerAgility)
-            {
-                string stats = $"АТК: {state.PlayerAttack} | ЗЩТ: {state.PlayerDefence} | ЛОВ: {state.PlayerAgility}";
-                _renderer.Write(0, PlayerStatsLine, stats.PadRight(Console.WindowWidth));
-            }
+            _r.Write(left, top, "[", ConsoleColor.Gray, ConsoleColor.Black);
+            if (filled > 0)
+                _r.FillArea(left + 1, top, filled, 1, '_', ConsoleColor.Cyan, ConsoleColor.Black);
+            int rest = inner - filled;
+            if (rest > 0)
+                _r.FillArea(left + 1 + filled, top, rest, 1, '_', ConsoleColor.DarkGray, ConsoleColor.Black);
+            _r.Write(left + width - 1, top, "]", ConsoleColor.Gray, ConsoleColor.Black);
         }
 
-        private void RenderCombatLog(List<string> combatLog)
+        #region Safe getters
+
+        private int SafeGetInt(object obj, string[] names)
         {
-            if (combatLog == null) return;
-
-            int y = CombatLogStartLine;
-            int maxLines = PlayerStatsLine - CombatLogStartLine - 1;
-
-            // Очищаем область лога
-            for (int i = 0; i < maxLines; i++)
+            if (obj == null) return 0;
+            var t = obj.GetType();
+            foreach (var name in names)
             {
-                _renderer.Write(0, y + i, new string(' ', Console.WindowWidth));
+                try
+                {
+                    var p = t.GetProperty(name, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.IgnoreCase);
+                    if (p != null)
+                    {
+                        var v = p.GetValue(obj);
+                        if (v is int i) return i;
+                        if (v is long l) return (int)l;
+                        if (v != null) { try { return Convert.ToInt32(v); } catch { } }
+                    }
+                    var f = t.GetField(name, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.IgnoreCase);
+                    if (f != null)
+                    {
+                        var v = f.GetValue(obj);
+                        if (v is int i) return i;
+                        if (v is long l) return (int)l;
+                        if (v != null) { try { return Convert.ToInt32(v); } catch { } }
+                    }
+                }
+                catch { }
             }
+            return 0;
+        }
 
-            // Рисуем новые сообщения
-            y = CombatLogStartLine;
-            int linesToShow = Math.Min(combatLog.Count, maxLines);
-            int startIndex = Math.Max(0, combatLog.Count - maxLines);
-
-            for (int i = startIndex; i < combatLog.Count && y < PlayerStatsLine; i++)
+        private string SafeGetString(object obj, string[] names)
+        {
+            if (obj == null) return null;
+            var t = obj.GetType();
+            foreach (var name in names)
             {
-                string message = combatLog[i];
-                ConsoleColor color = GetMessageColor(message);
-
-                // Сохраняем текущий цвет
-                ConsoleColor previousColor = Console.ForegroundColor;
-                Console.ForegroundColor = color;
-
-                _renderer.Write(0, y, message.PadRight(Console.WindowWidth));
-
-                // Восстанавливаем цвет
-                Console.ForegroundColor = previousColor;
-
-                y++;
+                try
+                {
+                    var p = t.GetProperty(name, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.IgnoreCase);
+                    if (p != null && p.PropertyType == typeof(string))
+                        return p.GetValue(obj) as string;
+                    var f = t.GetField(name, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.IgnoreCase);
+                    if (f != null && f.FieldType == typeof(string))
+                        return f.GetValue(obj) as string;
+                }
+                catch { }
             }
+            return null;
         }
 
-        private void RenderHealthBar(int x, int y, int current, int max, string label)
-        {
-            current = Math.Max(current, 0);
-            max = Math.Max(max, 1);
-
-            float percentage = (float)current / max;
-            int bars = (int)(20 * percentage);
-            bars = Math.Clamp(bars, 0, 20);
-            int emptyBars = 20 - bars;
-
-            string healthText = $"{current}/{max}";
-            string bar = $"{label}: [";
-
-            // Выбираем цвет
-            ConsoleColor color = percentage > 0.5f ? ConsoleColor.Green :
-                                percentage > 0.25f ? ConsoleColor.Yellow :
-                                ConsoleColor.Red;
-
-            bar += new string('█', bars);
-            bar += new string('░', emptyBars);
-            bar += $"] {healthText}";
-
-            // Сохраняем цвет
-            ConsoleColor previousColor = Console.ForegroundColor;
-            Console.ForegroundColor = color;
-
-            _renderer.Write(x, y, bar.PadRight(Console.WindowWidth));
-
-            // Восстанавливаем цвет
-            Console.ForegroundColor = previousColor;
-        }
-
-        private void RenderSpeedBar(int x, int y, int current, string label)
-        {
-            float percentage = (float)current / 100;
-            int bars = (int)(20 * percentage);
-            bars = Math.Clamp(bars, 0, 20);
-            int emptyBars = 20 - bars;
-
-            string bar = $"{label}: [";
-            bar += new string('█', bars);
-            bar += new string('░', emptyBars);
-            bar += $"] {current}%";
-
-            // Сохраняем цвет
-            ConsoleColor previousColor = Console.ForegroundColor;
-            Console.ForegroundColor = ConsoleColor.Cyan;
-
-            _renderer.Write(x, y, bar.PadRight(Console.WindowWidth));
-
-            // Восстанавливаем цвет
-            Console.ForegroundColor = previousColor;
-        }
-
-        private ConsoleColor GetMessageColor(string message)
-        {
-            if (string.IsNullOrEmpty(message)) return ConsoleColor.Gray;
-
-            return message switch
-            {
-                string s when s.Contains("Вы ") || s.Contains("Вы достигли") => ConsoleColor.Green,
-                string s when s.Contains("КРИТИЧЕСКИЙ УДАР") => ConsoleColor.Red,
-                string s when s.Contains("ХОД") || s.Contains("====") => ConsoleColor.Yellow,
-                string s when s.Contains("Добыча") || s.Contains("Получено") => ConsoleColor.Cyan,
-                string s when s.Contains("побежден") || s.Contains("побеждён") => ConsoleColor.Magenta,
-                _ => ConsoleColor.Gray
-            };
-        }
-
-    }
-
-    // Класс для хранения состояния боя
-    public class CombatState
-    {
-        public int PlayerHP { get; set; }
-        public int PlayerMaxHP { get; set; }
-        public int PlayerSpeed { get; set; }
-        public int MonsterHP { get; set; }
-        public int MonsterMaxHP { get; set; }
-        public int MonsterSpeed { get; set; }
-        public int CurrentTurn { get; set; }
-        public List<string> CombatLog { get; set; } = new List<string>();
-        public int PlayerAttack { get; set; }
-        public int PlayerDefence { get; set; }
-        public int PlayerAgility { get; set; }
-        public int MonsterAttack { get; set; }
-        public int MonsterDefence { get; set; }
-        public int MonsterAgility { get; set; }
-        public string TurnStatus { get; set; } = string.Empty;
-        public string TurnText { get; set; } = string.Empty;
-        public bool StaticElementsRendered { get; set; }
+        #endregion
     }
 }

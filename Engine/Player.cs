@@ -16,6 +16,20 @@
         public int Defence => BaseDefence + Inventory.CalculateTotalDefence() + (Attributes.Constitution / 2);
         public int Agility => BaseAgility + Inventory.CalculateTotalAgility() + Attributes.Dexterity;
 
+        // Temporary defence buff: value and remaining turns.
+        // Вставь прямо в класс Player рядом с другими полями.
+        public int TemporaryDefenceBuff { get; set; } = 0;
+
+        /// <summary>
+        /// Сколько ходов ещё действует временный бафф защиты (0 = не действует)
+        /// </summary>
+        public int TemporaryDefenceBuffTurnsRemaining { get; set; } = 0;
+
+        /// <summary>
+        /// Применяет временную прибавку к защите на указанное количество ходов.
+        /// Если уже есть бафф — суммирует значение и продлевает время (можно изменить логику).
+        /// </summary>
+
         public int CurrentSpeed { get; set; }
         public Location CurrentLocation { get; set; }
         public Inventory Inventory { get; private set; }
@@ -58,6 +72,44 @@
             Inventory.OnEquipmentChanged += OnEquipmentChanged;
 
             _worldRepository = worldRepository;
+        }
+
+        public void ApplyTemporaryDefenceBuff(int amount, int turns)
+        {
+            if (amount <= 0 || turns <= 0) return;
+            TemporaryDefenceBuff += amount;
+            // Решение: берем максимум оставшихся ходов и новых, чтобы не уменьшать случайно
+            TemporaryDefenceBuffTurnsRemaining = Math.Max(TemporaryDefenceBuffTurnsRemaining, turns);
+        }
+
+        /// <summary>
+        /// Вычисляет итоговую защиту с учётом экипировки и временных эффектов.
+        /// Заменяй в проекте вызов CalculateTotalDefence() или GetTotalDefence() на эту функцию,
+        /// либо используй её внутри существующего метода расчёта защиты.
+        /// </summary>
+        public int GetEffectiveDefence()
+        {
+            // Пример: если у тебя есть метод CalculateTotalDefence() — можно вызывать его.
+            int baseDef = 0;
+            // Ниже — пример суммирования экипировки. Если у тебя уже есть CalculateTotalDefence, 
+            // возвращай CalculateTotalDefence() + TemporaryDefenceBuff;
+            // Я даю безопасный вариант, чтобы не сломать существующие вызовы:
+            try
+            {
+                // если есть метод CalculateTotalDefence
+                var mi = this.GetType().GetMethod("CalculateTotalDefence", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic);
+                if (mi != null)
+                {
+                    var baseVal = mi.Invoke(this, null);
+                    if (baseVal is int bi) baseDef = bi;
+                }
+            }
+            catch
+            {
+                // если нет CalculateTotalDefence, оставить baseDef = 0
+            }
+
+            return baseDef + TemporaryDefenceBuff;
         }
 
         public void MoveTo(Location newLocation)
@@ -198,17 +250,13 @@
         {
             CurrentMonster = monster;
             IsInCombat = true;
-            Console.WriteLine($"Внимание! Сражение с {monster.Name} [{monster.Level}]!");
-            Console.WriteLine("\nНажмите любую клавишу чтобы продолжить...");
-            Console.ReadKey();
 
-            CombatEngine combatEngine = new CombatEngine(this, monster, _worldRepository);
-            combatEngine.CombatLoop();
+            // Пушим экран боя вместо синхронного CombatLoop
+            var combatScreen = new CombatScreen(this, monster);
+            ScreenManager.PushScreen(combatScreen);
 
-            if (!IsInCombat)
-            {
-                CurrentMonster = null;
-            }
+            // Обновить рендеринг (если у вас есть такие helper'ы)
+            ScreenManager.RequestFullRedraw();
         }
 
         public bool EquipItem(InventoryItem item)

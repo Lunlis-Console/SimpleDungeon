@@ -45,20 +45,54 @@ public static class ScreenManager
         {
             try
             {
-                DebugConsole.Log($"[screenmanager] about to Render {cur.GetType().Name}");
+                //DebugConsole.Log($"[screenmanager] about to Render {cur.GetType().Name}");
                 cur.Render();
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"[screenmanager] Render of {cur.GetType().Name} threw {ex.GetType().Name}: {ex.Message}");
+                //DebugConsole.Log($"[screenmanager] Render of {cur.GetType().Name} threw {ex.GetType().Name}: {ex.Message}");
                 DebugConsole.Log(ex.StackTrace ?? "");
             }
         }
         else
         {
-            DebugConsole.Log("[screenmanager] CurrentScreen is NULL in render loop");
+            //DebugConsole.Log("[screenmanager] CurrentScreen is NULL in render loop");
         }
     }
+
+    // Возвращаемся к экрану типа T, удаляя экраны выше него в стеке.
+    // Защита: не удаляем последний экран в стеке (чтобы стек не стал пустым).
+    public static void PopUntil<T>() where T : BaseScreen
+    {
+        while (_screenStack.Count > 1 && !(_screenStack.Peek() is T))
+        {
+            _screenStack.Pop();
+        }
+        RequestFullRedraw();
+    }
+
+    // Альтернатива: возвращаемся к экрану по System.Type
+    public static void PopUntil(Type screenType)
+    {
+        if (screenType == null) return;
+        while (_screenStack.Count > 1 && _screenStack.Peek()?.GetType() != screenType)
+        {
+            _screenStack.Pop();
+        }
+        RequestFullRedraw();
+    }
+
+    // Удобство: по имени класса (например "WorldScreen" или "MapScreen")
+    public static void PopUntil(string screenTypeName)
+    {
+        if (string.IsNullOrEmpty(screenTypeName)) return;
+        while (_screenStack.Count > 1 && _screenStack.Peek()?.GetType().Name != screenTypeName)
+        {
+            _screenStack.Pop();
+        }
+        RequestFullRedraw();
+    }
+
 
     public static void Update()
     {
