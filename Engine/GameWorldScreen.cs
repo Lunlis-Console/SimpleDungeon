@@ -204,9 +204,14 @@
                     ScreenManager.PushScreen(new CharacterScreen(_player));
                     RequestFullRedraw();
                     break;
-                //case ConsoleKey.E:
-                //    ScreenManager.PushScreen(new );
-
+                case ConsoleKey.E: // Взаимодействие - ДОБАВЛЕНО
+                    ScreenManager.PushScreen(new InteractionScreen(_player, _currentLocation));
+                    RequestFullRedraw();
+                    break;
+                case ConsoleKey.J: // Журнал заданий
+                    _player.QuestLog.DisplayQuestLog();
+                    RequestFullRedraw();
+                    break;
                 case ConsoleKey.Escape: // Меню
                     ScreenManager.PushScreen(new GameMenuScreen(_player));
                     RequestFullRedraw();

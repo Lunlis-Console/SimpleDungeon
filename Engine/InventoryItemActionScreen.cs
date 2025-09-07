@@ -16,7 +16,7 @@
             _renderer.BeginFrame();
             ClearScreen();
 
-            RenderHeader($"ПРОСМОТР: {_item.Name}");
+            RenderHeader($"ОСМОТР : {_item.Name}");
             RenderItemDetails();
             RenderFooter("Q - назад");
 
@@ -29,21 +29,21 @@
             int dividerX = Console.WindowWidth / 2;
             int rightX = dividerX + 2;
 
-            // Левая колонка - основная информация
-            _renderer.Write(2, y, "=== ПРЕДМЕТ ===", ConsoleColor.DarkCyan);
-            y += 2;
+            //// Левая колонка - основная информация
+            //_renderer.Write(2, y, "=== ПРЕДМЕТ ===", ConsoleColor.DarkCyan);
+            //y += 2;
 
-            _renderer.Write(2, y, _item.Name, ConsoleColor.White);
-            y++;
-            _renderer.Write(2, y, $"Тип: {GetTypeText(_item.Type)}", ConsoleColor.Cyan);
-            y++;
-            _renderer.Write(2, y, $"Цена: {_item.Price} золота", ConsoleColor.Yellow);
-            y++;
+            //_renderer.Write(2, y, _item.Name, ConsoleColor.White);
+            //y++;
+            //_renderer.Write(2, y, $"Тип: {GetTypeText(_item.Type)}", ConsoleColor.Cyan);
+            //y++;
+            //_renderer.Write(2, y, $"Цена: {_item.Price} золота", ConsoleColor.Yellow);
+            //y++;
 
             if (_item is Equipment equipment)
             {
-                y++;
-                _renderer.Write(2, y, "=== ХАРАКТЕРИСТИКИ ===", ConsoleColor.Green);
+                //y++;
+                _renderer.Write(2, y, "=== ЭФФЕКТЫ ===", ConsoleColor.Green);
                 y++;
 
                 if (equipment.AttackBonus != 0)
@@ -353,7 +353,7 @@
             _renderer.BeginFrame();
             ClearScreen();
 
-            RenderHeader("ДЕЙСТВИЯ");
+            RenderHeader($"ДЕЙСТВИЯ : {_itemName}");
             RenderItemInfoAndActions();
             RenderFooter("W/S - выбор │ E - выполнить │ Q - назад");
 
@@ -381,62 +381,62 @@
                 y++;
             }
 
-            // ПРАВАЯ ЧАСТЬ - ИНФОРМАЦИЯ О ПРЕДМЕТЕ
-            y = 4;
-            int rightX = dividerX + 2;
+            //// ПРАВАЯ ЧАСТЬ - ИНФОРМАЦИЯ О ПРЕДМЕТЕ
+            //y = 4;
+            //int rightX = dividerX + 2;
 
-            // Заголовок ПРЕДМЕТ
-            _renderer.Write(rightX, y, "=== ПРЕДМЕТ ===", ConsoleColor.DarkCyan);
-            y += 1;
+            //// Заголовок ПРЕДМЕТ
+            //_renderer.Write(rightX, y, "=== ПРЕДМЕТ ===", ConsoleColor.DarkCyan);
+            //y += 1;
 
-            // Название предмета
-            _renderer.Write(rightX, y, _itemName, ConsoleColor.White);
-            y++;
+            //// Название предмета
+            //_renderer.Write(rightX, y, _itemName, ConsoleColor.White);
+            //y++;
 
-            // Статус экипировки
-            if (_isAlreadyEquipped)
-            {
-                _renderer.Write(rightX, y, "Статус: Экипировано", ConsoleColor.Green);
-                y++;
-            }
+            //// Статус экипировки
+            //if (_isAlreadyEquipped)
+            //{
+            //    _renderer.Write(rightX, y, "Статус: Экипировано", ConsoleColor.Green);
+            //    y++;
+            //}
 
-            // Тип предмета
-            string itemType = GetItemTypeText();
-            _renderer.Write(rightX, y, $"Тип: {itemType}", ConsoleColor.Cyan);
-            y++;
+            //// Тип предмета
+            //string itemType = GetItemTypeText();
+            //_renderer.Write(rightX, y, $"Тип: {itemType}", ConsoleColor.Cyan);
+            //y++;
 
-            // Количество (для предметов инвентаря)
-            if (_selectedItem is InventoryItem inventoryItem)
-            {
-                _renderer.Write(rightX, y, $"Количество: {inventoryItem.Quantity}");
-                y++;
-            }
+            //// Количество (для предметов инвентаря)
+            //if (_selectedItem is InventoryItem inventoryItem)
+            //{
+            //    _renderer.Write(rightX, y, $"Количество: {inventoryItem.Quantity}");
+            //    y++;
+            //}
 
-            // Цена
-            int price = GetItemPrice();
-            if (price > 0)
-            {
-                _renderer.Write(rightX, y, $"Цена: {price} золота", ConsoleColor.Yellow);
-                y++;
-            }
+            //// Цена
+            //int price = GetItemPrice();
+            //if (price > 0)
+            //{
+            //    _renderer.Write(rightX, y, $"Цена: {price} золота", ConsoleColor.Yellow);
+            //    y++;
+            //}
 
-            // Разделитель перед описанием
-            y++;
-            _renderer.Write(rightX, y, "=== ОПИСАНИЕ ===", ConsoleColor.DarkGray);
-            y += 2;
+            //// Разделитель перед описанием
+            //y++;
+            //_renderer.Write(rightX, y, "=== ОПИСАНИЕ ===", ConsoleColor.DarkGray);
+            //y += 2;
 
-            // Описание предмета
-            var descriptionLines = WrapText(_itemDescription, Console.WindowWidth - rightX - 2);
-            foreach (var line in descriptionLines)
-            {
-                if (y >= Console.WindowHeight - 4) break;
+            //// Описание предмета
+            //var descriptionLines = WrapText(_itemDescription, Console.WindowWidth - rightX - 2);
+            //foreach (var line in descriptionLines)
+            //{
+            //    if (y >= Console.WindowHeight - 4) break;
 
-                _renderer.Write(rightX, y, line, ConsoleColor.Gray);
-                y++;
-            }
+            //    _renderer.Write(rightX, y, line, ConsoleColor.Gray);
+            //    y++;
+            //}
 
-            // Вертикальный разделитель между секциями
-            RenderVerticalDivider(dividerX);
+            //// Вертикальный разделитель между секциями
+            //RenderVerticalDivider(dividerX);
         }
 
         private void RenderVerticalDivider(int x)
