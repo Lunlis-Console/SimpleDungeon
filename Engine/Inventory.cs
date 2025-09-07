@@ -30,7 +30,23 @@
 
         public void AddItem(Item item, int quantity = 1)
         {
-            InventoryItem existingItem = Items.FirstOrDefault(ii => ii.Details.ID == item.ID);
+
+            if (item == null)
+            {
+                var stackTrace = new System.Diagnostics.StackTrace();
+                DebugConsole.Log($"Попытка добавить null предмет. Вызов из: {stackTrace.ToString()}");
+                return;
+            }
+
+            if (Items == null)
+            {
+                DebugConsole.Log("Items list was null, initializing");
+                Items = new List<InventoryItem>();
+            }
+
+            InventoryItem existingItem = Items
+                .Where(ii => ii != null && ii.Details != null)
+                .FirstOrDefault(ii => ii.Details.ID == item.ID);
 
             if (existingItem != null)
             {

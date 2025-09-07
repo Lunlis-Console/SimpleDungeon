@@ -32,6 +32,8 @@ public static class DebugConsole
         _isVisible = true;
         _needsRedraw = true;
 
+        DebugConsole.Log("Инициализация консоли в Initialize()");
+
         Log("Консоль отладки инициализирована");
         Log($"Запись логов в файл: {Path.GetFullPath(_logFilePath)}");
     }
