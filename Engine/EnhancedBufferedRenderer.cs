@@ -1,4 +1,7 @@
-﻿using System.Text;
+﻿// EnhancedBufferedRenderer.cs
+using System;
+using System.Text;
+using System.Threading;
 
 namespace Engine
 {
@@ -20,12 +23,16 @@ namespace Engine
 
         public EnhancedBufferedRenderer()
         {
-            InitializeBuffers();
+            // Поддержка UTF-8 в консоли
+            try { Console.OutputEncoding = Encoding.UTF8; } catch { /* игнорируем, если не доступно */ }
+
+            ResizeBuffers();
             Console.CancelKeyPress += OnCancelKeyPress;
             Console.Clear();
+            _needsFullRedraw = true;
         }
 
-        private struct CharInfo
+        private struct CharInfo : IEquatable<CharInfo>
         {
             public char Character;
             public ConsoleColor Foreground;
@@ -44,27 +51,38 @@ namespace Engine
                        Foreground == other.Foreground &&
                        Background == other.Background;
             }
+
+            public override bool Equals(object obj) => obj is CharInfo ci && Equals(ci);
+
+            public override int GetHashCode() => HashCode.Combine(Character, Foreground, Background);
+
+            public static CharInfo Empty => new CharInfo(' ', ConsoleColor.Gray, ConsoleColor.Black);
         }
 
-        private void InitializeBuffers()
+        private void ResizeBuffers()
         {
             lock (_renderLock)
             {
-                // Добавляем проверку на минимальный размер
+                // Минимальные размеры, чтобы интерфейс не ломался
                 int minWidth = 80;
                 int minHeight = 24;
 
-                if (Console.WindowWidth < minWidth) Console.WindowWidth = minWidth;
-                if (Console.WindowHeight < minHeight) Console.WindowHeight = minHeight;
+                int targetWidth = Math.Max(minWidth, Console.WindowWidth > 0 ? Console.WindowWidth : minWidth);
+                int targetHeight = Math.Max(minHeight, Console.WindowHeight > 0 ? Console.WindowHeight : minHeight);
 
-                _width = Console.WindowWidth;
-                _height = Console.WindowHeight;
+                // Если размеры не изменились — ничего не делаем
+                if (_backBuffer != null && _frontBuffer != null && _width == targetWidth && _height == targetHeight)
+                    return;
+
+                _width = targetWidth;
+                _height = targetHeight;
 
                 _backBuffer = new CharInfo[_width, _height];
                 _frontBuffer = new CharInfo[_width, _height];
 
                 ClearBuffer(_backBuffer);
                 ClearBuffer(_frontBuffer);
+
                 _needsFullRedraw = true;
                 _windowResized = true;
             }
@@ -76,7 +94,7 @@ namespace Engine
             {
                 for (int x = 0; x < _width; x++)
                 {
-                    buffer[x, y] = new CharInfo(' ', ConsoleColor.Gray, ConsoleColor.Black);
+                    buffer[x, y] = CharInfo.Empty;
                 }
             }
         }
@@ -92,14 +110,14 @@ namespace Engine
                     // Проверяем изменение размера окна
                     if (Console.WindowWidth != _width || Console.WindowHeight != _height)
                     {
-                        DebugConsole.Log($"Window resized: {Console.WindowWidth}x{Console.WindowHeight}");
-                        InitializeBuffers();
+                        DebugConsole.Log($"[renderer] Window resized: {Console.WindowWidth}x{Console.WindowHeight}");
+                        ResizeBuffers();
                         _needsFullRedraw = true;
                     }
 
+                    // Очищаем backBuffer — это важно: если не очищать, останутся "хвосты"
                     ClearBuffer(_backBuffer);
                 }
-            
             }
             catch (Exception ex)
             {
@@ -115,11 +133,14 @@ namespace Engine
             lock (_renderLock)
             {
                 Render();
-                // Копируем back buffer в front buffer
-                Array.Copy(_backBuffer, _frontBuffer, _backBuffer.Length);
+                // NOTE: копирование back->front теперь происходит внутри RenderFull()/RenderPartial() после успешного вывода
             }
         }
 
+        /// <summary>
+        /// Пишет строку в back buffer (не обрезает — просто пишет символы).
+        /// При необходимости вызывающий код должен затирать остаток строки (или BeginFrame это сделает).
+        /// </summary>
         public void Write(int x, int y, string text, ConsoleColor foreground = ConsoleColor.White,
                          ConsoleColor background = ConsoleColor.Black)
         {
@@ -137,12 +158,18 @@ namespace Engine
                         _backBuffer[x + i, y] = new CharInfo(text[i], foreground, background);
                     }
                 }
+
+                // Оставшиеся позиции будут очищены в BeginFrame следующего кадра,
+                // либо вызывающий код может вручную заполнить пробелами, если нужно.
             }
         }
 
+        /// <summary>
+        /// Заполнить прямоугольную область в back buffer
+        /// </summary>
         public void FillArea(int x, int y, int width, int height, char fillChar = ' ',
-                            ConsoleColor foreground = ConsoleColor.White,
-                            ConsoleColor background = ConsoleColor.Black)
+                             ConsoleColor foreground = ConsoleColor.White,
+                             ConsoleColor background = ConsoleColor.Black)
         {
             if (_disposed) return;
 
@@ -176,18 +203,16 @@ namespace Engine
             {
                 if (_needsFullRedraw || _windowResized)
                 {
-                    //DebugConsole.Log("Calling RenderFull()");
-
                     RenderFull();
                     _needsFullRedraw = false;
                     _windowResized = false;
                 }
                 else
                 {
-                    DebugConsole.Log("Calling RenderPartial()");
-
                     RenderPartial();
                 }
+
+                _framesSinceFullRedraw++;
             }
             catch (Exception ex)
             {
@@ -196,52 +221,70 @@ namespace Engine
             }
         }
 
+        /// <summary>
+        /// Полная отрисовка: гарантированно перезаписывает всю видимую область,
+        /// рисует содержимое backBuffer и только после успешного вывода копирует back->front.
+        /// </summary>
         private void RenderFull()
         {
             try
             {
                 Console.CursorVisible = false;
 
-                // Вместо Console.Clear() используем построчный вывод
-                // это избегает мерцания от полной очистки экрана
+                // Ставим курсор в левый верхний угол
+                try { Console.SetCursorPosition(0, 0); } catch { /* ignore */ }
+
                 for (int y = 0; y < _height; y++)
                 {
-                    Console.SetCursorPosition(0, y);
-
-                    // Быстрый вывод всей строки сразу
-                    StringBuilder line = new StringBuilder();
-                    ConsoleColor currentFg = _frontBuffer[0, y].Foreground;
-                    ConsoleColor currentBg = _frontBuffer[0, y].Background;
-
-                    Console.ForegroundColor = currentFg;
-                    Console.BackgroundColor = currentBg;
-
-                    for (int x = 0; x < _width; x++)
+                    int x = 0;
+                    while (x < _width)
                     {
-                        var charInfo = _frontBuffer[x, y];
+                        // Берём начальный CharInfo и наращиваем сегмент с одинаковыми цветами
+                        var startInfo = _backBuffer[x, y];
+                        var fg = startInfo.Foreground;
+                        var bg = startInfo.Background;
+                        var sb = new StringBuilder();
 
-                        // Если цвет изменился, выводим накопленную строку
-                        if (charInfo.Foreground != currentFg || charInfo.Background != currentBg)
+                        int segStart = x;
+                        do
                         {
-                            Console.Write(line.ToString());
-                            line.Clear();
-                            currentFg = charInfo.Foreground;
-                            currentBg = charInfo.Background;
-                            Console.ForegroundColor = currentFg;
-                            Console.BackgroundColor = currentBg;
-                        }
+                            var ci = _backBuffer[x, y];
+                            char ch = ci.Character == '\0' ? ' ' : ci.Character;
+                            sb.Append(ch);
+                            x++;
+                            if (x >= _width) break;
+                        } while (_backBuffer[x, y].Foreground == fg && _backBuffer[x, y].Background == bg);
 
-                        line.Append(charInfo.Character);
+                        // Вывод сегмента
+                        try
+                        {
+                            Console.ForegroundColor = fg;
+                            Console.BackgroundColor = bg;
+                            Console.Write(sb.ToString());
+                        }
+                        catch (ArgumentOutOfRangeException) { /* окно могло измениться — игнорируем */ }
+                        catch (Exception) { /* молчим */ }
                     }
 
-                    // Выводим оставшуюся часть строки
-                    if (line.Length > 0)
+                    // Перейти к началу следующей строки, если нужно
+                    if (y < _height - 1)
                     {
-                        Console.Write(line.ToString());
+                        try { Console.SetCursorPosition(0, y + 1); } catch { /* ignore */ }
                     }
                 }
 
                 Console.ResetColor();
+
+                // Копируем back->front после успешной отрисовки
+                try
+                {
+                    Array.Copy(_backBuffer, _frontBuffer, _backBuffer.Length);
+                }
+                catch (Exception ex)
+                {
+                    DebugConsole.Log($"RenderFull copy error: {ex.Message}");
+                }
+
                 _needsFullRedraw = false;
             }
             catch (Exception ex)
@@ -251,27 +294,64 @@ namespace Engine
             }
         }
 
+        /// <summary>
+        /// Частичная отрисовка: перебираем отличающиеся ячейки/сегменты и выводим только их.
+        /// После вывода обновляем front buffer для тех позиций.
+        /// </summary>
         private void RenderPartial()
         {
             Console.CursorVisible = false;
 
             for (int y = 0; y < _height; y++)
             {
-                for (int x = 0; x < _width; x++)
+                int x = 0;
+                while (x < _width)
                 {
-                    if (!_backBuffer[x, y].Equals(_frontBuffer[x, y]))
+                    var back = _backBuffer[x, y];
+                    var front = _frontBuffer[x, y];
+
+                    if (back.Equals(front))
                     {
-                        try
-                        {
-                            Console.SetCursorPosition(x, y);
-                            Console.ForegroundColor = _backBuffer[x, y].Foreground;
-                            Console.BackgroundColor = _backBuffer[x, y].Background;
-                            Console.Write(_backBuffer[x, y].Character);
-                        }
-                        catch (ArgumentOutOfRangeException)
-                        {
-                            // Игнорируем ошибки позиционирования
-                        }
+                        x++;
+                        continue;
+                    }
+
+                    // Начинаем сегмент от x
+                    int segX = x;
+                    var fg = back.Foreground;
+                    var bg = back.Background;
+                    var sb = new StringBuilder();
+
+                    // Собираем сегмент пока ячейки отличаются и имеют одинаковые цвета
+                    do
+                    {
+                        var ci = _backBuffer[x, y];
+                        char ch = ci.Character == '\0' ? ' ' : ci.Character;
+                        sb.Append(ch);
+                        x++;
+                        if (x >= _width) break;
+
+                        // Останавливаемся если следующая позиция совпадает с front или имеет другие цвета
+                        if (_backBuffer[x, y].Equals(_frontBuffer[x, y])) break;
+                        if (_backBuffer[x, y].Foreground != fg || _backBuffer[x, y].Background != bg) break;
+
+                    } while (true);
+
+                    // Вывод сегмента и обновление frontBuffer для сегмента
+                    try
+                    {
+                        Console.SetCursorPosition(segX, y);
+                        Console.ForegroundColor = fg;
+                        Console.BackgroundColor = bg;
+                        Console.Write(sb.ToString());
+                    }
+                    catch (ArgumentOutOfRangeException) { /* окно могло измениться — игнорируем */ }
+                    catch { /* ignore */ }
+
+                    // Обновляем front buffer для позиций сегмента
+                    for (int ix = 0; ix < sb.Length && segX + ix < _width; ix++)
+                    {
+                        _frontBuffer[segX + ix, y] = _backBuffer[segX + ix, y];
                     }
                 }
             }
@@ -283,8 +363,8 @@ namespace Engine
         {
             if (Console.WindowWidth != _width || Console.WindowHeight != _height)
             {
-                DebugConsole.Log($"Window resize detected: {Console.WindowWidth}x{Console.WindowHeight}");
-                InitializeBuffers();
+                DebugConsole.Log($"[renderer] Window resize detected: {Console.WindowWidth}x{Console.WindowHeight}");
+                ResizeBuffers();
                 _windowResized = true;
                 return true;
             }
@@ -296,7 +376,7 @@ namespace Engine
             _needsFullRedraw = true;
         }
 
-        private void OnCancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        private void OnCancelKeyPress(object? sender, ConsoleCancelEventArgs e)
         {
             Dispose();
         }
@@ -307,9 +387,36 @@ namespace Engine
             {
                 _disposed = true;
                 Console.CancelKeyPress -= OnCancelKeyPress;
-                Console.ResetColor();
-                Console.Clear();
-                Console.CursorVisible = true;
+                try
+                {
+                    Console.ResetColor();
+                    Console.Clear();
+                    Console.CursorVisible = true;
+                }
+                catch { /* ignore */ }
+            }
+        }
+
+        // Диагностический помощник: дамп строки (удалите/закомментируйте в релизе)
+        public void DumpRowBuffers(int row, string path)
+        {
+            try
+            {
+                using (var sw = new System.IO.StreamWriter(path, append: true, encoding: Encoding.UTF8))
+                {
+                    sw.WriteLine($"--- ROW {row} DUMP ---");
+                    for (int x = 0; x < _width; x++)
+                    {
+                        var b = _backBuffer[x, row];
+                        var f = _frontBuffer[x, row];
+                        sw.WriteLine($"{x}: back='{b.Character}' fg={b.Foreground} bg={b.Background} | front='{f.Character}' fg={f.Foreground} bg={f.Background}");
+                    }
+                    sw.WriteLine();
+                }
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.Log($"DumpRowBuffers error: {ex.Message}");
             }
         }
     }

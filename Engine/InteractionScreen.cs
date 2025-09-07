@@ -7,6 +7,7 @@
         private int _selectedIndex;
         private List<WorldEntity> _interactableEntities;
 
+
         public InteractionScreen(Player player, Location location)
         {
             _player = player;
@@ -221,22 +222,79 @@
             }
         }
 
+        private BaseScreen _pendingScreenToPush = null;
+
         private void InteractWithMonster(Monster monster)
         {
-            var actions = new List<string> { "Атаковать", "Осмотреть", "Назад" };
-            ShowActionMenu($"Взаимодействие с {monster.Name}", actions, (selectedAction) =>
+            DebugConsole.Log("[interact] opening menu");
+            ShowActionMenu($"Взаимодействие с {monster.Name}", new List<string> { "Атаковать", "Осмотреть", "Назад" }, (sel) =>
             {
-                if (selectedAction == "Атаковать")
+                DebugConsole.Log("[interact] selected: " + sel);
+                if (sel == "Осмотреть")
                 {
-                    ScreenManager.PopScreen(); // Закрываем меню взаимодействия
+                    _pendingScreenToPush = new MonsterInspectScreen(monster);
+                    // ...
+                    if (_pendingScreenToPush != null)
+                    {
+                        ScreenManager.PushScreen(_pendingScreenToPush);
+                        _pendingScreenToPush = null;
+                        // После того, как вы добавили экран в стек:
+
+                        // Гарантируем, что движок знает о необходимости полной перерисовки:
+                        ScreenManager.RequestFullRedraw();
+                        GameServices.BufferedRenderer?.SetNeedsFullRedraw();
+
+                        // --- Диагностический принудительный рендер кадра (убрать в релизе) ---
+                        // Попробуем вызвать метод рендера у ScreenManager, если он есть.
+                        // Этот вызов ускоряет появление экрана в момент отладки.
+                        // Если у вас нет публичного метода RenderCurrentScreen, попытка будет безопасно проигнорирована.
+                        try
+                        {
+                            // 1) если есть метод RenderCurrentScreen(), вызовем его напрямую
+                            var smType = typeof(ScreenManager);
+                            var renderMethod = smType.GetMethod("RenderCurrentScreen", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+                                               ?? smType.GetMethod("Render", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+
+                            if (renderMethod != null)
+                            {
+                                renderMethod.Invoke(null, null);
+                            }
+                            else
+                            {
+                                // 2) В качестве крайней меры — попытаемся вызвать Render() у текущего скрина (если доступен)
+                                var current = smType.GetProperty("CurrentScreen", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)?.GetValue(null);
+                                if (current != null)
+                                {
+                                    var renderCur = current.GetType().GetMethod("Render", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+                                    renderCur?.Invoke(current, null);
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            // Логируем, но не ломаем выполнение
+                            DebugConsole.Log($"[diag] forced render failed: {ex.GetType().Name}: {ex.Message}");
+                        }
+
+                    }
+                }
+                else if (sel == "Атаковать")
+                {
                     _player.StartCombat(monster);
                 }
-                else if (selectedAction == "Осмотреть")
-                {
-                    monster.Examine(_player);
-                }
             });
+
+            DebugConsole.Log("[interact] menu closed, pending: " + (_pendingScreenToPush != null));
+            if (_pendingScreenToPush != null)
+            {
+                ScreenManager.PushScreen(_pendingScreenToPush);
+                _pendingScreenToPush = null;
+                ScreenManager.RequestFullRedraw();
+                DebugConsole.Log("[interact] pushed inspect screen");
+            }
         }
+
+
 
         private void InteractWithNPC(NPC npc)
         {
@@ -280,6 +338,7 @@
 
             while (inMenu)
             {
+                // Рисуем меню
                 _renderer.BeginFrame();
                 ClearScreen();
 
@@ -302,26 +361,65 @@
                 RenderFooter("W/S - выбор │ E - выбрать │ Q - назад");
                 _renderer.EndFrame();
 
+                // Если консоль видима, нарисуем её поверх (чтобы было видно)
+                try
+                {
+                    if (DebugConsole.Enabled && DebugConsole.IsVisible)
+                    {
+                        DebugConsole.GlobalDraw();
+                    }
+                }
+                catch { /* не критично */ }
+
+                // Ждём клавишу
                 var key = Console.ReadKey(true);
+
+                // 1) Глобальная горячая клавиша для консоли — обрабатываем прямо в меню
+                if (key.Key == ConsoleKey.F3)
+                {
+                    DebugConsole.Toggle();
+                    // Перерисуем меню/экран целиком чтобы скрыть/показать следы консоли
+                    ScreenManager.RequestFullRedraw();
+                    continue; // не обрабатываем дальше эту клавишу в меню
+                }
+
+                // 2) Если консоль видима — передаём ввод консоли вместо меню
+                if (DebugConsole.Enabled && DebugConsole.IsVisible)
+                {
+                    // Передаём клавишу в консоль (она сама обновит внутреннее состояние)
+                    DebugConsole.ProcessInput(key);
+                    // Обновим консольное отображение сразу
+                    try { DebugConsole.GlobalDraw(); } catch { }
+                    continue; // пропускаем обработку меню пока консоль активна
+                }
+
+                // 3) Обычная обработка клавиш меню
                 switch (key.Key)
                 {
                     case ConsoleKey.W:
+                    case ConsoleKey.UpArrow:
                         selectedIndex = Math.Max(0, selectedIndex - 1);
                         break;
                     case ConsoleKey.S:
+                    case ConsoleKey.DownArrow:
                         selectedIndex = Math.Min(actions.Count - 1, selectedIndex + 1);
                         break;
                     case ConsoleKey.E:
-                        onActionSelected(actions[selectedIndex]);
+                    case ConsoleKey.Enter:
+                        // вызов колбэка выбора
+                        try { onActionSelected(actions[selectedIndex]); } catch { }
                         inMenu = false;
                         break;
                     case ConsoleKey.Q:
+                    case ConsoleKey.Escape:
                         inMenu = false;
                         break;
                 }
             }
 
+            // После выхода из меню — обновляем экран и даём шанс нарисовать консоль/экран
             ScreenManager.RequestPartialRedraw();
+            try { if (DebugConsole.Enabled && DebugConsole.IsVisible) DebugConsole.GlobalDraw(); } catch { }
         }
     }
 }

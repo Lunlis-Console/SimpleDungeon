@@ -9,9 +9,11 @@ public static class ScreenManager
     public static int ScreenCount => _screenStack.Count;
     public static BaseScreen CurrentScreen => _screenStack.Count > 0 ? _screenStack.Peek() : null;
 
+    // В ScreenManager.PushScreen
     public static void PushScreen(BaseScreen screen)
     {
         _screenStack.Push(screen);
+        DebugConsole.Log($"[screenmanager] PushScreen: {screen?.GetType().Name}");
         RequestFullRedraw();
     }
 
@@ -35,18 +37,26 @@ public static class ScreenManager
         }
     }
 
+    // В методе, который вызывает Render у активного экрана (или внутри ScreenManager.Render)
     public static void RenderCurrentScreen()
     {
-        var currentScreen = CurrentScreen;
-        if (currentScreen != null && _needsRedraw)
+        var cur = ScreenManager.CurrentScreen;
+        if (cur != null)
         {
-            if (_needsFullRedraw)
+            try
             {
-                GameServices.BufferedRenderer.SetNeedsFullRedraw();
+                DebugConsole.Log($"[screenmanager] about to Render {cur.GetType().Name}");
+                cur.Render();
             }
-
-            currentScreen.Render();
-            //_needsRedraw = false;
+            catch (Exception ex)
+            {
+                DebugConsole.Log($"[screenmanager] Render of {cur.GetType().Name} threw {ex.GetType().Name}: {ex.Message}");
+                DebugConsole.Log(ex.StackTrace ?? "");
+            }
+        }
+        else
+        {
+            DebugConsole.Log("[screenmanager] CurrentScreen is NULL in render loop");
         }
     }
 
