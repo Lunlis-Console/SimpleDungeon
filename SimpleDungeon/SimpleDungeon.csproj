@@ -11,4 +11,28 @@
     <ProjectReference Include="..\Engine\Engine.csproj" />
   </ItemGroup>
 
+	<ItemGroup>
+		<Content Include="Data\game_data.json" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
+
+	<Target Name="BackupGameData" AfterTargets="Build">
+		<PropertyGroup>
+			<BackupDir>$(OutputPath)Backups\</BackupDir>
+			<TimeStamp>$([System.DateTime]::Now.ToString("yyyyMMdd_HHmmss"))</TimeStamp>
+		</PropertyGroup>
+
+		<!-- Создаём папку Backups -->
+		<MakeDir Directories="$(BackupDir)" />
+
+		<!-- Создаём новый бэкап -->
+		<Copy
+		  SourceFiles="$(OutputPath)Data\game_data.json"
+		  DestinationFiles="$(BackupDir)game_data_$(TimeStamp).json"
+		  SkipUnchangedFiles="false"
+		  OverwriteReadOnlyFiles="true" />
+	</Target>
+
+
+
+
 </Project>

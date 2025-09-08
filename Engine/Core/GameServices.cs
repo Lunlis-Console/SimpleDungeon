@@ -1,7 +1,12 @@
 ﻿using Engine.Combat;
+using Engine.Data;
 using Engine.Factories;
+using Engine.Saving;
 using Engine.World;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
 
 namespace Engine.Core
 {
@@ -44,38 +49,109 @@ namespace Engine.Core
                     string fullPath = Path.GetFullPath(jsonPath);
 
                     DebugConsole.Log($"Путь к JSON: {fullPath}");
-                    DebugConsole.Log($"Файл существует: {File.Exists(jsonPath)}");
-                    DebugConsole.Log($"Директория существует: {Directory.Exists(Path.GetDirectoryName(jsonPath))}");
+                    DebugConsole.Log($"Файл существует: {File.Exists(fullPath)}");
+                    DebugConsole.Log($"Директория существует: {Directory.Exists(Path.GetDirectoryName(fullPath))}");
 
-                    if (!File.Exists(jsonPath))
+                    if (!File.Exists(fullPath))
                     {
                         throw new FileNotFoundException($"JSON файл не найден: {fullPath}");
                     }
 
-                    // Пытаемся загрузить из JSON
-                    if (File.Exists(jsonPath))
-                    {
-                        try
-                        {
-                            _worldRepository = new JsonWorldRepository(jsonPath);
-                            DebugConsole.Log("Данные загружены из JSON");
-                        }
-                        catch (Exception ex)
-                        {
-                            DebugConsole.Log($"❌ Ошибка загрузки JSON: {ex.Message}");
-                            // Fallback больше не нужен!
-                            throw new Exception("Не удалось загрузить игровые данные из JSON");
-                        }
-                    }
-                    else
-                    {
-                        throw new Exception($"JSON файл не найден: {jsonPath}");
-                    }
+                    _worldRepository = new JsonWorldRepository(fullPath);
+                    DebugConsole.Log($"JsonWorldRepository instance type: {_worldRepository.GetType().FullName}");
                 }
+
                 return _worldRepository;
             }
             set => _worldRepository = value;
         }
+
+        // Форматирование mapping вида Dictionary<string, Dictionary<int,int>>
+        private static string FormatMapping(Dictionary<string, Dictionary<int, int>> mapping)
+        {
+            if (mapping == null || mapping.Count == 0) return "(no mapping)";
+            var sb = new StringBuilder();
+            foreach (var typeKv in mapping)
+            {
+                sb.AppendLine(typeKv.Key + ":");
+                if (typeKv.Value == null || typeKv.Value.Count == 0)
+                {
+                    sb.AppendLine("  (no changes)");
+                    continue;
+                }
+                foreach (var kv in typeKv.Value)
+                    sb.AppendLine($"  {kv.Key} -> {kv.Value}");
+            }
+            return sb.ToString();
+        }
+
+        private static void LogDuplicatesVerbose(GameData data)
+        {
+            if (data == null) return;
+
+            void LogFor<T>(IEnumerable<T> list, string typeName)
+            {
+                if (list == null) return;
+                var idProp = typeof(T).GetProperty("ID") ?? typeof(T).GetProperty("Id");
+                var nameProp = typeof(T).GetProperty("Name") ?? typeof(T).GetProperty("Title") ?? typeof(T).GetProperty("Id");
+                if (idProp == null) return;
+
+                var groups = list.Cast<object>()
+                                 .GroupBy(x => (int)idProp.GetValue(x))
+                                 .Where(g => g.Count() > 1);
+
+                foreach (var g in groups)
+                {
+                    var id = g.Key;
+                    var names = g.Select(x =>
+                    {
+                        if (nameProp != null) return nameProp.GetValue(x)?.ToString() ?? "<no-name>";
+                        return x.ToString();
+                    });
+                    DebugConsole.Log($"Duplicate {typeName} ID={id}: {string.Join(", ", names)}");
+                }
+            }
+
+            LogFor(data.Items, "Item");
+            LogFor(data.Monsters, "Monster");
+            LogFor(data.NPCs, "NPC");
+            LogFor(data.Locations, "Location");
+            LogFor(data.Quests, "Quest");
+            LogFor(data.Titles, "Title");
+        }
+
+        // Простейшая запись GameData в файл с бэкапом. Не полагаемся на SaveManager, чтобы избежать ошибок.
+        private static void SaveGameData(GameData data, string path)
+        {
+            try
+            {
+                // бэкап
+                if (File.Exists(path))
+                {
+                    var bak = path + ".bak";
+                    File.Copy(path, bak, overwrite: true);
+                    DebugConsole.Log($"Создан бэкап {bak}");
+                }
+
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+                };
+                options.Converters.Add(new JsonStringEnumConverter());
+
+                var json = JsonSerializer.Serialize(data, options);
+                File.WriteAllText(path, json);
+                DebugConsole.Log($"Сохранён исправленный JSON в {path}");
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.Log($"Ошибка при сохранении исправленного JSON: {ex.Message}");
+                // не ломаем процесс — просто логгируем
+            }
+        }
+
         public static IOutputService OutputService
         {
             get => _outputService ??= new ConsoleOutputService();

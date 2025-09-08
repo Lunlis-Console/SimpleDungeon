@@ -1,14 +1,17 @@
 ﻿// JsonWorldRepository.cs
+using Engine.Core;
 using Engine.Data;
 using Engine.Entities;
 using Engine.Quests;
 using Engine.Titles;
+using Engine.Trading;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
-using Engine.Trading;
+using System.Text.Json.Serialization;
 
 namespace Engine.World
 {
@@ -22,43 +25,213 @@ namespace Engine.World
         private Dictionary<int, NPC> _npcs;
         private Dictionary<int, Title> _titles;
 
+        private readonly JsonSerializerOptions _jsonOptions;
+
         public JsonWorldRepository(string jsonFilePath)
         {
+            if (string.IsNullOrWhiteSpace(jsonFilePath))
+                throw new ArgumentException("jsonFilePath is null or empty", nameof(jsonFilePath));
+
+            _jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                WriteIndented = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
+            _jsonOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+
             LoadFromJson(jsonFilePath);
         }
 
+        // --- подробный лог дублей
+        private void LogDuplicatesVerbose(GameData data)
+        {
+            if (data == null) return;
 
+            void LogFor<T>(IEnumerable<T> list, string typeName)
+            {
+                if (list == null) return;
+                var idProp = typeof(T).GetProperty("ID") ?? typeof(T).GetProperty("Id");
+                var nameProp = typeof(T).GetProperty("Name") ?? typeof(T).GetProperty("Title") ?? typeof(T).GetProperty("Id");
+                if (idProp == null) return;
+
+                var groups = list.Cast<object>()
+                                 .GroupBy(x => (int)idProp.GetValue(x))
+                                 .Where(g => g.Count() > 1);
+
+                foreach (var g in groups)
+                {
+                    var id = g.Key;
+                    var names = g.Select(x =>
+                    {
+                        if (nameProp != null) return nameProp.GetValue(x)?.ToString() ?? "<no-name>";
+                        return x.ToString();
+                    });
+                    DebugConsole.Log($"Duplicate {typeName} ID={id}: {string.Join(", ", names)}");
+                }
+            }
+
+            LogFor(data.Items, "Item");
+            LogFor(data.Monsters, "Monster");
+            LogFor(data.NPCs, "NPC");
+            LogFor(data.Locations, "Location");
+            LogFor(data.Quests, "Quest");
+            LogFor(data.Titles, "Title");
+        }
 
         public void LoadFromJson(string jsonFilePath)
         {
             try
             {
-                DebugConsole.Log($"Загрузка JSON из: {jsonFilePath}");
-                string json = File.ReadAllText(jsonFilePath);
-                DebugConsole.Log($"Размер файла: {json.Length} символов");
+                DebugConsole.Log($"[LoadFromJson] START. Path: {jsonFilePath}");
+                Console.WriteLine($"[LoadFromJson] START. Path: {jsonFilePath}");
 
-                // Проверяем валидность JSON
+                if (!File.Exists(jsonFilePath))
+                {
+                    DebugConsole.Log($"[LoadFromJson] File not found: {jsonFilePath}");
+                    Console.WriteLine($"[LoadFromJson] File not found: {jsonFilePath}");
+                    throw new FileNotFoundException($"JSON файл не найден: {jsonFilePath}");
+                }
+
+                string json;
+                try
+                {
+                    json = File.ReadAllText(jsonFilePath);
+                }
+                catch (Exception ex)
+                {
+                    DebugConsole.Log($"[LoadFromJson] Ошибка чтения файла: {ex.Message}");
+                    Console.WriteLine($"[LoadFromJson] Ошибка чтения файла: {ex}");
+                    throw;
+                }
+
+                DebugConsole.Log($"[LoadFromJson] Размер файла: {json?.Length ?? 0} символов");
+                Console.WriteLine($"[LoadFromJson] Размер файла: {json?.Length ?? 0} символов");
+
                 if (string.IsNullOrWhiteSpace(json))
                 {
+                    DebugConsole.Log("[LoadFromJson] JSON пустой");
+                    Console.WriteLine("[LoadFromJson] JSON пустой");
                     throw new Exception("JSON файл пустой");
                 }
 
-                _gameData = JsonSerializer.Deserialize<GameData>(json);
-                DebugConsole.Log("JSON десериализован успешно");
+                // Десериализация
+                try
+                {
+                    _gameData = JsonSerializer.Deserialize<GameData>(json, _jsonOptions) ?? new GameData();
+                    DebugConsole.Log("[LoadFromJson] JSON десериализован успешно");
+                    Console.WriteLine("[LoadFromJson] JSON десериализован успешно");
+                    DebugConsole.Log($"[LoadFromJson] Counts: Items={_gameData?.Items?.Count ?? 0}, Monsters={_gameData?.Monsters?.Count ?? 0}, NPCs={_gameData?.NPCs?.Count ?? 0}, Quests={_gameData?.Quests?.Count ?? 0}, Locations={_gameData?.Locations?.Count ?? 0}");
+                    Console.WriteLine($"[LoadFromJson] Counts: Items={_gameData?.Items?.Count ?? 0}, Monsters={_gameData?.Monsters?.Count ?? 0}, NPCs={_gameData?.NPCs?.Count ?? 0}, Quests={_gameData?.Quests?.Count ?? 0}, Locations={_gameData?.Locations?.Count ?? 0}");
+                }
+                catch (JsonException jex)
+                {
+                    DebugConsole.Log($"[LoadFromJson] JsonException: {jex.Message} at {jex.BytePositionInLine}");
+                    Console.WriteLine($"[LoadFromJson] JsonException: {jex}");
+                    throw;
+                }
 
-                InitializeFromGameData();
-            }
-            catch (JsonException ex)
-            {
-                DebugConsole.Log($"Ошибка JSON: {ex.Message}");
-                DebugConsole.Log($"Позиция ошибки: {ex.BytePositionInLine}");
-                throw new Exception($"Невалидный JSON файл: {ex.Message}", ex);
+                // Валидация уникальности ID
+                var errors = UniqueIdHelper.ValidateUniqueIds(_gameData);
+                DebugConsole.Log($"[LoadFromJson] UniqueIdHelper returned {errors.Count} errors");
+                Console.WriteLine($"[LoadFromJson] UniqueIdHelper returned {errors.Count} errors");
+
+                if (errors.Any())
+                {
+                    // подробный лог дублей
+                    DebugConsole.Log("[LoadFromJson] ПОДРОБНЫЕ ДУБЛИ (если есть):");
+                    Console.WriteLine("[LoadFromJson] ПОДРОБНЫЕ ДУБЛИ (если есть):");
+                    LogDuplicatesVerbose(_gameData);
+
+                    DebugConsole.Log("[LoadFromJson] Errors: " + string.Join(" | ", errors));
+                    Console.WriteLine("[LoadFromJson] Errors: " + string.Join(" | ", errors));
+
+#if DEBUG
+                    DebugConsole.Log("[LoadFromJson] DEBUG mode: attempting auto-fix of duplicates...");
+                    Console.WriteLine("[LoadFromJson] DEBUG mode: attempting auto-fix of duplicates...");
+
+                    var mappingPerType = UniqueIdHelper.FixDuplicateIds(_gameData);
+                    DebugConsole.Log("[LoadFromJson] Auto-fixed mapping:\n" + FormatMapping(mappingPerType));
+                    Console.WriteLine("[LoadFromJson] Auto-fixed mapping:\n" + FormatMapping(mappingPerType));
+
+                    // Создаем бэкап и записываем исправленный файл
+                    try
+                    {
+                        var bak = jsonFilePath + ".bak";
+                        File.Copy(jsonFilePath, bak, overwrite: true);
+                        DebugConsole.Log($"[LoadFromJson] Backup created: {bak}");
+                        Console.WriteLine($"[LoadFromJson] Backup created: {bak}");
+
+                        var newJson = JsonSerializer.Serialize(_gameData, _jsonOptions);
+                        File.WriteAllText(jsonFilePath, newJson);
+                        DebugConsole.Log($"[LoadFromJson] Fixed GameData saved to: {jsonFilePath}");
+                        Console.WriteLine($"[LoadFromJson] Fixed GameData saved to: {jsonFilePath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        DebugConsole.Log($"[LoadFromJson] Failed to save fixed GameData: {ex.Message}");
+                        Console.WriteLine($"[LoadFromJson] Failed to save fixed GameData: {ex}");
+                    }
+#else
+            // В релизе — fail fast, чтобы не запускать игру с неконсистентными данными
+            DebugConsole.Log("[LoadFromJson] RELEASE mode: throwing due to duplicate IDs");
+            Console.WriteLine("[LoadFromJson] RELEASE mode: throwing due to duplicate IDs");
+            throw new Exception("Duplicate IDs found in game data. Please fix data using the editor.");
+#endif
+                }
+                else
+                {
+                    DebugConsole.Log("[LoadFromJson] UniqueIdHelper found no duplicates");
+                    Console.WriteLine("[LoadFromJson] UniqueIdHelper found no duplicates");
+                }
+
+                // Продолжаем инициализацию runtime-структур
+                try
+                {
+                    DebugConsole.Log("[LoadFromJson] Calling InitializeFromGameData...");
+                    Console.WriteLine("[LoadFromJson] Calling InitializeFromGameData...");
+                    InitializeFromGameData();
+                    DebugConsole.Log("[LoadFromJson] InitializeFromGameData completed");
+                    Console.WriteLine("[LoadFromJson] InitializeFromGameData completed");
+                }
+                catch (Exception ex)
+                {
+                    DebugConsole.Log($"[LoadFromJson] Ошибка в InitializeFromGameData: {ex.Message}");
+                    Console.WriteLine($"[LoadFromJson] Ошибка в InitializeFromGameData: {ex}");
+                    throw;
+                }
+
+                DebugConsole.Log("[LoadFromJson] END");
+                Console.WriteLine("[LoadFromJson] END");
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"Ошибка загрузки: {ex.Message}");
+                DebugConsole.Log($"[LoadFromJson] Unhandled exception: {ex.Message}");
+                Console.WriteLine($"[LoadFromJson] Unhandled exception: {ex}");
                 throw;
             }
+        }
+
+        private string FormatMapping(Dictionary<string, Dictionary<int, int>> mapping)
+        {
+            if (mapping == null || mapping.Count == 0) return "(no mapping)";
+
+            var sb = new StringBuilder();
+            foreach (var typeKv in mapping)
+            {
+                sb.AppendLine($"{typeKv.Key}:");
+                if (typeKv.Value == null || typeKv.Value.Count == 0)
+                {
+                    sb.AppendLine("  (no changes)");
+                    continue;
+                }
+
+                foreach (var kv in typeKv.Value)
+                {
+                    sb.AppendLine($"  {kv.Key} -> {kv.Value}");
+                }
+            }
+            return sb.ToString();
         }
 
         private void InitializeFromGameData()
@@ -69,49 +242,67 @@ namespace Engine.World
             _items = new Dictionary<int, Item>();
             _monsters = new Dictionary<int, Monster>();
             _locations = new Dictionary<int, Location>();
-            _quests = new Dictionary<int, Quest>();  // ← ДОБАВЬТЕ ЭТУ СТРОЧКУ
+            _quests = new Dictionary<int, Quest>();
             _npcs = new Dictionary<int, NPC>();
             _titles = new Dictionary<int, Title>();
 
-            // Очищаем дубликаты в предметах
-            _items = _gameData.Items
-                .GroupBy(item => item.ID)  // Группируем по ID
-                .Select(group => group.First())  // Берем первый из каждой группы
-                .ToDictionary(item => item.ID, item => CreateItemFromData(item));
+            // Items
+            if (_gameData.Items != null)
+            {
+                _items = _gameData.Items
+                    .GroupBy(item => item.ID)
+                    .Select(group => group.First())
+                    .ToDictionary(item => item.ID, item => CreateItemFromData(item));
+            }
 
-            // Загрузка монстров
-            _monsters = _gameData.Monsters
-                .GroupBy(m => m.ID)
-                .Select(g => g.First())
-                .ToDictionary(m => m.ID, m => CreateMonsterFromData(m));
+            // Monsters
+            if (_gameData.Monsters != null)
+            {
+                _monsters = _gameData.Monsters
+                    .GroupBy(m => m.ID)
+                    .Select(g => g.First())
+                    .ToDictionary(m => m.ID, m => CreateMonsterFromData(m));
+            }
 
             DebugConsole.Log($"Загружено: {_items.Count} предметов, {_monsters.Count} монстров");
 
-            // Загрузка NPC
-            _npcs = _gameData.NPCs
-                .GroupBy(m => m.ID)
-                .Select(g => g.First())
-                .ToDictionary(m => m.ID, m => CreateNPCFromData(m));
+            // NPCs
+            if (_gameData.NPCs != null)
+            {
+                _npcs = _gameData.NPCs
+                    .GroupBy(m => m.ID)
+                    .Select(g => g.First())
+                    .ToDictionary(m => m.ID, m => CreateNPCFromData(m));
+            }
 
-
-            // Загрузка квестов
-            _quests = _gameData.Quests
-                .GroupBy(m => m.ID)
-                .Select(g => g.First())
-                .ToDictionary(m => m.ID, m => CreateQuestFromData(m));
+            // Quests
+            if (_gameData.Quests != null)
+            {
+                _quests = _gameData.Quests
+                    .GroupBy(m => m.ID)
+                    .Select(g => g.First())
+                    .ToDictionary(m => m.ID, m => CreateQuestFromData(m));
+            }
 
             DebugConsole.Log($"Загружено: {_npcs.Count} NPC, {_quests.Count} квестов");
 
-            // Загрузка титулов
-             _titles = _gameData.Titles
-                .GroupBy(m => m.ID)
-                .Select(g => g.First())
-                .ToDictionary(m => m.ID, m => CreateTitleFromData(m));
+            // Titles
+            if (_gameData.Titles != null)
+            {
+                _titles = _gameData.Titles
+                    .GroupBy(m => m.ID)
+                    .Select(g => g.First())
+                    .ToDictionary(m => m.ID, m => CreateTitleFromData(m));
+            }
 
-            _locations = _gameData.Locations
-                .GroupBy(m => m.ID)
-                .Select(g => g.First())
-                .ToDictionary(m => m.ID, m => CreateLocationFromData(m));
+            // Locations (после того как NPCs/Monsters созданы)
+            if (_gameData.Locations != null)
+            {
+                _locations = _gameData.Locations
+                    .GroupBy(m => m.ID)
+                    .Select(g => g.First())
+                    .ToDictionary(m => m.ID, m => CreateLocationFromData(m));
+            }
 
             DebugConsole.Log($"Загружено: {_titles.Count} титулов, {_locations.Count} локаций");
 
@@ -121,6 +312,8 @@ namespace Engine.World
 
         private Item CreateItemFromData(ItemData itemData)
         {
+            if (itemData == null) return null;
+
             if (itemData.AmountToHeal.HasValue)
             {
                 return new HealingItem(
@@ -164,6 +357,8 @@ namespace Engine.World
 
         private Monster CreateMonsterFromData(MonsterData monsterData)
         {
+            if (monsterData == null) return null;
+
             var monster = new Monster(
                 monsterData.ID,
                 monsterData.Name,
@@ -175,16 +370,19 @@ namespace Engine.World
                 monsterData.Attributes
             );
 
-            foreach (var lootItemData in monsterData.LootTable)
+            if (monsterData.LootTable != null)
             {
-                var item = ItemByID(lootItemData.ItemID);
-                if (item != null)
+                foreach (var lootItemData in monsterData.LootTable)
                 {
-                    monster.LootTable.Add(new LootItem(
-                        item,
-                        lootItemData.DropPercentage,
-                        lootItemData.IsUnique
-                    ));
+                    var item = ItemByID(lootItemData.ItemID);
+                    if (item != null)
+                    {
+                        monster.LootTable.Add(new LootItem(
+                            item,
+                            lootItemData.DropPercentage,
+                            lootItemData.IsUnique
+                        ));
+                    }
                 }
             }
 
@@ -193,15 +391,20 @@ namespace Engine.World
 
         private NPC CreateNPCFromData(NPCData npcData)
         {
+            if (npcData == null) return null;
+
             var npc = new NPC(npcData.ID, npcData.Name, npcData.Greeting, this);
 
-            // Добавление квестов
-            foreach (var questId in npcData.QuestsToGive)
+            // Добавление квестов (если список присутствует)
+            if (npcData.QuestsToGive != null)
             {
-                var quest = QuestByID(questId);
-                if (quest != null)
+                foreach (var questId in npcData.QuestsToGive)
                 {
-                    npc.QuestsToGive.Add(quest);
+                    var quest = QuestByID(questId);
+                    if (quest != null)
+                    {
+                        npc.QuestsToGive.Add(quest);
+                    }
                 }
             }
 
@@ -214,12 +417,15 @@ namespace Engine.World
                     npcData.Merchant.Gold
                 );
 
-                foreach (var itemData in npcData.Merchant.ItemsForSale)
+                if (npcData.Merchant.ItemsForSale != null)
                 {
-                    var item = ItemByID(itemData.ItemID);
-                    if (item != null)
+                    foreach (var itemData in npcData.Merchant.ItemsForSale)
                     {
-                        merchant.ItemsForSale.Add(new InventoryItem(item, itemData.Quantity));
+                        var item = ItemByID(itemData.ItemID);
+                        if (item != null)
+                        {
+                            merchant.ItemsForSale.Add(new InventoryItem(item, itemData.Quantity));
+                        }
                     }
                 }
 
@@ -231,6 +437,8 @@ namespace Engine.World
 
         private Quest CreateQuestFromData(QuestData questData)
         {
+            if (questData == null) return null;
+
             NPC questGiver = null;
             if (questData.QuestGiverID.HasValue)
             {
@@ -239,7 +447,7 @@ namespace Engine.World
 
             Quest quest;
 
-            if (questData.QuestType == "Collectible")
+            if (string.Equals(questData.QuestType, "Collectible", StringComparison.OrdinalIgnoreCase))
             {
                 quest = new CollectibleQuest(
                     questData.ID,
@@ -253,13 +461,16 @@ namespace Engine.World
                 );
 
                 var collectibleQuest = (CollectibleQuest)quest;
-                foreach (var spawnData in questData.SpawnLocations)
+                if (questData.SpawnLocations != null)
                 {
-                    collectibleQuest.SpawnLocations.Add(new CollectibleSpawn(
-                        spawnData.LocationID,
-                        spawnData.ItemID,
-                        spawnData.Quantity
-                    ));
+                    foreach (var spawnData in questData.SpawnLocations)
+                    {
+                        collectibleQuest.SpawnLocations.Add(new CollectibleSpawn(
+                            spawnData.LocationID,
+                            spawnData.ItemID,
+                            spawnData.Quantity
+                        ));
+                    }
                 }
             }
             else
@@ -275,22 +486,28 @@ namespace Engine.World
             }
 
             // Добавление квестовых предметов
-            foreach (var questItemData in questData.QuestItems)
+            if (questData.QuestItems != null)
             {
-                var item = ItemByID(questItemData.ItemID);
-                if (item != null)
+                foreach (var questItemData in questData.QuestItems)
                 {
-                    quest.QuestItems.Add(new QuestItem(item, questItemData.Quantity));
+                    var item = ItemByID(questItemData.ItemID);
+                    if (item != null)
+                    {
+                        quest.QuestItems.Add(new QuestItem(item, questItemData.Quantity));
+                    }
                 }
             }
 
             // Добавление наград
-            foreach (var rewardItemData in questData.RewardItems)
+            if (questData.RewardItems != null)
             {
-                var item = ItemByID(rewardItemData.ItemID);
-                if (item != null)
+                foreach (var rewardItemData in questData.RewardItems)
                 {
-                    quest.RewardItems.Add(new InventoryItem(item, rewardItemData.Quantity));
+                    var item = ItemByID(rewardItemData.ItemID);
+                    if (item != null)
+                    {
+                        quest.RewardItems.Add(new InventoryItem(item, rewardItemData.Quantity));
+                    }
                 }
             }
 
@@ -299,6 +516,8 @@ namespace Engine.World
 
         private Title CreateTitleFromData(TitleData titleData)
         {
+            if (titleData == null) return null;
+
             return new Title(
                 titleData.ID,
                 titleData.Name,
@@ -317,14 +536,19 @@ namespace Engine.World
 
         private Location CreateLocationFromData(LocationData locationData)
         {
+            if (locationData == null) return null;
+
             var monsterTemplates = new List<Monster>();
-            foreach (var spawnData in locationData.MonsterSpawns)
+            if (locationData.MonsterSpawns != null)
             {
-                var baseMonster = MonsterByID(spawnData.MonsterTemplateID);
-                if (baseMonster != null)
+                foreach (var spawnData in locationData.MonsterSpawns)
                 {
-                    // Создаем нового монстра с нужным уровнем
-                    monsterTemplates.Add(new Monster(baseMonster, spawnData.Level));
+                    var baseMonster = MonsterByID(spawnData.MonsterTemplateID);
+                    if (baseMonster != null)
+                    {
+                        // Создаем нового монстра с нужным уровнем
+                        monsterTemplates.Add(new Monster(baseMonster, spawnData.Level));
+                    }
                 }
             }
 
@@ -337,12 +561,15 @@ namespace Engine.World
             );
 
             // Добавление NPC
-            foreach (var npcId in locationData.NPCsHere)
+            if (locationData.NPCsHere != null)
             {
-                var npc = NPCByID(npcId);
-                if (npc != null)
+                foreach (var npcId in locationData.NPCsHere)
                 {
-                    location.NPCsHere.Add(npc);
+                    var npc = NPCByID(npcId);
+                    if (npc != null)
+                    {
+                        location.NPCsHere.Add(npc);
+                    }
                 }
             }
 
@@ -351,6 +578,8 @@ namespace Engine.World
 
         private void EstablishLocationConnections()
         {
+            if (_gameData?.Locations == null) return;
+
             foreach (var locationData in _gameData.Locations)
             {
                 var location = LocationByID(locationData.ID);
@@ -369,23 +598,23 @@ namespace Engine.World
         }
 
         // Реализация методов интерфейса IWorldRepository
-        public Item ItemByID(int id) => _items.ContainsKey(id) ? _items[id] : null;
-        public Monster MonsterByID(int id) => _monsters.ContainsKey(id) ? _monsters[id] : null;
-        public Location LocationByID(int id) => _locations.ContainsKey(id) ? _locations[id] : null;
-        public Quest QuestByID(int id) => _quests.ContainsKey(id) ? _quests[id] : null;
-        public NPC NPCByID(int id) => _npcs.ContainsKey(id) ? _npcs[id] : null;
-        public Title TitleByID(int id) => _titles.ContainsKey(id) ? _titles[id] : null;
+        public Item ItemByID(int id) => _items != null && _items.ContainsKey(id) ? _items[id] : null;
+        public Monster MonsterByID(int id) => _monsters != null && _monsters.ContainsKey(id) ? _monsters[id] : null;
+        public Location LocationByID(int id) => _locations != null && _locations.ContainsKey(id) ? _locations[id] : null;
+        public Quest QuestByID(int id) => _quests != null && _quests.ContainsKey(id) ? _quests[id] : null;
+        public NPC NPCByID(int id) => _npcs != null && _npcs.ContainsKey(id) ? _npcs[id] : null;
+        public Title TitleByID(int id) => _titles != null && _titles.ContainsKey(id) ? _titles[id] : null;
 
-        public List<Item> GetAllItems() => _items.Values.ToList();
-        public List<Monster> GetAllMonsters() => _monsters.Values.ToList();
-        public List<Location> GetAllLocations() => _locations.Values.ToList();
-        public List<Quest> GetAllQuests() => _quests.Values.ToList();
-        public List<NPC> GetAllNPCs() => _npcs.Values.ToList();
-        public List<Title> GetAllTitles() => _titles.Values.ToList();
+        public List<Item> GetAllItems() => _items != null ? _items.Values.ToList() : new List<Item>();
+        public List<Monster> GetAllMonsters() => _monsters != null ? _monsters.Values.ToList() : new List<Monster>();
+        public List<Location> GetAllLocations() => _locations != null ? _locations.Values.ToList() : new List<Location>();
+        public List<Quest> GetAllQuests() => _quests != null ? _quests.Values.ToList() : new List<Quest>();
+        public List<NPC> GetAllNPCs() => _npcs != null ? _npcs.Values.ToList() : new List<NPC>();
+        public List<Title> GetAllTitles() => _titles != null ? _titles.Values.ToList() : new List<Title>();
 
         public void Initialize()
         {
-            // Уже инициализировано в конструкторе
+            // Уже инициализировано в конструкторе / LoadFromJson
         }
     }
 }
