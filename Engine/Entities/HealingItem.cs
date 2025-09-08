@@ -1,4 +1,6 @@
-﻿namespace Engine.Entities
+﻿using Engine.Core;
+
+namespace Engine.Entities
 {
     public class HealingItem : Item
     {

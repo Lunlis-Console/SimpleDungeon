@@ -2,6 +2,8 @@
 using Engine.Quests;
 using Engine.World;
 using Engine.Combat;
+using Engine.InventorySystem;
+using Engine.Titles;
 
 namespace Engine.Entities
 {

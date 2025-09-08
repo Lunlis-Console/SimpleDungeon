@@ -1,5 +1,4 @@
-﻿using Engine;
-using Engine.Core;
+﻿using Engine.Core;
 using Engine.Entities;
 
 public class Monster : LivingCreature, IInteractable

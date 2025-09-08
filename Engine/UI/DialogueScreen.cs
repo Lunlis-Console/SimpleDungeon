@@ -1,4 +1,5 @@
-﻿using Engine.Entities;
+﻿using Engine.Dialogue;
+using Engine.Entities;
 using System.Xml.Linq;
 
 namespace Engine.UI

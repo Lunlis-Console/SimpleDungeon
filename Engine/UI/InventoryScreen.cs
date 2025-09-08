@@ -1,5 +1,8 @@
-﻿using Engine.Entities;
+﻿using Engine.Core;
+using Engine.Entities;
+using Engine.InventorySystem;
 using Engine.Quests;
+using Engine.Trading;
 
 namespace Engine.UI
 {

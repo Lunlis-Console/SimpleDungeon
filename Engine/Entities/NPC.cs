@@ -1,5 +1,9 @@
-﻿using Engine.Quests;
+﻿using Engine.Core;
+using Engine.Dialogue;
+using Engine.Quests;
+using Engine.Trading;
 using Engine.UI;
+using Engine.World;
 
 namespace Engine.Entities
 {

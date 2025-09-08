@@ -1,4 +1,5 @@
-﻿using Engine.Entities;
+﻿using Engine.Core;
+using Engine.Entities;
 
 namespace Engine.Quests
 {
