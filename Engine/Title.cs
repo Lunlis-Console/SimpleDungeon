@@ -1,4 +1,6 @@
-﻿namespace Engine
+﻿using Engine.Entities;
+
+namespace Engine
 {
     public class Title
     {

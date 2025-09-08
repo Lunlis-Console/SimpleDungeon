@@ -1,4 +1,6 @@
-﻿namespace Engine
+﻿using Engine.Core;
+
+namespace Engine
 {
     public static class WorldInitializer
     {

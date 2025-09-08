@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Engine;
+using Engine.Core;
 
 public static class DebugConsole
 {

@@ -1,4 +1,8 @@
-﻿namespace Engine
+﻿using Engine.Core;
+using Engine.Entities;
+using Engine.UI;
+
+namespace Engine
 {
     public static class InventoryUI
     {

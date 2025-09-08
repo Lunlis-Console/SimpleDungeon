@@ -1,4 +1,8 @@
-﻿namespace Engine
+﻿using Engine.Entities;
+using Engine.Quests;
+using Engine.UI;
+
+namespace Engine
 {
     public class QuestLog
     {

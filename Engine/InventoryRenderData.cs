@@ -1,4 +1,5 @@
 ﻿using Engine;
+using Engine.Entities;
 
 public class InventoryRenderData
 {

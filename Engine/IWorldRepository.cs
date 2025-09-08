@@ -1,4 +1,8 @@
-﻿namespace Engine
+﻿using Engine.Entities;
+using Engine.Quests;
+using Engine.World;
+
+namespace Engine
 {
     public interface IWorldRepository
     {

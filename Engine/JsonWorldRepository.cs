@@ -1,4 +1,7 @@
 ﻿// JsonWorldRepository.cs
+using Engine.Entities;
+using Engine.Quests;
+using Engine.World;
 using System;
 using System.Collections.Generic;
 using System.IO;

@@ -2,6 +2,9 @@
 // Замените существующий файл DataExporter.cs на этот или вставьте содержимое в тот же файл/класс.
 // Комментарии и логи на русском для удобства отладки.
 
+using Engine.Core;
+using Engine.Entities;
+using Engine.Quests;
 using System;
 using System.Collections.Generic;
 using System.IO;

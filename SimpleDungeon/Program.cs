@@ -1,5 +1,7 @@
 ﻿using Engine;
+using Engine.Core;
 using System.Diagnostics;
+using Engine.UI;
 
 namespace SimpleDungeon
 {
