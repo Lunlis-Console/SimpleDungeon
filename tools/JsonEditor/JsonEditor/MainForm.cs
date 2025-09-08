@@ -1,159 +1,285 @@
-﻿using Engine.Core;
-using Engine.Data; // <- замени на твой namespace DTO
+﻿using Engine.Data; // <- должен быть доступен (Engine.dll or project reference)
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Windows.Forms;
+using Engine.Entities;
 
-public class MainForm : Form
+namespace JsonEditor
 {
-    private Button btnLoad;
-    private Button btnSave;
-    private Button btnAdd;
-    private Button btnEdit;
-    private Button btnDelete;
-    private DataGridView dgvItems;
-    private BindingList<ItemData> itemsBinding;
-    private GameData currentData;
-    private string currentPath;
-
-    public MainForm()
+    public class MainForm : Form
     {
-        InitializeComponents();
-    }
+        // Жёсткий путь, как ты просил:
+        private readonly string DefaultGameDataPath = @"E:\CSharpProjects\SuperAdventureCSharp\SimpleDungeon\SimpleDungeon\Data\game_data.json";
 
-    private void InitializeComponents()
-    {
-        this.Text = "JsonEditor";
-        this.Width = 900;
-        this.Height = 600;
+        private GameData _gameData;
+        private string _filePath;
 
-        btnLoad = new Button { Text = "Load", Left = 10, Top = 10, Width = 80 };
-        btnSave = new Button { Text = "Save", Left = 100, Top = 10, Width = 80 };
-        btnAdd = new Button { Text = "Add", Left = 200, Top = 10, Width = 80 };
-        btnEdit = new Button { Text = "Edit", Left = 290, Top = 10, Width = 80 };
-        btnDelete = new Button { Text = "Delete", Left = 380, Top = 10, Width = 80 };
+        private Label lblPath;
+        private TabControl tabControl;
+        private TabPage tabItems;
+        private TabPage tabMonsters;
 
-        dgvItems = new DataGridView { Left = 10, Top = 50, Width = 860, Height = 480, ReadOnly = true, AllowUserToAddRows = false, SelectionMode = DataGridViewSelectionMode.FullRowSelect };
+        private ListBox listBoxItems;
+        private Button btnAddItem;
+        private Button btnRemoveItem;
 
-        btnLoad.Click += BtnLoad_Click;
-        btnSave.Click += BtnSave_Click;
-        btnAdd.Click += BtnAdd_Click;
-        btnEdit.Click += BtnEdit_Click;
-        btnDelete.Click += BtnDelete_Click;
+        private ListBox listBoxMonsters;
+        private Button btnAddMonster;
+        private Button btnRemoveMonster;
 
-        this.Controls.AddRange(new Control[] { btnLoad, btnSave, btnAdd, btnEdit, btnDelete, dgvItems });
+        private Button btnSave;
 
-        // колонки
-        dgvItems.AutoGenerateColumns = false;
-        dgvItems.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "ID", HeaderText = "ID", Width = 60 });
-        dgvItems.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Name", HeaderText = "Name", Width = 250 });
-        dgvItems.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "NamePlural", HeaderText = "NamePlural", Width = 200 });
-        dgvItems.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Type", HeaderText = "Type", Width = 120 });
-        dgvItems.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Price", HeaderText = "Price", Width = 80 });
-    }
-
-    private void BtnLoad_Click(object? sender, EventArgs e)
-    {
-        using var ofd = new OpenFileDialog { Filter = "JSON files|*.json|All files|*.*" };
-        if (ofd.ShowDialog() != DialogResult.OK) return;
-        currentPath = ofd.FileName;
-        try
+        public MainForm()
         {
-            currentData = SerializerHelper.LoadGameData(currentPath);
-            itemsBinding = new BindingList<ItemData>(currentData.Items ?? new List<ItemData>());
-            dgvItems.DataSource = itemsBinding;
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"Ошибка загрузки: {ex.Message}");
-        }
-    }
+            Text = "JsonEditor";
+            Width = 800;
+            Height = 600;
+            StartPosition = FormStartPosition.CenterScreen;
 
-    private void BtnSave_Click(object? sender, EventArgs e)
-    {
-        if (currentPath == null)
-        {
-            MessageBox.Show("Сначала загрузите файл.");
-            return;
+            CreateControls();
+            InitFileAndLoad();
         }
 
-        // синхронизируем
-        currentData.Items = itemsBinding.ToList();
-        var errors = ValidateGameData(currentData);
-        if (errors.Any())
+        private void CreateControls()
         {
-            MessageBox.Show("Ошибки в данных:\n" + string.Join("\n", errors.Take(20)));
-            return;
+            lblPath = new Label { Left = 10, Top = 8, Width = 760, Text = "Файл: (не выбран)" };
+
+            tabControl = new TabControl { Left = 10, Top = 30, Width = 760, Height = 480 };
+
+            // Items tab
+            tabItems = new TabPage("Items");
+            listBoxItems = new ListBox { Dock = DockStyle.Fill };
+            listBoxItems.DoubleClick += listBoxItems_DoubleClick;
+            btnAddItem = new Button { Text = "Добавить предмет", Dock = DockStyle.Bottom, Height = 30 };
+            btnRemoveItem = new Button { Text = "Удалить предмет", Dock = DockStyle.Bottom, Height = 30 };
+            btnAddItem.Click += btnAddItem_Click;
+            btnRemoveItem.Click += btnRemoveItem_Click;
+            tabItems.Controls.Add(listBoxItems);
+            tabItems.Controls.Add(btnRemoveItem);
+            tabItems.Controls.Add(btnAddItem);
+
+            // Monsters tab
+            tabMonsters = new TabPage("Monsters");
+            listBoxMonsters = new ListBox { Dock = DockStyle.Fill };
+            listBoxMonsters.DoubleClick += listBoxMonsters_DoubleClick;
+            btnAddMonster = new Button { Text = "Добавить монстра", Dock = DockStyle.Bottom, Height = 30 };
+            btnRemoveMonster = new Button { Text = "Удалить монстра", Dock = DockStyle.Bottom, Height = 30 };
+            btnAddMonster.Click += btnAddMonster_Click;
+            btnRemoveMonster.Click += btnRemoveMonster_Click;
+            tabMonsters.Controls.Add(listBoxMonsters);
+            tabMonsters.Controls.Add(btnRemoveMonster);
+            tabMonsters.Controls.Add(btnAddMonster);
+
+            tabControl.TabPages.Add(tabItems);
+            tabControl.TabPages.Add(tabMonsters);
+
+            btnSave = new Button { Text = "Сохранить JSON", Left = 10, Top = 520, Width = 760, Height = 30 };
+            btnSave.Click += btnSave_Click;
+
+            Controls.Add(lblPath);
+            Controls.Add(tabControl);
+            Controls.Add(btnSave);
         }
 
-        try
+        private void InitFileAndLoad()
         {
-            SerializerHelper.SaveGameData(currentData, currentPath);
-            MessageBox.Show("Сохранено");
+            // Сначала пробуем жёсткий путь
+            if (File.Exists(DefaultGameDataPath))
+            {
+                _filePath = DefaultGameDataPath;
+            }
+            else
+            {
+                // Если жёсткий путь не найден — предложим выбрать
+                var dr = MessageBox.Show(
+                    $"Файл по жёсткому пути не найден:\n{DefaultGameDataPath}\n\nВы хотите выбрать файл вручную?",
+                    "Файл не найден", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                if (dr == DialogResult.Yes)
+                {
+                    using var ofd = new OpenFileDialog
+                    {
+                        Title = "Выберите game_data.json",
+                        Filter = "JSON Files (*.json)|*.json|All Files (*.*)|*.*",
+                        InitialDirectory = Path.GetDirectoryName(DefaultGameDataPath)
+                    };
+                    if (ofd.ShowDialog() == DialogResult.OK)
+                        _filePath = ofd.FileName;
+                    else
+                    {
+                        MessageBox.Show("Файл не выбран — редактор закроется.", "Отмена", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        Close();
+                        return;
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Редактор закрывается.", "Отсутствует файл", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    Close();
+                    return;
+                }
+            }
+
+            lblPath.Text = $"Файл: {_filePath}";
+            LoadJson();
         }
-        catch (Exception ex)
+
+        private void LoadJson()
         {
-            MessageBox.Show($"Ошибка сохранения: {ex.Message}");
-        }
-    }
+            try
+            {
+                var json = File.ReadAllText(_filePath);
+                _gameData = JsonSerializer.Deserialize<GameData>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-    private void BtnAdd_Click(object? sender, EventArgs e)
-    {
-        var newItem = new ItemData { ID = NextId(), Name = "NewItem", NamePlural = "NewItems", Type = ItemType.Stuff, Price = 0 };
-        using var ed = new ItemEditorForm(newItem);
-        if (ed.ShowDialog() == DialogResult.OK)
+                if (_gameData == null)
+                    _gameData = new GameData();
+
+                RefreshUI();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ошибка загрузки JSON: " + ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void SaveJson()
         {
-            itemsBinding.Add(ed.Item);
+            try
+            {
+                var json = JsonSerializer.Serialize(_gameData, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(_filePath, json);
+                MessageBox.Show("Файл сохранен.", "Сохранение", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ошибка сохранения: " + ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
-    }
 
-    private void BtnEdit_Click(object? sender, EventArgs e)
-    {
-        if (dgvItems.CurrentRow == null) return;
-        var selected = (ItemData)dgvItems.CurrentRow.DataBoundItem!;
-        var clone = CloneItem(selected);
-        using var ed = new ItemEditorForm(clone);
-        if (ed.ShowDialog() == DialogResult.OK)
+        private void RefreshUI()
         {
-            // копируем обратно
-            CopyItem(ed.Item, selected);
-            dgvItems.Refresh();
+            // Items
+            listBoxItems.DataSource = null;
+            if (_gameData.Items != null)
+            {
+                listBoxItems.DataSource = _gameData.Items;
+                listBoxItems.DisplayMember = "Name";
+            }
+
+            // Monsters
+            listBoxMonsters.DataSource = null;
+            if (_gameData.Monsters != null)
+            {
+                listBoxMonsters.DataSource = _gameData.Monsters;
+                listBoxMonsters.DisplayMember = "Name";
+            }
         }
-    }
 
-    private void BtnDelete_Click(object? sender, EventArgs e)
-    {
-        if (dgvItems.CurrentRow == null) return;
-        var selected = (ItemData)dgvItems.CurrentRow.DataBoundItem!;
-        var ok = MessageBox.Show($"Удалить {selected.Name}?", "Confirm", MessageBoxButtons.YesNo) == DialogResult.Yes;
-        if (ok) itemsBinding.Remove(selected);
-    }
-
-    private int NextId()
-    {
-        if (itemsBinding == null || itemsBinding.Count == 0) return 1;
-        return itemsBinding.Max(i => i.ID) + 1;
-    }
-
-    private ItemData CloneItem(ItemData src) => new ItemData { ID = src.ID, Name = src.Name, NamePlural = src.NamePlural, Type = src.Type, Price = src.Price, Description = src.Description };
-
-    private void CopyItem(ItemData from, ItemData to)
-    {
-        to.ID = from.ID; to.Name = from.Name; to.NamePlural = from.NamePlural; to.Type = from.Type; to.Price = from.Price; to.Description = from.Description;
-    }
-
-    // базовый валидатор (позже расширишь)
-    private List<string> ValidateGameData(GameData data)
-    {
-        var errors = new List<string>();
-        if (data.Items != null)
+        // ===== Items =====
+        private void btnAddItem_Click(object sender, EventArgs e)
         {
-            var dup = data.Items.GroupBy(i => i.ID).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
-            if (dup.Any()) errors.Add("Duplicate Item IDs: " + string.Join(", ", dup));
+            var nextId = (_gameData.Items != null && _gameData.Items.Any()) ? _gameData.Items.Max(i => i.ID) + 1 : 1000;
+            var newItem = new ItemData { ID = nextId, Name = "Новый предмет", Description = "" };
+            _gameData.Items.Add(newItem);
+            RefreshUI();
         }
-        // TODO: добавить проверки ссылок для квестов/локаций и т.п.
-        return errors;
+
+        private void btnRemoveItem_Click(object sender, EventArgs e)
+        {
+            if (listBoxItems.SelectedIndex >= 0)
+            {
+                var idx = listBoxItems.SelectedIndex;
+                _gameData.Items.RemoveAt(idx);
+                RefreshUI();
+            }
+        }
+
+        private void listBoxItems_DoubleClick(object sender, EventArgs e)
+        {
+            if (listBoxItems.SelectedItem == null) return;
+
+            var sel = listBoxItems.SelectedItem;
+
+            // Сначала попробуем сущность Item (Engine.Entities.Item)
+            if (sel is Engine.Entities.Item ent)
+            {
+                using var f = new EditItemForm(ent);
+                if (f.ShowDialog() == DialogResult.OK)
+                {
+                    RefreshUI();
+                    SaveJson();
+                }
+                return;
+            }
+
+            // Если это DTO / data-класс (Engine.Data.ItemData)
+            if (sel is Engine.Data.ItemData data)
+            {
+                using var f = new EditItemForm(data); // добавим этот конструктор в EditItemForm
+                if (f.ShowDialog() == DialogResult.OK)
+                {
+                    RefreshUI();
+                    SaveJson();
+                }
+                return;
+            }
+
+            // На всякий случай — показать тип если неизвестен
+            MessageBox.Show($"Неизвестный тип элемента: {sel.GetType().FullName}");
+        }
+
+
+
+        // ===== Monsters =====
+        private void btnAddMonster_Click(object sender, EventArgs e)
+        {
+            var nextId = (_gameData.Monsters != null && _gameData.Monsters.Any()) ? _gameData.Monsters.Max(m => m.ID) + 1 : 2000;
+            var newMonster = new MonsterData
+            {
+                ID = nextId,
+                Name = "Новый монстр",
+                Level = 1,
+                MaximumHP = 10,
+                CurrentHP = 10,
+                RewardEXP = 0,
+                RewardGold = 0,
+                Attributes = new Attributes()
+            };
+            _gameData.Monsters.Add(newMonster);
+            RefreshUI();
+        }
+
+        private void btnRemoveMonster_Click(object sender, EventArgs e)
+        {
+            if (listBoxMonsters.SelectedIndex >= 0)
+            {
+                var idx = listBoxMonsters.SelectedIndex;
+                _gameData.Monsters.RemoveAt(idx);
+                RefreshUI();
+            }
+        }
+
+        private void listBoxMonsters_DoubleClick(object sender, EventArgs e)
+        {
+            if (listBoxMonsters.SelectedIndex < 0) return;
+            var monster = (MonsterData)listBoxMonsters.SelectedItem;
+            using (var f = new EditMonsterForm(monster, _gameData))
+            {
+                if (f.ShowDialog() == DialogResult.OK)
+                {
+                    RefreshUI();
+                    SaveJson();
+                }
+            }
+
+        }
+
+        // ===== Save button =====
+        private void btnSave_Click(object sender, EventArgs e)
+        {
+            SaveJson();
+        }
     }
 }

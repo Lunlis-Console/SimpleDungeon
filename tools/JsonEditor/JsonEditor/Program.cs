@@ -10,10 +10,8 @@ namespace JsonEditor
         [STAThread]
         static void Main()
         {
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
-            ApplicationConfiguration.Initialize();
-            Application.Run(new MainForm());
+            ApplicationConfiguration.Initialize(); // или Application.EnableVisualStyles(); если .NET старый
+            Application.Run(new JsonEditor.MainForm());
         }
     }
 }
