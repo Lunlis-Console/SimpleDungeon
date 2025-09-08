@@ -1,4 +1,5 @@
-﻿using Engine.Entities;
+﻿using Engine.Core;
+using Engine.Entities;
 using Engine.Saving;
 using Engine.World;
 
@@ -16,6 +17,7 @@ namespace Engine.Factories
         public Player CreateNewPlayer()
         {
             return new Player("Странник", 0, 100, 100, 0, 100, 1, 0, 0, 10, _worldRepository);
+
         }
 
         public Player CreatePlayerFromSave(GameSave save)

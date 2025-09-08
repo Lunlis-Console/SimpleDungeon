@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Engine.Core;
+using Engine.Entities;
 
 public static class DebugConsole
 {
@@ -22,6 +23,7 @@ public static class DebugConsole
     public static bool NeedsRedrawAfterHide => _needsRedrawAfterHide;
     public static bool IsVisible => _isVisible;
     public static bool Enabled => _enabled;
+    public static Player CurrentPlayer { get; set; }
 
     static DebugConsole()
     {
@@ -347,6 +349,9 @@ public static class DebugConsole
                 Log("  disable - выключить консоль");
                 Log("  top - к старым сообщениям");
                 Log("  bottom - к новым сообщениям");
+                Log(" addItem <id> [qty]  - добавить предмет игроку (по ID, количество по умолчанию = 1)");
+                Log("  spawnMonster [id] [level] [count] - заспавнить монстров");
+                Log("       без аргументов — спавн по шаблонам текущей локации");
                 Log("  export-json [path] - экспортировать game_data в указанную папку (если путь не указан — используется ./game_data)");
                 break;
 
@@ -424,6 +429,41 @@ public static class DebugConsole
 
                     break;
                 }
+            case "additem":
+                {
+                    if (args.Length < 1)
+                    {
+                        Log("Использование: addItem <itemId> [quantity]");
+                        break;
+                    }
+
+                    if (!int.TryParse(args[0], out int itemId))
+                    {
+                        Log($"Некорректный ID предмета: {args[0]}");
+                        break;
+                    }
+
+                    int quantity = 1;
+                    if (args.Length >= 2 && int.TryParse(args[1], out int q))
+                    {
+                        quantity = Math.Max(1, q);
+                    }
+
+                    var item = GameServices.WorldRepository.ItemByID(itemId);
+                    if (item == null)
+                    {
+                        Log($"Предмет с ID={itemId} не найден.");
+                        break;
+                    }
+
+                    CurrentPlayer.AddItemToInventory(item, quantity);
+                    Log($"В инвентарь добавлен предмет: {item.Name} (ID={item.ID}) x{quantity}");
+                    break;
+                }
+            case "spawnmonster":
+                HandleSpawnMonster(args);
+                break;
+
 
 
             default:
@@ -488,6 +528,47 @@ public static class DebugConsole
                     _needsRedraw = true;
                 }
                 break;
+        }
+    }
+
+    private static void HandleSpawnMonster(string[] args)
+    {
+        if (CurrentPlayer == null)
+        {
+            Log("Нет активного игрока");
+            return;
+        }
+
+        if (args.Length == 0)
+        {
+            CurrentPlayer.CurrentLocation.SpawnMonsters(CurrentPlayer.Level);
+            Log("Спавн монстров из шаблонов локации завершен");
+            return;
+        }
+
+        if (int.TryParse(args[0], out int monsterId))
+        {
+            int level = (args.Length > 1 && int.TryParse(args[1], out int lvl)) ? lvl : 1;
+            int count = (args.Length > 2 && int.TryParse(args[2], out int cnt)) ? cnt : 1;
+
+            var monsterTemplate = GameServices.WorldRepository.MonsterByID(monsterId);
+            if (monsterTemplate == null)
+            {
+                Log($"Монстр с ID={monsterId} не найден.");
+                return;
+            }
+
+            for (int i = 0; i < count; i++)
+            {
+                var monster = new Monster(monsterTemplate, level);
+                CurrentPlayer.CurrentLocation.AddMonster(monster);
+            }
+
+            Log($"Заспавнено {count} экземпляров {monsterTemplate.Name} (ур. {level})");
+        }
+        else
+        {
+            Log("Использование: spawnMonster [monsterId] [level] [count]");
         }
     }
 

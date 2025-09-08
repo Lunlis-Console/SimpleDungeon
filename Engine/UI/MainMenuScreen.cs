@@ -142,6 +142,9 @@ namespace Engine.UI
             try
             {
                 var player = GameServices.GameFactory.CreateNewPlayer();
+
+                DebugConsole.CurrentPlayer = player;
+
                 player.CurrentLocation = GameServices.WorldRepository.LocationByID(Constants.LOCATION_ID_VILLAGE);
 
                 // Стартовые предметы

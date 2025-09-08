@@ -1,5 +1,6 @@
 ﻿using Engine.Combat;
 using Engine.Data;
+using Engine.Entities;
 using Engine.Factories;
 using Engine.Saving;
 using Engine.World;
@@ -17,6 +18,7 @@ namespace Engine.Core
         private static IGameFactory _gameFactory;
         private static EnhancedBufferedRenderer _bufferedRenderer;
         private static CombatRenderer _combatRenderer;
+        public static Player CurrentPlayer { get; set; }
 
         public static EnhancedBufferedRenderer BufferedRenderer
         {
