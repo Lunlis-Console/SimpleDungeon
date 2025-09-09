@@ -2,19 +2,18 @@
 {
     public enum ItemType
     {
-        Stuff,
+        Consumable,
+        OneHandedWeapon,
+        TwoHandedWeapon,
         Helmet,
         Armor,
         Gloves,
         Boots,
-        OneHandedWeapon,  // Одноручное оружие
-        TwoHandedWeapon,  // Двуручное оружие
-        OffHand,          // Щит или оружие для второй руки
-        // Аксессуары
-        Amulet,
+        OffHand,
         Ring,
-        //Sword,
-        Consumable,
+        Amulet,
+        Stuff,
         Quest
     }
 }
+

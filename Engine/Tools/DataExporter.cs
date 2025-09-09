@@ -3,6 +3,7 @@
 // Комментарии и логи на русском для удобства отладки.
 
 using Engine.Core;
+using Engine.Data;
 using Engine.Entities;
 using Engine.Quests;
 using Engine.Trading;
@@ -13,9 +14,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.Unicode;
 using System.Threading;
-using Engine.Data;
 
 namespace Engine.Tools
 {
@@ -268,9 +269,14 @@ namespace Engine.Tools
                 // Сериализация в JSON (с полным набором unicode)
                 var options = new JsonSerializerOptions
                 {
-                    WriteIndented = true,
-                    Encoder = JavaScriptEncoder.Create(UnicodeRanges.All)
+                    PropertyNameCaseInsensitive = true,
+                    ReadCommentHandling = JsonCommentHandling.Skip,
+                    AllowTrailingCommas = true,
+                    WriteIndented = true
                 };
+
+                options.Converters.Add(new ItemComponentConverter());
+                options.Converters.Add(new JsonStringEnumConverter());
 
                 string json = JsonSerializer.Serialize(gameData, options);
 

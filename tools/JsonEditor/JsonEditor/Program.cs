@@ -11,7 +11,7 @@ namespace JsonEditor
         static void Main()
         {
             ApplicationConfiguration.Initialize(); // или Application.EnableVisualStyles(); если .NET старый
-            Application.Run(new JsonEditor.MainForm());
+            Application.Run(new MainForm());
         }
     }
 }

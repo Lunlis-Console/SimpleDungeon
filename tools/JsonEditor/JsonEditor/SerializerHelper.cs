@@ -1,35 +1,41 @@
 ﻿using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-// Используй namespace DTO из твоего Engine; заменяй если нужно:
-using Engine.Data; // <- проверь фактический namespace в твоем Engine
+using Engine.Data;
 
-public static class SerializerHelper
+namespace JsonEditor
 {
-    public static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+    public static class SerializerHelper
     {
-        PropertyNameCaseInsensitive = true,
-        WriteIndented = true,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
-    };
-
-    public static GameData LoadGameData(string path)
-    {
-        var json = File.ReadAllText(path);
-        return JsonSerializer.Deserialize<GameData>(json, JsonOptions) ?? new GameData();
-    }
-
-    public static void SaveGameData(GameData data, string path)
-    {
-        // бэкап
-        if (File.Exists(path))
+        private static JsonSerializerOptions CreateOptions()
         {
-            var bak = path + ".bak";
-            File.Copy(path, bak, overwrite: true);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                ReadCommentHandling = JsonCommentHandling.Skip,
+                AllowTrailingCommas = true,
+                WriteIndented = true
+            };
+
+            // Подключаем конвертеры
+            options.Converters.Add(new ItemComponentConverter());
+            options.Converters.Add(new JsonStringEnumConverter());
+
+            return options;
         }
 
-        var json = JsonSerializer.Serialize(data, JsonOptions);
-        File.WriteAllText(path, json);
+        public static GameData LoadGameData(string path)
+        {
+            string json = File.ReadAllText(path);
+            var options = CreateOptions();
+            return JsonSerializer.Deserialize<GameData>(json, options);
+        }
+
+        public static void SaveGameData(GameData gameData, string path)
+        {
+            var options = CreateOptions();
+            string json = JsonSerializer.Serialize(gameData, options);
+            File.WriteAllText(path, json);
+        }
     }
 }
