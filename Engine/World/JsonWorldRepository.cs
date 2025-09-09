@@ -1,6 +1,7 @@
 ﻿// JsonWorldRepository.cs
 using Engine.Core;
 using Engine.Data;
+using Engine.Dialogue;
 using Engine.Entities;
 using Engine.Quests;
 using Engine.Titles;
@@ -529,6 +530,8 @@ namespace Engine.World
 
             var npc = new NPC(npcData.ID, npcData.Name, npcData.Greeting, this);
 
+
+
             // Добавление квестов (если список присутствует)
             if (npcData.QuestsToGive != null)
             {
@@ -564,10 +567,99 @@ namespace Engine.World
                 }
 
                 npc.Trader = merchant;
+
+                // --- Привязка диалога по id (GreetingDialogueId) ---
+                if (!string.IsNullOrWhiteSpace(npcData.GreetingDialogueId) && _gameData?.Dialogues != null)
+                {
+                    var d = _gameData.Dialogues.FirstOrDefault(x => x.Id == npcData.GreetingDialogueId);
+                    if (d != null)
+                    {
+                        var root = BuildDialogueFromData(d);
+                        if (root != null)
+                        {
+                            npc.GreetingDialogue = root;
+                        }
+                    }
+                }
+
+
             }
 
             return npc;
         }
+
+        private DialogueSystem.DialogueNode BuildDialogueFromData(Engine.Data.DialogueData data)
+        {
+            if (data == null || data.Nodes == null || data.Nodes.Count == 0)
+                return null;
+
+            // 1) Создаём словарь id -> DialogueNode
+            var map = new Dictionary<string, DialogueSystem.DialogueNode>(StringComparer.OrdinalIgnoreCase);
+            foreach (var nodeData in data.Nodes)
+            {
+                // создаём узел с текстом (OnEnter можно расширить позже)
+                var node = new DialogueSystem.DialogueNode(nodeData.Text);
+                map[nodeData.Id] = node;
+            }
+
+            // 2) Привязываем опции у каждого узла
+            foreach (var nodeData in data.Nodes)
+            {
+                if (!map.TryGetValue(nodeData.Id, out var node))
+                    continue;
+
+                if (nodeData.Options == null) continue;
+
+                foreach (var optData in nodeData.Options)
+                {
+                    DialogueSystem.DialogueNode next = null;
+                    if (!string.IsNullOrWhiteSpace(optData.NextNodeId) && map.TryGetValue(optData.NextNodeId, out var nextNode))
+                    {
+                        next = nextNode;
+                    }
+
+                    var option = new DialogueSystem.DialogueOption(optData.Text, next);
+                    node.Options.Add(option);
+                }
+            }
+
+            // 3) Возвращаем корневую ноду.
+            //    По умолчанию — первая нода в списке Nodes. Можно поменять на StartNodeId, если добавите.
+            var rootId = data.Nodes[0].Id;
+            return map.ContainsKey(rootId) ? map[rootId] : null;
+        }
+
+
+        private DialogueSystem.DialogueNode BuildDialogueNodeFromData(DialogueData data)
+        {
+            // создаём словарь id -> node
+            var map = new Dictionary<string, DialogueSystem.DialogueNode>();
+            foreach (var nodeData in data.Nodes)
+            {
+                var node = new DialogueSystem.DialogueNode(nodeData.Text);
+                map[nodeData.Id] = node;
+            }
+
+            // затем привязываем опции
+            foreach (var nodeData in data.Nodes)
+            {
+                var node = map[nodeData.Id];
+                foreach (var optData in nodeData.Options)
+                {
+                    DialogueSystem.DialogueNode next = null;
+                    if (!string.IsNullOrEmpty(optData.NextNodeId) && map.ContainsKey(optData.NextNodeId))
+                        next = map[optData.NextNodeId];
+
+                    var option = new DialogueSystem.DialogueOption(optData.Text, next);
+                    node.Options.Add(option);
+                }
+            }
+
+            // Предполагаем, что первая нода в списке — корневая (или добавь поле StartNodeId в DialogueData)
+            var rootId = data.Nodes.Count > 0 ? data.Nodes[0].Id : null;
+            return rootId != null ? map[rootId] : null;
+        }
+
 
         private Quest CreateQuestFromData(QuestData questData)
         {

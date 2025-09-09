@@ -31,14 +31,31 @@ namespace JsonEditor
         private TabPage tabMonsters;
         private TabPage tabLocations;
         private TabPage tabQuests;
+        private TabPage tabDialogues;
 
         private DataGridView gridItems;
         private DataGridView gridMonsters;
         private DataGridView gridLocations;
         private DataGridView gridQuests;
+        private DataGridView gridDialogues;
 
         private StatusStrip statusStrip;
         private ToolStripStatusLabel statusLabel;
+
+        private Panel panelDialoguesButtons;
+
+        private Button btnAddDialogue;
+        private Button btnEditDialogue;
+        private Button btnDeleteDialogue;
+
+        private ComboBox comboGreetingDialogue;
+
+        private DataGridView gridNPCs;
+        private Button btnAddNPC;
+        private Button btnEditNPC;
+        private Button btnDeleteNPC;
+
+
 
         public MainForm()
         {
@@ -157,6 +174,86 @@ namespace JsonEditor
             tabQuests.Controls.Add(gridQuests);
 
             tabControl.TabPages.AddRange(new[] { tabItems, tabMonsters, tabLocations, tabQuests });
+
+            // === Dialogues tab initialization ===
+            tabDialogues = new TabPage("Диалоги");
+            gridDialogues = new DataGridView
+            {
+                Dock = DockStyle.Fill,
+                ReadOnly = true,
+                AllowUserToAddRows = false,
+                AllowUserToDeleteRows = false,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                MultiSelect = false
+            };
+
+            panelDialoguesButtons = new Panel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 36
+            };
+
+            btnAddDialogue = new Button { Text = "Добавить", Width = 90, Left = 8, Top = 5 };
+            btnEditDialogue = new Button { Text = "Редактировать", Width = 110, Left = 110, Top = 5 };
+            btnDeleteDialogue = new Button { Text = "Удалить", Width = 90, Left = 230, Top = 5 };
+
+            btnAddDialogue.Click += (s, e) => AddDialogue();
+            btnEditDialogue.Click += (s, e) => EditSelectedDialogue();
+            btnDeleteDialogue.Click += (s, e) => DeleteSelectedDialogue();
+            gridDialogues.CellDoubleClick += (s, e) => { if (e.RowIndex >= 0) EditSelectedDialogue(); };
+
+            panelDialoguesButtons.Controls.Add(btnAddDialogue);
+            panelDialoguesButtons.Controls.Add(btnEditDialogue);
+            panelDialoguesButtons.Controls.Add(btnDeleteDialogue);
+
+            tabDialogues.Controls.Add(gridDialogues);
+            tabDialogues.Controls.Add(panelDialoguesButtons);
+
+            // Добавим вкладку в главный TabControl (название у тебя может отличаться, заменяй на свой)
+            tabControl.TabPages.Add(tabDialogues);
+
+            // После создания интерфейса — отрисуем данные
+            RefreshDialoguesGrid();
+
+            // Создаём вкладку NPC
+            var tabNPCs = new TabPage("NPC");
+            gridNPCs = new DataGridView
+            {
+                Dock = DockStyle.Top,
+                Height = 400,
+                ReadOnly = true,
+                AllowUserToAddRows = false,
+                AllowUserToDeleteRows = false,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                MultiSelect = false
+            };
+
+            var panelNPCButtons = new Panel { Dock = DockStyle.Bottom, Height = 36 };
+            btnAddNPC = new Button { Text = "Добавить NPC", Left = 8, Width = 110, Top = 4 };
+            btnEditNPC = new Button { Text = "Редактировать NPC", Left = 130, Width = 130, Top = 4 };
+            btnDeleteNPC = new Button { Text = "Удалить NPC", Left = 270, Width = 110, Top = 4 };
+
+            btnAddNPC.Click += (s, e) => OpenEditNPCForm(null);
+            btnEditNPC.Click += (s, e) => { if (gridNPCs.CurrentRow != null) OpenEditNPCForm(GetSelectedNPCData()); };
+            btnDeleteNPC.Click += (s, e) => DeleteSelectedNPC();
+
+            gridNPCs.CellDoubleClick += (s, e) => { if (e.RowIndex >= 0) OpenEditNPCForm(GetSelectedNPCData()); };
+
+            panelNPCButtons.Controls.Add(btnAddNPC);
+            panelNPCButtons.Controls.Add(btnEditNPC);
+            panelNPCButtons.Controls.Add(btnDeleteNPC);
+
+            tabNPCs.Controls.Add(gridNPCs);
+            tabNPCs.Controls.Add(panelNPCButtons);
+
+            tabControl.TabPages.Add(tabNPCs);
+
+            // В конце инициализации — отображаем NPC
+            RefreshNPCGrid();
+
+
 
             // StatusStrip
             statusStrip = new StatusStrip();
@@ -537,5 +634,170 @@ namespace JsonEditor
             }
             return maxId + 1;
         }
+
+        private void RefreshDialoguesGrid()
+        {
+            if (_gameData == null) return;
+
+            // Отображаем ограниченное представление: Id + Name + NodesCount
+            var list = _gameData.Dialogues
+                .Select(d => new
+                {
+                    Id = d.Id,
+                    Name = d.Name,
+                    Nodes = d.Nodes?.Count ?? 0
+                })
+                .OrderBy(x => x.Name)
+                .ToList();
+
+            gridDialogues.DataSource = null;
+            gridDialogues.DataSource = list;
+
+            // Корректные заголовки
+            if (gridDialogues.Columns["Id"] != null) gridDialogues.Columns["Id"].HeaderText = "Id";
+            if (gridDialogues.Columns["Name"] != null) gridDialogues.Columns["Name"].HeaderText = "Название";
+            if (gridDialogues.Columns["Nodes"] != null) gridDialogues.Columns["Nodes"].HeaderText = "Узлов";
+        }
+
+        private void AddDialogue()
+        {
+            var newDialogue = new DialogueData
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = "Новый диалог",
+                Nodes = new List<DialogueNodeData>()
+            };
+
+            using (var form = new EditDialogueForm(newDialogue))
+            {
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    // добавляем в gameData и обновляем grid
+                    _gameData.Dialogues.Add(newDialogue);
+                    RefreshDialoguesGrid();
+                    // выставим флаг, что данные изменены (если у тебя есть такая логика)
+                    statusLabel.Text = "Изменения не сохранены";
+                }
+            }
+        }
+
+        private void EditSelectedDialogue()
+        {
+            if (gridDialogues.CurrentRow == null) return;
+            var id = gridDialogues.CurrentRow.Cells["Id"].Value as string;
+            if (string.IsNullOrEmpty(id)) return;
+
+            var dialog = _gameData.Dialogues.FirstOrDefault(d => d.Id == id);
+            if (dialog == null) return;
+
+            // Передаём копию или сам объект? Мы работаем с самим объектом, но можно клонировать при необходимости.
+            var toEdit = dialog;
+            using (var form = new EditDialogueForm(toEdit))
+            {
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    // Изменения уже применены в объекте
+                    RefreshDialoguesGrid();
+                    statusLabel.Text = "Изменения не сохранены";
+                }
+            }
+        }
+
+        private void DeleteSelectedDialogue()
+        {
+            if (gridDialogues.CurrentRow == null) return;
+            var id = gridDialogues.CurrentRow.Cells["Id"].Value as string;
+            if (string.IsNullOrEmpty(id)) return;
+            var dialog = _gameData.Dialogues.FirstOrDefault(d => d.Id == id);
+            if (dialog == null) return;
+
+            var confirm = MessageBox.Show(this, $"Удалить диалог '{dialog.Name}' (Id: {dialog.Id})?", "Подтверждение", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (confirm == DialogResult.Yes)
+            {
+                _gameData.Dialogues.Remove(dialog);
+                RefreshDialoguesGrid();
+                statusLabel.Text = "Изменения не сохранены";
+            }
+        }
+
+        private void RefreshNPCGrid()
+        {
+            if (_gameData == null) return;
+
+            var list = _gameData.NPCs
+                .Select(n => new
+                {
+                    ID = n.ID,
+                    Name = n.Name,
+                    Greeting = n.Greeting,
+                    GreetingDialogue = n.GreetingDialogueId ?? ""
+                })
+                .OrderBy(n => n.ID)
+                .ToList();
+
+            gridNPCs.DataSource = null;
+            gridNPCs.DataSource = list;
+
+            if (gridNPCs.Columns["ID"] != null) gridNPCs.Columns["ID"].HeaderText = "ID";
+            if (gridNPCs.Columns["Name"] != null) gridNPCs.Columns["Name"].HeaderText = "Имя";
+            if (gridNPCs.Columns["Greeting"] != null) gridNPCs.Columns["Greeting"].HeaderText = "Greeting";
+            if (gridNPCs.Columns["GreetingDialogue"] != null) gridNPCs.Columns["GreetingDialogue"].HeaderText = "GreetingDialogueId";
+        }
+
+        private NPCData GetSelectedNPCData()
+        {
+            if (gridNPCs.CurrentRow == null) return null;
+            var idObj = gridNPCs.CurrentRow.Cells["ID"].Value;
+            if (idObj == null) return null;
+            int id = Convert.ToInt32(idObj);
+            return _gameData.NPCs.FirstOrDefault(n => n.ID == id);
+        }
+
+        private void OpenEditNPCForm(NPCData npc)
+        {
+            // Передаём существующий объект (если редактируем) или null (для создания)
+            NPCData editing = npc;
+            var dialogNpc = editing ?? new NPCData();
+
+            using (var form = new EditNPCForm(_gameData, dialogNpc))
+            {
+                var res = form.ShowDialog(this);
+                if (res == DialogResult.OK)
+                {
+                    var updated = form.GetNPCData();
+                    // Если мы редактировали существующий объект и передали ссылку — список уже изменён.
+                    if (editing == null)
+                    {
+                        // Добавляем новый NPC в gameData (убираем возможный дубль ID)
+                        // Убедимся, что ID уникален — если совпадает с существующим, найдём свободный
+                        if (_gameData.NPCs.Any(n => n.ID == updated.ID))
+                        {
+                            // Найдём max id + 1
+                            var next = (_gameData.NPCs.Count > 0) ? _gameData.NPCs.Max(n => n.ID) + 1 : 1;
+                            updated.ID = next;
+                        }
+                        _gameData.NPCs.Add(updated);
+                    }
+                    // Обновляем таблицу
+                    RefreshNPCGrid();
+                    statusLabel.Text = "Изменения не сохранены";
+                }
+            }
+        }
+
+        private void DeleteSelectedNPC()
+        {
+            var sel = GetSelectedNPCData();
+            if (sel == null) return;
+            var ans = MessageBox.Show(this, $"Удалить NPC '{sel.Name}' (ID: {sel.ID})?", "Подтверждение", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (ans == DialogResult.Yes)
+            {
+                _gameData.NPCs.Remove(sel);
+                RefreshNPCGrid();
+                statusLabel.Text = "Изменения не сохранены";
+            }
+        }
+
+
     }
 }

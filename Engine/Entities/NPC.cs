@@ -84,7 +84,7 @@ namespace Engine.Entities
             // Автоматически добавляем торговлю если NPC - торговец
             if (Trader != null)
             {
-                actions.Add("Торговля");
+                actions.Add("Торговать");
             }
 
             // Автоматически добавляем квесты если они доступны
@@ -273,8 +273,14 @@ namespace Engine.Entities
                 case "Торговать":
                     if (Trader != null)
                     {
+                        // подготовка ассортимента (как было)
                         Trader.InitializeShop(player);
-                        new TradeSystem(Trader, player).StartTrade();
+
+                        // Открываем новый экран торговли через ScreenManager
+                        var tradeScreen = new Engine.UI.TradeScreen(Trader, player);
+                        ScreenManager.PushScreen(tradeScreen);
+                        // ScreenManager.PushScreen уже вызывает RequestFullRedraw() внутри себя,
+                        // поэтому дополнительный вызов чаще не обязателен.
                     }
                     break;
                 case "Квесты":

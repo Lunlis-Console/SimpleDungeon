@@ -27,8 +27,8 @@ namespace Engine.UI
 
             RenderHeader($"ТОРГОВЛЯ С {_trader.Name.ToUpper()}");
             RenderGoldInfo();
-            RenderTraderItems();
-            RenderPlayerItems();
+            RenderPlayerItems(); // Теперь сначала отображаем предметы игрока
+            RenderTraderItems(); // Затем предметы торговца
             RenderSystemMessage();
             RenderFooter("W/S - Выбор │ TAB - Переключить │ E - Купить/продать │ Q - Выйти");
 
@@ -45,17 +45,20 @@ namespace Engine.UI
         private void RenderTraderItems()
         {
             int y = 6;
-            _renderer.Write(2, y, "=== ТОВАРЫ ТОРГОВЦА ===", ConsoleColor.Cyan);
+            int x = 50; // Перемещаем предметы торговца в правую часть
+            _renderer.Write(x, y, "=== ТОВАРЫ ТОРГОВЦА ===", ConsoleColor.Cyan);
             y += 2;
 
             if (_trader.ItemsForSale.Count == 0)
             {
-                _renderer.Write(4, y, "Товаров нет", ConsoleColor.DarkGray);
-                y += 2;
+                _renderer.Write(x + 2, y, "Товаров нет", ConsoleColor.DarkGray);
                 return;
             }
 
-            for (int i = 0; i < _trader.ItemsForSale.Count; i++)
+            int maxItemsToShow = Height - y - 6; // Максимальное количество предметов, которые можно отобразить
+            int itemsToShow = Math.Min(_trader.ItemsForSale.Count, maxItemsToShow);
+
+            for (int i = 0; i < itemsToShow; i++)
             {
                 var item = _trader.ItemsForSale[i];
                 int price = CalculateBuyPrice(item.Details);
@@ -66,24 +69,28 @@ namespace Engine.UI
 
                 string itemText = $"{prefix}{item.Details.Name} x{item.Quantity} - {price} золота";
 
-                _renderer.Write(4, y, itemText, color);
+                _renderer.Write(x + 2, y, itemText, color);
 
                 // Отображаем бонусы для экипировки
                 if (item.Details is Equipment equipment)
                 {
                     y++;
-                    string bonuses = GetEquipmentBonuses(equipment);
-                    _renderer.Write(8, y, bonuses, ConsoleColor.DarkGray);
+                    if (y < Height - 6) // Проверяем, не выходим ли за границы экрана
+                    {
+                        string bonuses = GetEquipmentBonuses(equipment);
+                        _renderer.Write(x + 6, y, bonuses, ConsoleColor.DarkGray);
+                    }
                 }
 
                 y++;
+                if (y >= Height - 6) break; // Прерываем, если достигли нижней границы экрана
             }
         }
 
         private void RenderPlayerItems()
         {
             int y = 6;
-            int x = 50;
+            int x = 2; // Перемещаем предметы игрока в левую часть
             _renderer.Write(x, y, "=== ВАШИ ПРЕДМЕТЫ ===", ConsoleColor.Cyan);
             y += 2;
 
@@ -93,7 +100,10 @@ namespace Engine.UI
                 return;
             }
 
-            for (int i = 0; i < _player.Inventory.Items.Count; i++)
+            int maxItemsToShow = Height - y - 6; // Максимальное количество предметов, которые можно отобразить
+            int itemsToShow = Math.Min(_player.Inventory.Items.Count, maxItemsToShow);
+
+            for (int i = 0; i < itemsToShow; i++)
             {
                 var item = _player.Inventory.Items[i];
                 int price = CalculateSellPrice(item.Details);
@@ -106,6 +116,8 @@ namespace Engine.UI
 
                 _renderer.Write(x + 2, y, itemText, color);
                 y++;
+
+                if (y >= Height - 6) break; // Прерываем, если достигли нижней границы экрана
             }
         }
 
@@ -179,11 +191,13 @@ namespace Engine.UI
         {
             if (_viewingTraderItems)
             {
-                _selectedIndex = Math.Clamp(_selectedIndex + direction, 0, _trader.ItemsForSale.Count - 1);
+                int maxIndex = Math.Max(0, _trader.ItemsForSale.Count - 1);
+                _selectedIndex = Math.Clamp(_selectedIndex + direction, 0, maxIndex);
             }
             else
             {
-                _selectedIndex = Math.Clamp(_selectedIndex + direction, 0, _player.Inventory.Items.Count - 1);
+                int maxIndex = Math.Max(0, _player.Inventory.Items.Count - 1);
+                _selectedIndex = Math.Clamp(_selectedIndex + direction, 0, maxIndex);
             }
         }
 

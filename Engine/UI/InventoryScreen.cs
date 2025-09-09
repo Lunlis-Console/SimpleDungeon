@@ -315,13 +315,15 @@ namespace Engine.UI
                         npc.Talk(_player);
                         break;
 
-                    case "Торговля":
+                    case "Торговать":
                         if (npc.Trader != null)
                         {
                             npc.Trader.InitializeShop(_player);
-                            new TradeSystem(npc.Trader, _player).StartTrade();
+                            var tradeScreen = new Engine.UI.TradeScreen(npc.Trader, _player);
+                            ScreenManager.PushScreen(tradeScreen);
                         }
                         break;
+
 
                     case "Задания":
                         ShowQuestMenu(npc, _player);

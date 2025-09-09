@@ -7,6 +7,10 @@
       "Type": "Consumable",
       "Price": 5,
       "Description": "Data/Descriptions/rat_meat.txt",
+      "AttackBonus": null,
+      "DefenceBonus": null,
+      "AgilityBonus": null,
+      "HealthBonus": null,
       "AmountToHeal": 5,
       "Components": [
         {
@@ -22,6 +26,10 @@
       "Type": "Consumable",
       "Price": 10,
       "Description": "",
+      "AttackBonus": null,
+      "DefenceBonus": null,
+      "AgilityBonus": null,
+      "HealthBonus": null,
       "AmountToHeal": 25,
       "Components": [
         {
@@ -41,6 +49,7 @@
       "DefenceBonus": 0,
       "AgilityBonus": 10,
       "HealthBonus": 0,
+      "AmountToHeal": null,
       "Components": [
         {
           "ComponentType": "Equip",
@@ -63,6 +72,7 @@
       "DefenceBonus": 0,
       "AgilityBonus": 10,
       "HealthBonus": 0,
+      "AmountToHeal": null,
       "Components": [
         {
           "ComponentType": "Equip",
@@ -85,6 +95,7 @@
       "DefenceBonus": 0,
       "AgilityBonus": 10,
       "HealthBonus": 0,
+      "AmountToHeal": null,
       "Components": [
         {
           "ComponentType": "Equip",
@@ -107,6 +118,7 @@
       "DefenceBonus": 1,
       "AgilityBonus": 0,
       "HealthBonus": 0,
+      "AmountToHeal": null,
       "Components": [
         {
           "ComponentType": "Equip",
@@ -129,6 +141,7 @@
       "DefenceBonus": 2,
       "AgilityBonus": 0,
       "HealthBonus": 0,
+      "AmountToHeal": null,
       "Components": [
         {
           "ComponentType": "Equip",
@@ -151,6 +164,7 @@
       "DefenceBonus": 1,
       "AgilityBonus": 0,
       "HealthBonus": 0,
+      "AmountToHeal": null,
       "Components": [
         {
           "ComponentType": "Equip",
@@ -173,6 +187,7 @@
       "DefenceBonus": 1,
       "AgilityBonus": 0,
       "HealthBonus": 0,
+      "AmountToHeal": null,
       "Components": [
         {
           "ComponentType": "Equip",
@@ -195,6 +210,7 @@
       "DefenceBonus": 5,
       "AgilityBonus": 0,
       "HealthBonus": 0,
+      "AmountToHeal": null,
       "Components": [
         {
           "ComponentType": "Equip",
@@ -217,6 +233,7 @@
       "DefenceBonus": 10,
       "AgilityBonus": 0,
       "HealthBonus": 0,
+      "AmountToHeal": null,
       "Components": [
         {
           "ComponentType": "Equip",
@@ -239,6 +256,7 @@
       "DefenceBonus": 2,
       "AgilityBonus": 0,
       "HealthBonus": 0,
+      "AmountToHeal": null,
       "Components": [
         {
           "ComponentType": "Equip",
@@ -261,6 +279,7 @@
       "DefenceBonus": 2,
       "AgilityBonus": 0,
       "HealthBonus": 0,
+      "AmountToHeal": null,
       "Components": [
         {
           "ComponentType": "Equip",
@@ -283,6 +302,7 @@
       "DefenceBonus": 10,
       "AgilityBonus": 0,
       "HealthBonus": 0,
+      "AmountToHeal": null,
       "Components": [
         {
           "ComponentType": "Equip",
@@ -305,6 +325,7 @@
       "DefenceBonus": 1,
       "AgilityBonus": 1,
       "HealthBonus": 1,
+      "AmountToHeal": null,
       "Components": [
         {
           "ComponentType": "Equip",
@@ -327,6 +348,7 @@
       "DefenceBonus": 2,
       "AgilityBonus": 0,
       "HealthBonus": 0,
+      "AmountToHeal": null,
       "Components": [
         {
           "ComponentType": "Equip",
@@ -349,6 +371,7 @@
       "DefenceBonus": 0,
       "AgilityBonus": 0,
       "HealthBonus": 10,
+      "AmountToHeal": null,
       "Components": [
         {
           "ComponentType": "Equip",
@@ -367,6 +390,11 @@
       "Type": "Stuff",
       "Price": 10,
       "Description": "",
+      "AttackBonus": null,
+      "DefenceBonus": null,
+      "AgilityBonus": null,
+      "HealthBonus": null,
+      "AmountToHeal": null,
       "Components": []
     },
     {
@@ -376,6 +404,11 @@
       "Type": "Quest",
       "Price": 0,
       "Description": "",
+      "AttackBonus": null,
+      "DefenceBonus": null,
+      "AgilityBonus": null,
+      "HealthBonus": null,
+      "AmountToHeal": null,
       "Components": []
     },
     {
@@ -385,6 +418,11 @@
       "Type": "Quest",
       "Price": 0,
       "Description": "",
+      "AttackBonus": null,
+      "DefenceBonus": null,
+      "AgilityBonus": null,
+      "HealthBonus": null,
+      "AmountToHeal": null,
       "Components": []
     },
     {
@@ -394,6 +432,11 @@
       "Type": "Quest",
       "Price": 0,
       "Description": "",
+      "AttackBonus": null,
+      "DefenceBonus": null,
+      "AgilityBonus": null,
+      "HealthBonus": null,
+      "AmountToHeal": null,
       "Components": []
     },
     {
@@ -403,6 +446,11 @@
       "Type": "Quest",
       "Price": 0,
       "Description": "",
+      "AttackBonus": null,
+      "DefenceBonus": null,
+      "AgilityBonus": null,
+      "HealthBonus": null,
+      "AmountToHeal": null,
       "Components": []
     }
   ],
@@ -585,7 +633,10 @@
       "NPCsHere": [],
       "MonsterTemplates": [],
       "ScaleMonstersToPlayerLevel": true,
-      "LocationToSouth": 3001
+      "LocationToNorth": null,
+      "LocationToEast": null,
+      "LocationToSouth": 3001,
+      "LocationToWest": null
     },
     {
       "ID": 3003,
@@ -601,7 +652,10 @@
       "NPCsHere": [],
       "MonsterTemplates": [],
       "ScaleMonstersToPlayerLevel": true,
-      "LocationToNorth": 3001
+      "LocationToNorth": 3001,
+      "LocationToEast": null,
+      "LocationToSouth": null,
+      "LocationToWest": null
     },
     {
       "ID": 3004,
@@ -627,6 +681,9 @@
       "NPCsHere": [],
       "MonsterTemplates": [],
       "ScaleMonstersToPlayerLevel": true,
+      "LocationToNorth": null,
+      "LocationToEast": null,
+      "LocationToSouth": null,
       "LocationToWest": 3001
     },
     {
@@ -658,7 +715,10 @@
       "NPCsHere": [],
       "MonsterTemplates": [],
       "ScaleMonstersToPlayerLevel": true,
-      "LocationToEast": 3001
+      "LocationToNorth": null,
+      "LocationToEast": 3001,
+      "LocationToSouth": null,
+      "LocationToWest": null
     }
   ],
   "Quests": [
@@ -809,7 +869,8 @@
             "Quantity": 1
           }
         ]
-      }
+      },
+      "GreetingDialogueId": null
     },
     {
       "ID": 4002,
@@ -821,7 +882,8 @@
         "ShopGreeting": "",
         "Gold": 0,
         "ItemsForSale": []
-      }
+      },
+      "GreetingDialogueId": null
     },
     {
       "ID": 4003,
@@ -833,7 +895,8 @@
         "ShopGreeting": "",
         "Gold": 0,
         "ItemsForSale": []
-      }
+      },
+      "GreetingDialogueId": null
     },
     {
       "ID": 4004,
@@ -845,7 +908,21 @@
         "ShopGreeting": "",
         "Gold": 0,
         "ItemsForSale": []
-      }
+      },
+      "GreetingDialogueId": null
+    },
+    {
+      "ID": 4005,
+      "Name": "\u0422\u0415\u0421\u0422\u041E\u0412\u042B\u0419_\u041D\u041F\u0421",
+      "Greeting": "\u041F\u0440\u0438\u0432\u0435\u0442\u0438\u043A\u0438",
+      "QuestsToGive": [],
+      "Merchant": {
+        "Name": "",
+        "ShopGreeting": "",
+        "Gold": 0,
+        "ItemsForSale": []
+      },
+      "GreetingDialogueId": "7001"
     }
   ],
   "Titles": [
@@ -887,6 +964,14 @@
       "HealthBonus": 10,
       "BonusAgainstType": "",
       "BonusAgainstAmount": 0
+    }
+  ],
+  "Dialogues": [
+    {
+      "Id": "7001",
+      "Name": "\u0422\u0435\u0441\u0442\u043E\u0432\u044B\u0439 \u0434\u0438\u0430\u043B\u043E\u0433",
+      "StartNodeId": null,
+      "Nodes": []
     }
   ]
 }

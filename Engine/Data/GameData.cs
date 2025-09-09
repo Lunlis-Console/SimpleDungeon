@@ -14,6 +14,7 @@ namespace Engine.Data
         public List<QuestData> Quests { get; set; } = new List<QuestData>();
         public List<NPCData> NPCs { get; set; } = new List<NPCData>();
         public List<TitleData> Titles { get; set; } = new List<TitleData>();
+        public List<DialogueData> Dialogues { get; set; } = new List<DialogueData>();
     }
 
     public class ItemData
@@ -104,7 +105,30 @@ namespace Engine.Data
         public string Greeting { get; set; } = string.Empty;
         public List<int> QuestsToGive { get; set; } = new List<int>();
         public MerchantData Merchant { get; set; } = new MerchantData();
+        public string GreetingDialogueId { get; set; } = null;
     }
+    public class DialogueData
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string StartNodeId { get; set; } = null;
+        public List<DialogueNodeData> Nodes { get; set; } = new List<DialogueNodeData>();
+    }
+
+    public class DialogueNodeData
+    {
+        public string Id { get; set; } = string.Empty; // уникальный id узла
+        public string Text { get; set; } = string.Empty; // текст ноды
+        public List<DialogueOptionData> Options { get; set; } = new List<DialogueOptionData>();
+    }
+    public class DialogueOptionData
+    {
+        public string Text { get; set; } = string.Empty; // текст варианта
+        public string NextNodeId { get; set; } = null; // id следующей ноды (null — конец)
+                                                       // сюда можно добавить условия/скрипты, награды и т.д.
+    }
+
+
 
     public class MerchantData
     {

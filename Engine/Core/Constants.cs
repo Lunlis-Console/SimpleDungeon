@@ -9,6 +9,7 @@
         private const int NPCS_BASE = 4000;
         private const int QUESTS_BASE = 5000;
         private const int TITLES_BASE = 6000;
+        private const int DIALOGUE_BASE = 7000;
 
         // ========== ПРЕДМЕТЫ (1000-1999) ==========
         // Расходники (1000-1099)
@@ -75,5 +76,9 @@
         public const int TITLE_ID_RAT_SLAYER = TITLES_BASE + 1;
         public const int TITLE_ID_SPIDER_HUNTER = TITLES_BASE + 2;
         public const int TITLE_ID_EXPERIENCED_ADVENTURER = TITLES_BASE + 3;
+
+        // ========== ДИАЛОГИ (7000-7999) ==========
+        public const int DIALOGUE_ID_TEST = DIALOGUE_BASE + 1;
+
     }
 }
