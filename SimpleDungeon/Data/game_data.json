@@ -4,287 +4,406 @@
       "ID": 1001,
       "Name": "\u041A\u0440\u044B\u0441\u0438\u043D\u043E\u0435 \u043C\u044F\u0441\u043E",
       "NamePlural": "\u041A\u0440\u044B\u0441\u0438\u043D\u043E\u0435 \u043C\u044F\u0441\u043E",
-      "Type": 10,
+      "Type": "consumable",
       "Price": 5,
       "Description": "Data/Descriptions/rat_meat.txt",
-      "AttackBonus": null,
-      "DefenceBonus": null,
-      "AgilityBonus": null,
-      "HealthBonus": null,
-      "AmountToHeal": 5
+      "AmountToHeal": 5,
+      "Components": [
+        {
+          "ComponentType": "Heal",
+          "HealAmount": 5
+        }
+      ]
     },
     {
       "ID": 1002,
       "Name": "\u0421\u043B\u0430\u0431\u043E\u0435 \u0437\u0435\u043B\u044C\u0435 \u043B\u0435\u0447\u0435\u043D\u0438\u044F",
       "NamePlural": "",
-      "Type": 10,
+      "Type": "consumable",
       "Price": 10,
       "Description": "",
-      "AttackBonus": null,
-      "DefenceBonus": null,
-      "AgilityBonus": null,
-      "HealthBonus": null,
-      "AmountToHeal": 25
+      "AmountToHeal": 25,
+      "Components": [
+        {
+          "ComponentType": "Heal",
+          "HealAmount": 25
+        }
+      ]
     },
     {
       "ID": 1101,
       "Name": "\u0420\u0436\u0430\u0432\u044B\u0439 \u043C\u0435\u0447",
       "NamePlural": "",
-      "Type": 5,
+      "Type": "oneHandedWeapon",
       "Price": 10,
       "Description": "",
       "AttackBonus": 10,
       "DefenceBonus": 0,
       "AgilityBonus": 10,
       "HealthBonus": 0,
-      "AmountToHeal": null
+      "Components": [
+        {
+          "ComponentType": "Equip",
+          "Slot": "OneHandedWeapon",
+          "AttackBonus": 10,
+          "DefenceBonus": 0,
+          "AgilityBonus": 10,
+          "HealthBonus": 0
+        }
+      ]
     },
     {
       "ID": 1102,
       "Name": "\u0416\u0435\u043B\u0435\u0437\u043D\u044B\u0439 \u043C\u0435\u0447",
       "NamePlural": "",
-      "Type": 5,
+      "Type": "oneHandedWeapon",
       "Price": 10,
       "Description": "",
       "AttackBonus": 15,
       "DefenceBonus": 0,
       "AgilityBonus": 10,
       "HealthBonus": 0,
-      "AmountToHeal": null
+      "Components": [
+        {
+          "ComponentType": "Equip",
+          "Slot": "OneHandedWeapon",
+          "AttackBonus": 15,
+          "DefenceBonus": 0,
+          "AgilityBonus": 10,
+          "HealthBonus": 0
+        }
+      ]
     },
     {
       "ID": 1103,
       "Name": "\u0416\u0435\u043B\u0435\u0437\u043D\u044B\u0439 \u0434\u0432\u0443\u0440\u0443\u0447\u043D\u0438\u043A",
       "NamePlural": "",
-      "Type": 6,
+      "Type": "twoHandedWeapon",
       "Price": 100,
       "Description": "",
       "AttackBonus": 25,
       "DefenceBonus": 0,
       "AgilityBonus": 10,
       "HealthBonus": 0,
-      "AmountToHeal": null
+      "Components": [
+        {
+          "ComponentType": "Equip",
+          "Slot": "TwoHandedWeapon",
+          "AttackBonus": 25,
+          "DefenceBonus": 0,
+          "AgilityBonus": 10,
+          "HealthBonus": 0
+        }
+      ]
     },
     {
       "ID": 1201,
       "Name": "\u041A\u043E\u0436\u0430\u043D\u044B\u0439 \u0448\u043B\u0435\u043C",
       "NamePlural": "",
-      "Type": 1,
+      "Type": "helmet",
       "Price": 10,
       "Description": "",
       "AttackBonus": 0,
       "DefenceBonus": 1,
       "AgilityBonus": 0,
       "HealthBonus": 0,
-      "AmountToHeal": null
+      "Components": [
+        {
+          "ComponentType": "Equip",
+          "Slot": "Helmet",
+          "AttackBonus": 0,
+          "DefenceBonus": 1,
+          "AgilityBonus": 0,
+          "HealthBonus": 0
+        }
+      ]
     },
     {
       "ID": 1202,
       "Name": "\u041A\u043E\u0436\u0430\u043D\u0430\u044F \u0431\u0440\u043E\u043D\u044F",
       "NamePlural": "",
-      "Type": 2,
+      "Type": "armor",
       "Price": 10,
       "Description": "",
       "AttackBonus": 0,
       "DefenceBonus": 2,
       "AgilityBonus": 0,
       "HealthBonus": 0,
-      "AmountToHeal": null
+      "Components": [
+        {
+          "ComponentType": "Equip",
+          "Slot": "Armor",
+          "AttackBonus": 0,
+          "DefenceBonus": 2,
+          "AgilityBonus": 0,
+          "HealthBonus": 0
+        }
+      ]
     },
     {
       "ID": 1203,
       "Name": "\u041A\u043E\u0436\u0430\u043D\u044B\u0435 \u043F\u0435\u0440\u0447\u0430\u0442\u043A\u0438",
       "NamePlural": "",
-      "Type": 3,
+      "Type": "gloves",
       "Price": 10,
       "Description": "",
       "AttackBonus": 0,
       "DefenceBonus": 1,
       "AgilityBonus": 0,
       "HealthBonus": 0,
-      "AmountToHeal": null
+      "Components": [
+        {
+          "ComponentType": "Equip",
+          "Slot": "Gloves",
+          "AttackBonus": 0,
+          "DefenceBonus": 1,
+          "AgilityBonus": 0,
+          "HealthBonus": 0
+        }
+      ]
     },
     {
       "ID": 1204,
       "Name": "\u041A\u043E\u0436\u0430\u043D\u044B\u0435 \u0441\u0430\u043F\u043E\u0433\u0438",
       "NamePlural": "",
-      "Type": 4,
+      "Type": "boots",
       "Price": 10,
       "Description": "",
       "AttackBonus": 0,
       "DefenceBonus": 1,
       "AgilityBonus": 0,
       "HealthBonus": 0,
-      "AmountToHeal": null
+      "Components": [
+        {
+          "ComponentType": "Equip",
+          "Slot": "Boots",
+          "AttackBonus": 0,
+          "DefenceBonus": 1,
+          "AgilityBonus": 0,
+          "HealthBonus": 0
+        }
+      ]
     },
     {
       "ID": 1205,
       "Name": "\u0416\u0435\u043B\u0435\u0437\u043D\u044B\u0439 \u0448\u043B\u0435\u043C",
       "NamePlural": "",
-      "Type": 1,
+      "Type": "helmet",
       "Price": 50,
       "Description": "",
       "AttackBonus": 0,
       "DefenceBonus": 5,
       "AgilityBonus": 0,
       "HealthBonus": 0,
-      "AmountToHeal": null
+      "Components": [
+        {
+          "ComponentType": "Equip",
+          "Slot": "Helmet",
+          "AttackBonus": 0,
+          "DefenceBonus": 5,
+          "AgilityBonus": 0,
+          "HealthBonus": 0
+        }
+      ]
     },
     {
       "ID": 1206,
       "Name": "\u0416\u0435\u043B\u0435\u0437\u043D\u0430\u044F \u0431\u0440\u043E\u043D\u044F",
       "NamePlural": "",
-      "Type": 2,
+      "Type": "armor",
       "Price": 100,
       "Description": "",
       "AttackBonus": 0,
       "DefenceBonus": 10,
       "AgilityBonus": 0,
       "HealthBonus": 0,
-      "AmountToHeal": null
+      "Components": [
+        {
+          "ComponentType": "Equip",
+          "Slot": "Armor",
+          "AttackBonus": 0,
+          "DefenceBonus": 10,
+          "AgilityBonus": 0,
+          "HealthBonus": 0
+        }
+      ]
     },
     {
       "ID": 1207,
       "Name": "\u0416\u0435\u043B\u0435\u0437\u043D\u044B\u0435 \u043F\u0435\u0440\u0447\u0430\u0442\u043A\u0438",
       "NamePlural": "",
-      "Type": 3,
+      "Type": "gloves",
       "Price": 40,
       "Description": "",
       "AttackBonus": 0,
       "DefenceBonus": 2,
       "AgilityBonus": 0,
       "HealthBonus": 0,
-      "AmountToHeal": null
+      "Components": [
+        {
+          "ComponentType": "Equip",
+          "Slot": "Gloves",
+          "AttackBonus": 0,
+          "DefenceBonus": 2,
+          "AgilityBonus": 0,
+          "HealthBonus": 0
+        }
+      ]
     },
     {
       "ID": 1208,
       "Name": "\u0416\u0435\u043B\u0435\u0437\u043D\u044B\u0435 \u0441\u0430\u043F\u043E\u0433\u0438",
       "NamePlural": "",
-      "Type": 4,
+      "Type": "boots",
       "Price": 40,
       "Description": "",
       "AttackBonus": 0,
       "DefenceBonus": 2,
       "AgilityBonus": 0,
       "HealthBonus": 0,
-      "AmountToHeal": null
+      "Components": [
+        {
+          "ComponentType": "Equip",
+          "Slot": "Boots",
+          "AttackBonus": 0,
+          "DefenceBonus": 2,
+          "AgilityBonus": 0,
+          "HealthBonus": 0
+        }
+      ]
     },
     {
       "ID": 1301,
       "Name": "\u0416\u0435\u043B\u0435\u0437\u043D\u044B\u0439 \u0449\u0438\u0442",
       "NamePlural": "",
-      "Type": 7,
+      "Type": "offHand",
       "Price": 50,
       "Description": "",
       "AttackBonus": 0,
       "DefenceBonus": 10,
       "AgilityBonus": 0,
       "HealthBonus": 0,
-      "AmountToHeal": null
+      "Components": [
+        {
+          "ComponentType": "Equip",
+          "Slot": "OffHand",
+          "AttackBonus": 0,
+          "DefenceBonus": 10,
+          "AgilityBonus": 0,
+          "HealthBonus": 0
+        }
+      ]
     },
     {
       "ID": 1401,
       "Name": "\u0424\u0430\u043C\u0438\u043B\u044C\u043D\u043E\u0435 \u043A\u043E\u043B\u044C\u0446\u043E",
       "NamePlural": "",
-      "Type": 9,
+      "Type": "ring",
       "Price": 100,
       "Description": "",
       "AttackBonus": 1,
       "DefenceBonus": 1,
       "AgilityBonus": 1,
       "HealthBonus": 1,
-      "AmountToHeal": null
+      "Components": [
+        {
+          "ComponentType": "Equip",
+          "Slot": "Ring",
+          "AttackBonus": 1,
+          "DefenceBonus": 1,
+          "AgilityBonus": 1,
+          "HealthBonus": 1
+        }
+      ]
     },
     {
       "ID": 1402,
       "Name": "\u0417\u043E\u043B\u043E\u0442\u043E\u0435 \u043A\u043E\u043B\u044C\u0446\u043E",
       "NamePlural": "",
-      "Type": 9,
+      "Type": "ring",
       "Price": 50,
       "Description": "",
       "AttackBonus": 0,
       "DefenceBonus": 2,
       "AgilityBonus": 0,
       "HealthBonus": 0,
-      "AmountToHeal": null
+      "Components": [
+        {
+          "ComponentType": "Equip",
+          "Slot": "Ring",
+          "AttackBonus": 0,
+          "DefenceBonus": 2,
+          "AgilityBonus": 0,
+          "HealthBonus": 0
+        }
+      ]
     },
     {
       "ID": 1403,
       "Name": "\u0414\u043E\u0440\u043E\u0433\u043E\u0435 \u043E\u0436\u0435\u0440\u0435\u043B\u044C\u0435",
       "NamePlural": "",
-      "Type": 8,
+      "Type": "amulet",
       "Price": 50,
       "Description": "",
       "AttackBonus": 0,
       "DefenceBonus": 0,
       "AgilityBonus": 0,
       "HealthBonus": 10,
-      "AmountToHeal": null
+      "Components": [
+        {
+          "ComponentType": "Equip",
+          "Slot": "Amulet",
+          "AttackBonus": 0,
+          "DefenceBonus": 0,
+          "AgilityBonus": 0,
+          "HealthBonus": 10
+        }
+      ]
     },
     {
       "ID": 1501,
       "Name": "\u041F\u0430\u0443\u0447\u0438\u0439 \u0448\u0435\u043B\u043A",
       "NamePlural": "",
-      "Type": 0,
+      "Type": "stuff",
       "Price": 10,
       "Description": "",
-      "AttackBonus": null,
-      "DefenceBonus": null,
-      "AgilityBonus": null,
-      "HealthBonus": null,
-      "AmountToHeal": null
+      "Components": []
     },
     {
       "ID": 1601,
       "Name": "\u042F\u0449\u0438\u043A \u0441 \u0442\u043E\u0432\u0430\u0440\u0430\u043C\u0438",
       "NamePlural": "\u041F\u043E\u0442\u0435\u0440\u044F\u043D\u043D\u044B\u0439 \u044F\u0449\u0438\u043A \u0442\u043E\u0440\u0433\u043E\u0432\u0446\u0430",
-      "Type": 11,
+      "Type": "quest",
       "Price": 0,
       "Description": "",
-      "AttackBonus": null,
-      "DefenceBonus": null,
-      "AgilityBonus": null,
-      "HealthBonus": null,
-      "AmountToHeal": null
+      "Components": []
     },
     {
       "ID": 1602,
       "Name": "\u042F\u0449\u0438\u043A \u0441 \u0438\u043D\u0441\u0442\u0440\u0443\u043C\u0435\u043D\u0442\u0430\u043C\u0438",
       "NamePlural": "\u041F\u043E\u0442\u0435\u0440\u044F\u043D\u043D\u044B\u0439 \u044F\u0449\u0438\u043A \u0442\u043E\u0440\u0433\u043E\u0432\u0446\u0430",
-      "Type": 11,
+      "Type": "quest",
       "Price": 0,
       "Description": "",
-      "AttackBonus": null,
-      "DefenceBonus": null,
-      "AgilityBonus": null,
-      "HealthBonus": null,
-      "AmountToHeal": null
+      "Components": []
     },
     {
       "ID": 1603,
       "Name": "\u042F\u0449\u0438\u043A \u0441 \u043F\u0440\u0438\u043F\u0430\u0441\u0430\u043C\u0438",
       "NamePlural": "\u041F\u043E\u0442\u0435\u0440\u044F\u043D\u043D\u044B\u0439 \u044F\u0449\u0438\u043A \u0442\u043E\u0440\u0433\u043E\u0432\u0446\u0430",
-      "Type": 11,
+      "Type": "quest",
       "Price": 0,
       "Description": "",
-      "AttackBonus": null,
-      "DefenceBonus": null,
-      "AgilityBonus": null,
-      "HealthBonus": null,
-      "AmountToHeal": null
+      "Components": []
     },
     {
       "ID": 1604,
       "Name": "\u042F\u0449\u0438\u043A \u0441 \u0443\u043A\u0440\u0430\u0448\u0435\u043D\u0438\u044F\u043C\u0438",
       "NamePlural": "\u041F\u043E\u0442\u0435\u0440\u044F\u043D\u043D\u044B\u0439 \u044F\u0449\u0438\u043A \u0442\u043E\u0440\u0433\u043E\u0432\u0446\u0430",
-      "Type": 11,
+      "Type": "quest",
       "Price": 0,
       "Description": "",
-      "AttackBonus": null,
-      "DefenceBonus": null,
-      "AgilityBonus": null,
-      "HealthBonus": null,
-      "AmountToHeal": null
+      "Components": []
     }
   ],
   "Monsters": [
@@ -466,10 +585,7 @@
       "NPCsHere": [],
       "MonsterTemplates": [],
       "ScaleMonstersToPlayerLevel": true,
-      "LocationToNorth": null,
-      "LocationToEast": null,
-      "LocationToSouth": 3001,
-      "LocationToWest": null
+      "LocationToSouth": 3001
     },
     {
       "ID": 3003,
@@ -485,10 +601,7 @@
       "NPCsHere": [],
       "MonsterTemplates": [],
       "ScaleMonstersToPlayerLevel": true,
-      "LocationToNorth": 3001,
-      "LocationToEast": null,
-      "LocationToSouth": null,
-      "LocationToWest": null
+      "LocationToNorth": 3001
     },
     {
       "ID": 3004,
@@ -514,9 +627,6 @@
       "NPCsHere": [],
       "MonsterTemplates": [],
       "ScaleMonstersToPlayerLevel": true,
-      "LocationToNorth": null,
-      "LocationToEast": null,
-      "LocationToSouth": null,
       "LocationToWest": 3001
     },
     {
@@ -548,10 +658,7 @@
       "NPCsHere": [],
       "MonsterTemplates": [],
       "ScaleMonstersToPlayerLevel": true,
-      "LocationToNorth": null,
-      "LocationToEast": 3001,
-      "LocationToSouth": null,
-      "LocationToWest": null
+      "LocationToEast": 3001
     }
   ],
   "Quests": [

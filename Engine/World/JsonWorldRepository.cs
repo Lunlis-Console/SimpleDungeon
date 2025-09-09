@@ -194,6 +194,7 @@ namespace Engine.World
                     InitializeFromGameData();
                     DebugConsole.Log("[LoadFromJson] InitializeFromGameData completed");
                     Console.WriteLine("[LoadFromJson] InitializeFromGameData completed");
+                    SaveMigratedGameData(_gameData, jsonFilePath);
                 }
                 catch (Exception ex)
                 {
@@ -212,6 +213,48 @@ namespace Engine.World
                 throw;
             }
         }
+
+        // Вставь этот приватный метод в класс JsonWorldRepository
+        private void SaveMigratedGameData(GameData gameData, string path)
+        {
+            if (gameData == null || string.IsNullOrWhiteSpace(path)) return;
+
+            try
+            {
+                // Создаём бэкап один раз (если .bak ещё нет)
+                string backupPath = path + ".bak";
+                if (!File.Exists(backupPath))
+                {
+                    File.Copy(path, backupPath, overwrite: false);
+                    DebugConsole.Log($"[LoadFromJson] Backup saved to {backupPath}");
+                    Console.WriteLine($"[LoadFromJson] Backup saved to {backupPath}");
+                }
+
+                // Используем существующие опции сериализации если они есть (_jsonOptions),
+                // иначе создаём минимальные (главное — добавить ItemComponentConverter)
+                JsonSerializerOptions optionsToUse = _jsonOptions ?? new JsonSerializerOptions { WriteIndented = true };
+
+                // Убедимся, что конвертер для компонентов добавлен
+                bool hasConverter = optionsToUse.Converters.Any(c => c is ItemComponentConverter);
+                if (!hasConverter)
+                {
+                    optionsToUse.Converters.Add(new ItemComponentConverter());
+                }
+
+                // Сериализуем и перезапишем файл
+                string outJson = JsonSerializer.Serialize(gameData, optionsToUse);
+                File.WriteAllText(path, outJson);
+
+                DebugConsole.Log($"[LoadFromJson] Migrated game_data.json saved to {path}");
+                Console.WriteLine($"[LoadFromJson] Migrated game_data.json saved to {path}");
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.Log($"[LoadFromJson] Failed to save migrated game_data.json: {ex.Message}");
+                Console.WriteLine($"[LoadFromJson] Failed to save migrated game_data.json: {ex.Message}");
+            }
+        }
+
 
         private string FormatMapping(Dictionary<string, Dictionary<int, int>> mapping)
         {
