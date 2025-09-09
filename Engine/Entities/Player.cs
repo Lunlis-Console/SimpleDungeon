@@ -268,17 +268,39 @@ namespace Engine.Entities
 
         public bool EquipItem(InventoryItem item)
         {
-            if (Inventory.EquipItem(item))
+            DebugConsole.Log($"DEBUG: Player.EquipItem called for ID={item?.Details?.ID ?? -1}, Name={item?.Details?.Name ?? "<null>"}");
+
+            if (item == null)
+            {
+                DebugConsole.Log("DEBUG: Equip failed — inventory item is null.");
+                return false;
+            }
+
+            bool result = false;
+            try
+            {
+                result = Inventory.EquipItem(item);
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.Log($"ERROR: Exception in Inventory.EquipItem: {ex.Message}");
+                DebugConsole.Log(ex.Message);
+                result = false;
+            }
+
+            if (result)
             {
                 MessageSystem.AddMessage($"Надето: {item.Details.Name}.");
-                return true;
             }
             else
             {
                 MessageSystem.AddMessage("Это не предмет экипировки или слот занят!");
-                return false;
             }
+
+            DebugConsole.Log($"DEBUG: Player.EquipItem returning {result}");
+            return result;
         }
+
 
         public void RemoveItemFromInventory(InventoryItem item, int quantity = 1)
         {

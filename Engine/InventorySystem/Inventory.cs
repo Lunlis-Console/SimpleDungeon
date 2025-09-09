@@ -1,5 +1,6 @@
 ﻿using Engine.Core;
 using Engine.Entities;
+using System.Reflection;
 
 namespace Engine.InventorySystem
 {
@@ -111,23 +112,124 @@ namespace Engine.InventorySystem
 
         public bool EquipItem(InventoryItem inventoryItem)
         {
-            if (inventoryItem.Details.Type == ItemType.Stuff ||
-                inventoryItem.Details.Type == ItemType.Consumable)
+            DebugConsole.Log($"DEBUG: Inventory.EquipItem called for ID={(inventoryItem?.Details?.ID ?? -1)}, Name={(inventoryItem?.Details?.Name ?? "<null>")}, Type={(inventoryItem?.Details?.Type.ToString() ?? "<null>")}");
+
+            if (inventoryItem == null || inventoryItem.Details == null)
             {
+                DebugConsole.Log("DEBUG: Equip failed — null item/details.");
                 return false;
             }
 
-            Equipment equipment = inventoryItem.Details as Equipment;
-            if (equipment == null) return false;
+            // запретим экипировку для мусора/расходников
+            if (inventoryItem.Details.Type == ItemType.Stuff ||
+                inventoryItem.Details.Type == ItemType.Consumable)
+            {
+                DebugConsole.Log("DEBUG: Item type is Stuff/Consumable — cannot equip.");
+                return false;
+            }
 
-            // Сохраняем ссылки на предметы, которые будем снимать
+            Equipment equipment = null;
+
+            // 1) Если уже Equipment — используем напрямую
+            if (inventoryItem.Details is Equipment existingEq)
+            {
+                equipment = existingEq;
+                DebugConsole.Log("DEBUG: Detected runtime Equipment instance — using it.");
+            }
+            else
+            {
+                // 2) Если CompositeItem — пытаемся получить EquipComponent
+                if (inventoryItem.Details is CompositeItem comp)
+                {
+                    var equipComp = comp.Components?.OfType<EquipComponent>().FirstOrDefault();
+                    if (equipComp != null)
+                    {
+                        DebugConsole.Log("DEBUG: CompositeItem has EquipComponent — constructing Equipment from component.");
+                        equipment = new Equipment(
+                            comp.ID,
+                            string.IsNullOrWhiteSpace(comp.NamePlural) ? comp.Name : comp.NamePlural,
+                            equipComp.AttackBonus,
+                            equipComp.DefenceBonus,
+                            equipComp.AgilityBonus,
+                            equipComp.HealthBonus,
+                            comp.Type,
+                            comp.Price,
+                            comp.Name,
+                            comp.Description
+                        );
+                    }
+                    else
+                    {
+                        DebugConsole.Log("DEBUG: CompositeItem has NO EquipComponent — attempting reflection fallback.");
+                        // reflection fallback — ищем бонусные свойства прямо на объекте
+                        var t = comp.GetType();
+                        int attack = GetIntPropertySafe(comp, "AttackBonus");
+                        int def = GetIntPropertySafe(comp, "DefenceBonus");
+                        int agi = GetIntPropertySafe(comp, "AgilityBonus");
+                        int hp = GetIntPropertySafe(comp, "HealthBonus");
+
+                        if ((attack | def | agi | hp) != 0)
+                        {
+                            DebugConsole.Log("DEBUG: Reflection found non-zero bonus properties — constructing Equipment from these values.");
+                            equipment = new Equipment(
+                                comp.ID,
+                                string.IsNullOrWhiteSpace(comp.NamePlural) ? comp.Name : comp.NamePlural,
+                                attack,
+                                def,
+                                agi,
+                                hp,
+                                comp.Type,
+                                comp.Price,
+                                comp.Name,
+                                comp.Description
+                            );
+                        }
+                        else
+                        {
+                            DebugConsole.Log("DEBUG: Reflection fallback found no bonus properties on CompositeItem.");
+                        }
+                    }
+                }
+                else
+                {
+                    // 3) Не CompositeItem — пробуем рефлексией получить бонусы (старый ItemData-like)
+                    var it = inventoryItem.Details;
+                    int attack = GetIntPropertySafe(it, "AttackBonus");
+                    int def = GetIntPropertySafe(it, "DefenceBonus");
+                    int agi = GetIntPropertySafe(it, "AgilityBonus");
+                    int hp = GetIntPropertySafe(it, "HealthBonus");
+
+                    if ((attack | def | agi | hp) != 0 || IsItemTypeEquipable(it.Type))
+                    {
+                        DebugConsole.Log("DEBUG: Non-composite item has bonuses or equippable ItemType — constructing Equipment via fallback.");
+                        equipment = new Equipment(
+                            it.ID,
+                            string.IsNullOrWhiteSpace(it.NamePlural) ? it.Name : it.NamePlural,
+                            attack,
+                            def,
+                            agi,
+                            hp,
+                            it.Type,
+                            it.Price,
+                            it.Name,
+                            it.Description
+                        );
+                    }
+                }
+            }
+
+            if (equipment == null)
+            {
+                DebugConsole.Log("DEBUG: Could not determine Equipment instance to equip — aborting.");
+                return false;
+            }
+
+            // --- Далее оригинальная логика с обработкой конфликтов/слотов ---
             Equipment itemToUnequip = null;
             string unequipMessage = "";
 
-            // Автоматическое снятие конфликтующей экипировки
             if (equipment.Type == ItemType.TwoHandedWeapon)
             {
-                // Если вторая рука занята - автоматически снимаем
                 if (OffHand != null)
                 {
                     itemToUnequip = OffHand;
@@ -136,7 +238,6 @@ namespace Engine.InventorySystem
             }
             else if (equipment.Type == ItemType.OffHand)
             {
-                // Если надето двуручное оружие - автоматически снимаем
                 if (MainHand != null && MainHand.Type == ItemType.TwoHandedWeapon)
                 {
                     itemToUnequip = MainHand;
@@ -145,7 +246,6 @@ namespace Engine.InventorySystem
             }
             else if (equipment.Type == ItemType.OneHandedWeapon)
             {
-                // Если надето двуручное оружие - автоматически снимаем
                 if (MainHand != null && MainHand.Type == ItemType.TwoHandedWeapon)
                 {
                     itemToUnequip = MainHand;
@@ -153,17 +253,15 @@ namespace Engine.InventorySystem
                 }
             }
 
-            // Снимаем конфликтующий предмет ДО того, как будем обращаться к его свойствам
             if (itemToUnequip != null)
             {
                 UnequipItem(itemToUnequip, true);
-                MessageSystem.AddMessage(unequipMessage);
+                DebugConsole.Log(unequipMessage);
             }
 
-            // Для колец обрабатываем отдельно, так как слотов два
+            // Ринг - отдельная обработка
             if (equipment.Type == ItemType.Ring)
             {
-                // Если есть свободный слот для кольца, надеваем в него
                 if (Ring1 == null)
                 {
                     Ring1 = equipment;
@@ -174,25 +272,19 @@ namespace Engine.InventorySystem
                 }
                 else
                 {
-                    // Если оба слота заняты, предлагаем заменить одно из колец
-                    // Для простоты заменяем первое кольцо
                     UnequipItem(Ring1, true);
                     Ring1 = equipment;
                 }
             }
             else
             {
-                // Для всех остальных типов экипировки
-                // Получаем текущий предмет в этом слоте
                 Equipment currentEquipment = GetEquipmentInSlot(equipment.Type);
 
-                // Если в слоте уже что-то есть, снимаем это
                 if (currentEquipment != null)
                 {
                     UnequipItem(currentEquipment, true);
                 }
 
-                // Надеваем новый предмет в соответствующий слот
                 switch (equipment.Type)
                 {
                     case ItemType.Helmet:
@@ -218,18 +310,52 @@ namespace Engine.InventorySystem
                         Amulet = equipment;
                         break;
                     default:
+                        DebugConsole.Log($"DEBUG: Unknown equipment type {equipment.Type} — cannot equip.");
                         return false;
                 }
             }
 
-            // Удаляем новый предмет из инвентаря
+            // Удаляем предмет из инвентаря (уменьшаем количество)
             RemoveItem(inventoryItem, 1);
 
-            // Добавляем его в список экипированных
+            // Добавляем в список экипированных
             EquippedItems.Add(new EquipmentItem(equipment, 1));
 
             OnEquipmentChanged?.Invoke();
+
+            DebugConsole.Log($"DEBUG: Successfully equipped ID={equipment.ID}, Name={equipment.Name}, Slot={equipment.Type}");
             return true;
+        }
+
+        // Вспомогательные методы (можно поместить рядом, приватными)
+        private static int GetIntPropertySafe(object obj, string propName)
+        {
+            try
+            {
+                var p = obj.GetType().GetProperty(propName, BindingFlags.Public | BindingFlags.Instance);
+                if (p == null) return 0;
+                var v = p.GetValue(obj);
+                if (v is int i) return i;
+                if (v is int?) return (int?)(v) ?? 0;
+                return 0;
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
+        private static bool IsItemTypeEquipable(ItemType t)
+        {
+            return t == ItemType.Helmet ||
+                   t == ItemType.Armor ||
+                   t == ItemType.Gloves ||
+                   t == ItemType.Boots ||
+                   t == ItemType.OneHandedWeapon ||
+                   t == ItemType.TwoHandedWeapon ||
+                   t == ItemType.OffHand ||
+                   t == ItemType.Amulet ||
+                   t == ItemType.Ring;
         }
         public bool UnequipItem(Equipment equipment, bool addToInventory = true)
         {

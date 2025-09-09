@@ -307,25 +307,63 @@ namespace Engine.UI
 
         private bool IsItemEquipped(Item item)
         {
+            if (item == null) return false;
+
+            // Старый путь — сравнение по ссылке для Equipment (оставим для совместимости),
+            // но добавим сравнение по ID на всякий случай.
             if (item is Equipment equipment)
             {
-                return _player.Inventory.Helmet == equipment ||
-                       _player.Inventory.Armor == equipment ||
-                       _player.Inventory.Gloves == equipment ||
-                       _player.Inventory.Boots == equipment ||
-                       _player.Inventory.MainHand == equipment ||
-                       _player.Inventory.OffHand == equipment ||
-                       _player.Inventory.Amulet == equipment ||
-                       _player.Inventory.Ring1 == equipment ||
-                       _player.Inventory.Ring2 == equipment;
-            }
-            else if (item is CompositeItem compItem)
-            {
-                // ⚠️ временно отключаем проверку "уже надето" для CompositeItem,
-                // пока не реализуем полноценную интеграцию в Inventory
+                if (_player.Inventory.Helmet?.ID == equipment.ID) return true;
+                if (_player.Inventory.Armor?.ID == equipment.ID) return true;
+                if (_player.Inventory.Gloves?.ID == equipment.ID) return true;
+                if (_player.Inventory.Boots?.ID == equipment.ID) return true;
+                if (_player.Inventory.MainHand?.ID == equipment.ID) return true;
+                if (_player.Inventory.OffHand?.ID == equipment.ID) return true;
+                if (_player.Inventory.Amulet?.ID == equipment.ID) return true;
+                if (_player.Inventory.Ring1?.ID == equipment.ID) return true;
+                if (_player.Inventory.Ring2?.ID == equipment.ID) return true;
+
                 return false;
             }
 
+            // Новый путь — CompositeItem + EquipComponent: сравниваем по ID
+            if (item is CompositeItem compItem)
+            {
+                var eq = compItem.Components?.OfType<EquipComponent>().FirstOrDefault();
+                if (eq != null)
+                {
+                    // Нормализуем имя слота — используем простое сравнение строк (имена слотов должны совпадать с ItemType names или с именами, которые используешь)
+                    string slot = (eq.Slot ?? string.Empty).ToLowerInvariant();
+
+                    switch (slot)
+                    {
+                        case "helmet":
+                            return _player.Inventory.Helmet?.ID == compItem.ID;
+                        case "armor":
+                            return _player.Inventory.Armor?.ID == compItem.ID;
+                        case "gloves":
+                            return _player.Inventory.Gloves?.ID == compItem.ID;
+                        case "boots":
+                            return _player.Inventory.Boots?.ID == compItem.ID;
+                        case "onehandedweapon":
+                        case "twohandedweapon":
+                        case "weapon":
+                            return _player.Inventory.MainHand?.ID == compItem.ID || _player.Inventory.OffHand?.ID == compItem.ID;
+                        case "offhand":
+                        case "shield":
+                            return _player.Inventory.OffHand?.ID == compItem.ID;
+                        case "amulet":
+                            return _player.Inventory.Amulet?.ID == compItem.ID;
+                        case "ring":
+                            return _player.Inventory.Ring1?.ID == compItem.ID || _player.Inventory.Ring2?.ID == compItem.ID;
+                        default:
+                            // Если слот не задан или неизвестен — считаем, что не экипировано
+                            return false;
+                    }
+                }
+            }
+
+            // По умолчанию — не экипировано
             return false;
         }
 
@@ -336,19 +374,26 @@ namespace Engine.UI
 
             if (_selectedItem is InventoryItem inventoryItem)
             {
-                // Показываем "Надеть" только если предмет не экипирован и это экипировка
-                if (inventoryItem.Details.Type == ItemType.Consumable)
+                // вычисляем флаги
+                bool isConsumable = inventoryItem.Details.Type == ItemType.Consumable;
+                bool isEquipment = ItemHelpers.IsEquipable(inventoryItem.Details);
+                _isAlreadyEquipped = IsItemEquipped(inventoryItem.Details);
+
+                // DIAGNOSTIC: подробный лог (runtime-type, id, ItemType)
+                var runtimeType = inventoryItem.Details?.GetType().FullName ?? "<null>";
+                var id = inventoryItem.Details?.ID ?? -1;
+                var itemType = inventoryItem.Details?.Type.ToString() ?? "<null>";
+                DebugConsole.Log($"DEBUG: isConsumable={isConsumable}, isEquipment={isEquipment}, alreadyEquipped={_isAlreadyEquipped} | runtimeType={runtimeType} | ID={id} | Type={itemType}");
+
+                // Действия
+                if (isConsumable)
                 {
                     _availableActions.Add("Использовать");
                 }
-                else if (inventoryItem.Details is Equipment ||
-                         (inventoryItem.Details is CompositeItem compItem &&
-                          compItem.Components.Any(c => c is EquipComponent)))
+
+                if (isEquipment && !_isAlreadyEquipped)
                 {
-                    if (!_isAlreadyEquipped)
-                    {
-                        _availableActions.Add("Надеть");
-                    }
+                    _availableActions.Add("Надеть");
                 }
 
                 _availableActions.Add("Осмотреть");

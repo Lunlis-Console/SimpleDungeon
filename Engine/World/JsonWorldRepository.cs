@@ -315,32 +315,77 @@ namespace Engine.World
         {
             if (itemData == null) return null;
 
-            // Если есть старые поля, и Components пусты — мигрируем их в компоненты (неубирая поля)
-            if ((itemData.Components == null || itemData.Components.Count == 0))
-            {
-                if (itemData.AmountToHeal.HasValue)
-                {
-                    itemData.Components = itemData.Components ?? new List<IItemComponent>();
-                    itemData.Components.Add(new HealComponent { HealAmount = itemData.AmountToHeal.Value });
-                }
+            // --- 1) Миграция legacy-полей в компоненты (если Components пусты) ---
+            if (itemData.Components == null)
+                itemData.Components = new List<IItemComponent>();
 
-                // если есть бонусы — можно добавить BuffComponent или DamageComponent по соглашению
-                if (itemData.AttackBonus.HasValue && itemData.AttackBonus.Value != 0)
+            bool hasLegacyBonuses =
+                (itemData.AttackBonus.HasValue && itemData.AttackBonus.Value != 0) ||
+                (itemData.DefenceBonus.HasValue && itemData.DefenceBonus.Value != 0) ||
+                (itemData.AgilityBonus.HasValue && itemData.AgilityBonus.Value != 0) ||
+                (itemData.HealthBonus.HasValue && itemData.HealthBonus.Value != 0);
+
+            if ((itemData.Components.Count == 0) && hasLegacyBonuses)
+            {
+                // Мигрируем все бонусы в один EquipComponent (сохраняя старые поля)
+                var migratedEquip = new EquipComponent
                 {
-                    itemData.Components = itemData.Components ?? new List<IItemComponent>();
-                    itemData.Components.Add(new DamageComponent { Damage = itemData.AttackBonus.Value, Range = 1 });
-                }
-                // аналогично для Defence/Agility/HealthBonus — можно добавлять BuffComponent
-                if (itemData.DefenceBonus.HasValue && itemData.DefenceBonus.Value != 0)
-                {
-                    itemData.Components = itemData.Components ?? new List<IItemComponent>();
-                    itemData.Components.Add(new BuffComponent { Attribute = "Defence", Amount = itemData.DefenceBonus.Value });
-                }
+                    Slot = itemData.Type.ToString(),
+                    AttackBonus = itemData.AttackBonus ?? 0,
+                    DefenceBonus = itemData.DefenceBonus ?? 0,
+                    AgilityBonus = itemData.AgilityBonus ?? 0,
+                    HealthBonus = itemData.HealthBonus ?? 0
+                };
+
+                itemData.Components.Add(migratedEquip);
+                DebugConsole.Log($"[CreateItemFromData] Migrated legacy bonuses -> EquipComponent for Item ID={itemData.ID}");
             }
 
-            // Если есть компоненты — создаём CompositeItem
+            if ((itemData.Components.Count == 0) && itemData.AmountToHeal.HasValue && itemData.AmountToHeal.Value != 0)
+            {
+                itemData.Components.Add(new HealComponent { HealAmount = itemData.AmountToHeal.Value });
+                DebugConsole.Log($"[CreateItemFromData] Migrated AmountToHeal -> HealComponent for Item ID={itemData.ID}");
+            }
+
+            // --- 2) Если после миграции есть компоненты — обрабатываем их в приоритетном порядке ---
             if (itemData.Components != null && itemData.Components.Count > 0)
             {
+                // Если есть EquipComponent -> создаём Equipment (рантайм-класс)
+                var equipComp = itemData.Components.OfType<EquipComponent>().FirstOrDefault();
+                if (equipComp != null)
+                {
+                    DebugConsole.Log($"[CreateItemFromData] Creating Equipment from EquipComponent for Item ID={itemData.ID} ({itemData.Name})");
+                    return new Equipment(
+                        itemData.ID,
+                        string.IsNullOrWhiteSpace(itemData.NamePlural) ? itemData.Name : itemData.NamePlural, // namePlural param in constructor
+                        equipComp.AttackBonus,
+                        equipComp.DefenceBonus,
+                        equipComp.AgilityBonus,
+                        equipComp.HealthBonus,
+                        itemData.Type,
+                        itemData.Price,
+                        itemData.Name,
+                        itemData.Description
+                    );
+                }
+
+                // Если есть HealComponent -> создаём HealingItem
+                var healComp = itemData.Components.OfType<HealComponent>().FirstOrDefault();
+                if (healComp != null)
+                {
+                    DebugConsole.Log($"[CreateItemFromData] Creating HealingItem from HealComponent for Item ID={itemData.ID} ({itemData.Name})");
+                    return new HealingItem(
+                        itemData.ID,
+                        itemData.Name,
+                        itemData.NamePlural,
+                        itemData.Type,
+                        healComp.HealAmount,
+                        itemData.Price,
+                        itemData.Description
+                    );
+                }
+
+                // Другие компоненты: по-умолчанию создаём CompositeItem и копируем компоненты туда
                 var compItem = new CompositeItem(
                     itemData.ID,
                     itemData.Name,
@@ -353,10 +398,11 @@ namespace Engine.World
                 foreach (var c in itemData.Components)
                     compItem.Components.Add(c);
 
+                DebugConsole.Log($"[CreateItemFromData] Created CompositeItem with {itemData.Components.Count} components for Item ID={itemData.ID}");
                 return compItem;
             }
 
-            // Иначе — поведение как раньше (старые nullable-поля)
+            // --- 3) Если компонентов нет — fallback на старую логику (legacy fields) ---
             if (itemData.AmountToHeal.HasValue)
             {
                 return new HealingItem(
