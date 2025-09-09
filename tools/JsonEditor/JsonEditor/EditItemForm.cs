@@ -1,234 +1,320 @@
-﻿using System;
+﻿using Engine.Core;
+using Engine.Data;
+using Engine.Entities;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
-using System.Reflection;
 using System.Windows.Forms;
-using Engine.Entities; // Item
-using Engine.Core;     // ItemType
-using Engine.Data;     // ItemData
 
 namespace JsonEditor
 {
     public class EditItemForm : Form
     {
-        private Item _itemEntity;             // если у тебя используется Engine.Entities.Item
-        private ItemData _itemData;           // если у тебя используется Engine.Data.ItemData
-        private bool _isEntity = false;       // true -> Item, false -> ItemData
+        // Входные/выходные данные
+        private ItemData _itemDataCopy;
+        public ItemData EditedItemData => _itemDataCopy;
 
-        // Controls
-        private TextBox txtID;
-        private TextBox txtName;
-        private TextBox txtNamePlural;
-        private ComboBox cboType;
+        // Контролы
+        private Label lblName, lblNamePlural, lblType, lblPrice, lblDescription, lblComponents;
+        private TextBox txtName, txtNamePlural, txtDescription;
+        private ComboBox cbType;
         private NumericUpDown nudPrice;
-        private TextBox txtDescription;
-        private Button btnOK;
-        private Button btnCancel;
+        private Button btnOk, btnCancel, btnEditComponents;
+        private Label lblComponentsPreview;
 
-        // Конструктор для Engine.Entities.Item
-        public EditItemForm(Item item)
+
+        // Внутри класса EditItemForm добавь этот перегруженный конструктор:
+        public EditItemForm(Item sourceItem) : this(ConvertItemToItemData(sourceItem))
         {
-            if (item == null) throw new ArgumentNullException(nameof(item));
-            _itemEntity = item;
-            _isEntity = true;
-            InitializeForm();
-            LoadFromEntity();
+            // Пусто — конструкция делегирует в уже существующий конструктор, который принимает ItemData.
         }
 
-        // Конструктор для Engine.Data.ItemData
-        public EditItemForm(ItemData itemData)
+        // Внутри того же класса добавь статический метод-конвертер:
+        private static ItemData ConvertItemToItemData(Item item)
         {
-            if (itemData == null) throw new ArgumentNullException(nameof(itemData));
-            _itemData = itemData;
-            _isEntity = false;
-            InitializeForm();
-            LoadFromData();
-        }
+            if (item == null) return new ItemData();
 
-        private void InitializeForm()
-        {
-            Text = "Редактирование предмета";
-            Width = 600;
-            Height = 420;
-            StartPosition = FormStartPosition.CenterParent;
-
-            int lblX = 10;
-            int tbX = 150;
-            int top = 12;
-            int vgap = 34;
-            int labelWidth = 130;
-            int tbWidth = 400;
-
-            // ID
-            var lblId = new Label { Left = lblX, Top = top, Width = labelWidth, Text = "ID:" };
-            txtID = new TextBox { Left = tbX, Top = top, Width = 120, ReadOnly = true };
-            top += vgap;
-
-            // Name
-            var lblName = new Label { Left = lblX, Top = top, Width = labelWidth, Text = "Name:" };
-            txtName = new TextBox { Left = tbX, Top = top, Width = tbWidth }; top += vgap;
-
-            // NamePlural
-            var lblNamePlural = new Label { Left = lblX, Top = top, Width = labelWidth, Text = "NamePlural:" };
-            txtNamePlural = new TextBox { Left = tbX, Top = top, Width = tbWidth }; top += vgap;
-
-            // Type (enum)
-            var lblType = new Label { Left = lblX, Top = top, Width = labelWidth, Text = "Type:" };
-            cboType = new ComboBox { Left = tbX, Top = top, Width = 200, DropDownStyle = ComboBoxStyle.DropDownList };
-            var values = Enum.GetValues(typeof(ItemType)).Cast<object>().ToArray();
-            cboType.Items.AddRange(values);
-            top += vgap;
-
-            // Price
-            var lblPrice = new Label { Left = lblX, Top = top, Width = labelWidth, Text = "Price:" };
-            nudPrice = new NumericUpDown { Left = tbX, Top = top, Width = 120, Minimum = 0, Maximum = 1_000_000 };
-            top += vgap;
-
-            // Description (многострочный)
-            var lblDesc = new Label { Left = lblX, Top = top, Width = labelWidth, Text = "Description:" };
-            txtDescription = new TextBox { Left = tbX, Top = top, Width = tbWidth, Height = 120, Multiline = true, ScrollBars = ScrollBars.Vertical };
-            top += 130;
-
-            // Buttons
-            btnOK = new Button { Text = "OK", Left = tbX, Top = top, Width = 120 };
-            btnCancel = new Button { Text = "Cancel", Left = tbX + 140, Top = top, Width = 120 };
-            btnOK.Click += BtnOK_Click;
-            btnCancel.Click += (s, e) => { DialogResult = DialogResult.Cancel; Close(); };
-
-            Controls.AddRange(new Control[] {
-                lblId, txtID,
-                lblName, txtName,
-                lblNamePlural, txtNamePlural,
-                lblType, cboType,
-                lblPrice, nudPrice,
-                lblDesc, txtDescription,
-                btnOK, btnCancel
-            });
-        }
-
-        private void LoadFromEntity()
-        {
-            txtID.Text = _itemEntity.ID.ToString();
-            txtName.Text = _itemEntity.Name ?? "";
-            txtNamePlural.Text = _itemEntity.NamePlural ?? "";
-            txtDescription.Text = _itemEntity.Description ?? "";
-            nudPrice.Value = Math.Max(nudPrice.Minimum, Math.Min(nudPrice.Maximum, _itemEntity.Price));
-
-            cboType.SelectedItem = _itemEntity.Type;
-            if (cboType.SelectedItem == null && cboType.Items.Count > 0)
-                cboType.SelectedIndex = 0;
-        }
-
-        private void LoadFromData()
-        {
-            // Используем reflection — чтобы форма работала независимо от точных полей ItemData
-            var t = _itemData.GetType();
-
-            var prop = t.GetProperty("ID");
-            if (prop != null) txtID.Text = prop.GetValue(_itemData)?.ToString() ?? "";
-
-            prop = t.GetProperty("Name");
-            if (prop != null) txtName.Text = prop.GetValue(_itemData)?.ToString() ?? "";
-
-            prop = t.GetProperty("NamePlural");
-            if (prop != null) txtNamePlural.Text = prop.GetValue(_itemData)?.ToString() ?? "";
-
-            prop = t.GetProperty("Description");
-            if (prop != null) txtDescription.Text = prop.GetValue(_itemData)?.ToString() ?? "";
-
-            prop = t.GetProperty("Price");
-            if (prop != null)
+            var data = new ItemData
             {
-                if (int.TryParse(prop.GetValue(_itemData)?.ToString(), out int price))
-                {
-                    nudPrice.Value = Math.Max(nudPrice.Minimum, Math.Min(nudPrice.Maximum, price));
-                }
-            }
+                ID = item.ID,
+                Name = item.Name ?? string.Empty,
+                NamePlural = item.NamePlural ?? string.Empty,
+                Type = item.Type,
+                Price = item.Price,
+                Description = item.Description ?? string.Empty,
+                // оставляем старые поля пустыми — используем Components для новых данных
+                AttackBonus = null,
+                DefenceBonus = null,
+                AgilityBonus = null,
+                HealthBonus = null,
+                AmountToHeal = null,
+                Components = new List<IItemComponent>()
+            };
 
-            // Type может быть enum или int — пробуем
-            prop = t.GetProperty("Type");
-            if (prop != null)
+            // Если это CompositeItem, скопируем компоненты (shallow copy)
+            if (item is CompositeItem comp)
             {
-                var val = prop.GetValue(_itemData);
-                if (val != null)
+                if (comp.Components != null)
                 {
-                    if (val is ItemType it) cboType.SelectedItem = it;
-                    else
+                    foreach (var c in comp.Components)
                     {
-                        // пробуем распарсить строку/число
-                        var s = val.ToString();
-                        if (Enum.TryParse<ItemType>(s, out var parsed)) cboType.SelectedItem = parsed;
-                        else if (int.TryParse(s, out var ival))
-                        {
-                            var enumVals = Enum.GetValues(typeof(ItemType)).Cast<int>().ToArray();
-                            if (enumVals.Contains(ival))
-                            {
-                                cboType.SelectedItem = Enum.ToObject(typeof(ItemType), ival);
-                            }
-                        }
+                        data.Components.Add(CloneComponentForData(c));
                     }
                 }
+                return data;
             }
 
-            if (cboType.SelectedItem == null && cboType.Items.Count > 0) cboType.SelectedIndex = 0;
+            // Если это Equipment — положим EquipComponent с бонусами
+            if (item is Equipment equipment)
+            {
+                data.Components.Add(new EquipComponent
+                {
+                    Slot = equipment.Type.ToString(),
+                    AttackBonus = equipment.AttackBonus,
+                    DefenceBonus = equipment.DefenceBonus,
+                    AgilityBonus = equipment.AgilityBonus,
+                    HealthBonus = equipment.HealthBonus
+                });
+
+                return data;
+            }
+
+            // Если это HealingItem — положим HealComponent (и для совместимости можно установить AmountToHeal)
+            if (item is HealingItem heal)
+            {
+                data.Components.Add(new HealComponent { HealAmount = heal.AmountToHeal });
+                data.AmountToHeal = heal.AmountToHeal;
+                return data;
+            }
+
+            // По умолчанию — оставляем пустые Components (Item без спец. поведения)
+            return data;
         }
 
-        private void BtnOK_Click(object? sender, EventArgs e)
+        // Вспомогательный метод - клонирует компонент для безопасного редактирования
+        private static IItemComponent CloneComponentForData(IItemComponent src)
         {
-            // basic validation
-            if (string.IsNullOrWhiteSpace(txtName.Text))
+            if (src == null) return null;
+            return src switch
             {
-                MessageBox.Show("Имя не может быть пустым", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
+                EquipComponent e => new EquipComponent
+                {
+                    Slot = e.Slot,
+                    AttackBonus = e.AttackBonus,
+                    DefenceBonus = e.DefenceBonus,
+                    AgilityBonus = e.AgilityBonus,
+                    HealthBonus = e.HealthBonus
+                },
+                HealComponent h => new HealComponent { HealAmount = h.HealAmount },
+                DamageComponent d => new DamageComponent { Damage = d.Damage, Range = d.Range },
+                BuffComponent b => new BuffComponent { Attribute = b.Attribute, Amount = b.Amount, DurationTurns = b.DurationTurns },
+                _ => src
+            };
+        }
 
-            if (_isEntity)
+
+        // Конструктор: передаём исходный ItemData (может быть null для нового)
+        public EditItemForm(ItemData source)
+        {
+            if (source == null)
             {
-                _itemEntity.Name = txtName.Text.Trim();
-                _itemEntity.NamePlural = txtNamePlural.Text.Trim();
-                _itemEntity.Description = txtDescription.Text;
-                _itemEntity.Price = (int)nudPrice.Value;
-
-                if (cboType.SelectedItem is ItemType it) _itemEntity.Type = it;
-                else if (Enum.TryParse<ItemType>(cboType.Text, out var parsed)) _itemEntity.Type = parsed;
+                // создаём новый пустой объект
+                _itemDataCopy = new ItemData();
             }
             else
             {
-                var t = _itemData.GetType();
-
-                var prop = t.GetProperty("Name");
-                prop?.SetValue(_itemData, txtName.Text.Trim());
-
-                prop = t.GetProperty("NamePlural");
-                prop?.SetValue(_itemData, txtNamePlural.Text.Trim());
-
-                prop = t.GetProperty("Description");
-                prop?.SetValue(_itemData, txtDescription.Text);
-
-                prop = t.GetProperty("Price");
-                prop?.SetValue(_itemData, (int)nudPrice.Value);
-
-                prop = t.GetProperty("Type");
-                if (prop != null)
+                // копируем данные поверхностно — компоненты будем клонировать при открытии редактора
+                _itemDataCopy = new ItemData
                 {
-                    if (prop.PropertyType == typeof(ItemType))
-                    {
-                        if (cboType.SelectedItem is ItemType it2) prop.SetValue(_itemData, it2);
-                    }
-                    else if (prop.PropertyType == typeof(int))
-                    {
-                        // int-backed enum
-                        if (cboType.SelectedItem is ItemType it3) prop.SetValue(_itemData, Convert.ToInt32(it3));
-                    }
-                    else
-                    {
-                        // fallback: string
-                        prop.SetValue(_itemData, cboType.SelectedItem?.ToString());
-                    }
-                }
+                    ID = source.ID,
+                    Name = source.Name,
+                    NamePlural = source.NamePlural,
+                    Type = source.Type,
+                    Price = source.Price,
+                    Description = source.Description,
+                    AttackBonus = source.AttackBonus,
+                    DefenceBonus = source.DefenceBonus,
+                    AgilityBonus = source.AgilityBonus,
+                    HealthBonus = source.HealthBonus,
+                    AmountToHeal = source.AmountToHeal,
+                    // копируем список компонентов (shallow copy)
+                    Components = source.Components != null ? source.Components.ToList() : new List<IItemComponent>()
+                };
             }
 
+            InitializeComponent();
+            LoadDataToControls();
+            UpdateComponentsPreview();
+        }
+
+        private void InitializeComponent()
+        {
+            Text = "Редактирование предмета";
+            Size = new Size(640, 360);
+            StartPosition = FormStartPosition.CenterParent;
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            MaximizeBox = false;
+            MinimizeBox = false;
+
+            int leftLabel = 12;
+            int leftControl = 140;
+            int top = 12;
+            int vertGap = 30;
+            int labelWidth = 120;
+            int controlWidth = 460;
+
+            // Name
+            lblName = new Label { Text = "Name:", Left = leftLabel, Top = top + 4, Width = labelWidth };
+            txtName = new TextBox { Left = leftControl, Top = top, Width = controlWidth };
+            top += vertGap;
+
+            // NamePlural
+            lblNamePlural = new Label { Text = "NamePlural:", Left = leftLabel, Top = top + 4, Width = labelWidth };
+            txtNamePlural = new TextBox { Left = leftControl, Top = top, Width = controlWidth };
+            top += vertGap;
+
+            // Type (enum)
+            lblType = new Label { Text = "Type:", Left = leftLabel, Top = top + 4, Width = labelWidth };
+            cbType = new ComboBox { Left = leftControl, Top = top, Width = 220, DropDownStyle = ComboBoxStyle.DropDownList };
+            // заполним из enum ItemType (если он присутствует)
+            foreach (var val in Enum.GetValues(typeof(ItemType)))
+                cbType.Items.Add(val);
+            top += vertGap;
+
+            // Price
+            lblPrice = new Label { Text = "Price:", Left = leftLabel, Top = top + 4, Width = labelWidth };
+            nudPrice = new NumericUpDown { Left = leftControl, Top = top, Width = 120, Minimum = 0, Maximum = 1000000, DecimalPlaces = 0 };
+            top += vertGap;
+
+            // Description
+            lblDescription = new Label { Text = "Description:", Left = leftLabel, Top = top + 6, Width = labelWidth };
+            txtDescription = new TextBox { Left = leftControl, Top = top, Width = controlWidth, Height = 80, Multiline = true, ScrollBars = ScrollBars.Vertical };
+            top += 90;
+
+            // Components button & preview
+            btnEditComponents = new Button { Left = leftLabel, Top = top, Width = 140, Height = 28, Text = "Компоненты..." };
+            btnEditComponents.Click += BtnEditComponents_Click;
+
+            lblComponents = new Label { Text = "Components:", Left = leftLabel + 150, Top = top + 6, Width = 80 };
+            lblComponentsPreview = new Label { Left = leftLabel + 230, Top = top, Width = controlWidth - 100, Height = 40, AutoSize = false };
+
+            top += 60;
+
+            // Buttons OK/Cancel
+            btnOk = new Button { Text = "OK", Left = leftControl - 120, Width = 100, Top = top, DialogResult = DialogResult.OK };
+            btnOk.Click += BtnOk_Click;
+            btnCancel = new Button { Text = "Отмена", Left = leftControl, Width = 100, Top = top, DialogResult = DialogResult.Cancel };
+            btnCancel.Click += (s, e) => { DialogResult = DialogResult.Cancel; Close(); };
+
+            Controls.AddRange(new Control[] {
+                lblName, txtName,
+                lblNamePlural, txtNamePlural,
+                lblType, cbType,
+                lblPrice, nudPrice,
+                lblDescription, txtDescription,
+                btnEditComponents, lblComponents, lblComponentsPreview,
+                btnOk, btnCancel
+            });
+        }
+
+        private void LoadDataToControls()
+        {
+            txtName.Text = _itemDataCopy.Name ?? string.Empty;
+            txtNamePlural.Text = _itemDataCopy.NamePlural ?? string.Empty;
+            cbType.SelectedItem = _itemDataCopy.Type;
+            nudPrice.Value = _itemDataCopy.Price;
+            txtDescription.Text = _itemDataCopy.Description ?? string.Empty;
+        }
+
+        private void BtnEditComponents_Click(object sender, EventArgs e)
+        {
+            // Создаём копию компонентов для редактирования
+            var copy = (_itemDataCopy.Components != null) ? _itemDataCopy.Components.Select(CloneComponent).ToList() : new List<IItemComponent>();
+
+            using (var dlg = new ComponentsEditorForm(copy))
+            {
+                var dr = dlg.ShowDialog(this);
+                if (dr == DialogResult.OK && dlg.Result != null)
+                {
+                    // Присваиваем результат (копии) обратно — это изменит локальную копию itemData
+                    _itemDataCopy.Components = dlg.Result;
+                    UpdateComponentsPreview();
+                }
+            }
+        }
+
+        private void BtnOk_Click(object sender, EventArgs e)
+        {
+            // Валидация минимальная
+            if (string.IsNullOrWhiteSpace(txtName.Text))
+            {
+                MessageBox.Show(this, "Name обязателен.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Сохраняем поля обратно в _itemDataCopy
+            _itemDataCopy.Name = txtName.Text.Trim();
+            _itemDataCopy.NamePlural = txtNamePlural.Text.Trim();
+            if (cbType.SelectedItem != null && cbType.SelectedItem is ItemType it)
+                _itemDataCopy.Type = it;
+            _itemDataCopy.Price = (int)nudPrice.Value;
+            _itemDataCopy.Description = txtDescription.Text;
+
+            // Если Components == null, оставляем как есть (параметры поведения JSON сохранятся)
+            // Закрываем с результатом OK
             DialogResult = DialogResult.OK;
             Close();
+        }
+
+        // Клонирование компонентов (поверхностно) — чтобы не редактировать оригинальные объекты
+        private IItemComponent CloneComponent(IItemComponent src)
+        {
+            if (src == null) return null;
+            return src switch
+            {
+                EquipComponent e => new EquipComponent
+                {
+                    Slot = e.Slot,
+                    AttackBonus = e.AttackBonus,
+                    DefenceBonus = e.DefenceBonus,
+                    AgilityBonus = e.AgilityBonus,
+                    HealthBonus = e.HealthBonus
+                },
+                HealComponent h => new HealComponent { HealAmount = h.HealAmount },
+                DamageComponent d => new DamageComponent { Damage = d.Damage, Range = d.Range },
+                BuffComponent b => new BuffComponent { Attribute = b.Attribute, Amount = b.Amount, DurationTurns = b.DurationTurns },
+                _ => src
+            };
+        }
+
+        // Короткий предпросмотр списка компонентов в label
+        private void UpdateComponentsPreview()
+        {
+            if (_itemDataCopy == null || _itemDataCopy.Components == null || !_itemDataCopy.Components.Any())
+            {
+                lblComponentsPreview.Text = "(компонентов нет)";
+                return;
+            }
+
+            var parts = _itemDataCopy.Components.Select(c =>
+            {
+                switch (c)
+                {
+                    case EquipComponent eq:
+                        return $"Equip[{eq.Slot}:+{eq.AttackBonus}/+{eq.DefenceBonus}]";
+                    case HealComponent h:
+                        return $"Heal[{h.HealAmount}]";
+                    case DamageComponent d:
+                        return $"Damage[{d.Damage}]";
+                    case BuffComponent b:
+                        return $"Buff[{b.Attribute}+{b.Amount}]";
+                    default:
+                        return c.GetType().Name;
+                }
+            });
+
+            lblComponentsPreview.Text = string.Join(", ", parts);
         }
     }
 }

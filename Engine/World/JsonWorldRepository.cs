@@ -40,6 +40,7 @@ namespace Engine.World
             };
             _jsonOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
             _jsonOptions.Converters.Add(new ItemComponentConverter());
+            _jsonOptions.Converters.Add(new ItemTypeConverter());
 
             LoadFromJson(jsonFilePath);
         }
