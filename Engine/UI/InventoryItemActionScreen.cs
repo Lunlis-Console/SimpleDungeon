@@ -309,7 +309,6 @@ namespace Engine.UI
         {
             if (item is Equipment equipment)
             {
-                // Проверяем все слоты экипировки
                 return _player.Inventory.Helmet == equipment ||
                        _player.Inventory.Armor == equipment ||
                        _player.Inventory.Gloves == equipment ||
@@ -320,8 +319,16 @@ namespace Engine.UI
                        _player.Inventory.Ring1 == equipment ||
                        _player.Inventory.Ring2 == equipment;
             }
+            else if (item is CompositeItem compItem)
+            {
+                // ⚠️ временно отключаем проверку "уже надето" для CompositeItem,
+                // пока не реализуем полноценную интеграцию в Inventory
+                return false;
+            }
+
             return false;
         }
+
 
         private void InitializeAvailableActions()
         {
@@ -334,9 +341,14 @@ namespace Engine.UI
                 {
                     _availableActions.Add("Использовать");
                 }
-                else if (inventoryItem.Details is Equipment && !_isAlreadyEquipped)
+                else if (inventoryItem.Details is Equipment ||
+                         (inventoryItem.Details is CompositeItem compItem &&
+                          compItem.Components.Any(c => c is EquipComponent)))
                 {
-                    _availableActions.Add("Надеть");
+                    if (!_isAlreadyEquipped)
+                    {
+                        _availableActions.Add("Надеть");
+                    }
                 }
 
                 _availableActions.Add("Осмотреть");
@@ -544,7 +556,8 @@ namespace Engine.UI
             switch (action)
             {
                 case "Использовать":
-                    _player.UseItemToHeal(inventoryItem);
+                    _player.UseItem(inventoryItem);
+                    //_player.UseItemToHeal(inventoryItem);
                     MessageSystem.AddMessage($"Использовано: {inventoryItem.Details.Name}");
                     RefreshParentInventory();
                     ScreenManager.PopScreen();

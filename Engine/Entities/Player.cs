@@ -340,6 +340,92 @@ namespace Engine.Entities
             RemoveItemFromInventory(item);
             MessageSystem.AddMessage($"Использовано: {item.Details.Name}, восстановлено {healedAmount} ед. здоровья!");
         }
+
+        public void UseItem(InventoryItem inventoryItem, Player target = null)
+        {
+            if (inventoryItem == null || inventoryItem.Details == null)
+                return;
+
+            var item = inventoryItem.Details;
+            bool used = false;
+
+            // Новый путь: предмет с компонентами
+            if (item is CompositeItem composite)
+            {
+                foreach (var comp in composite.Components)
+                {
+                    switch (comp)
+                    {
+                        case HealComponent healComp:
+                            int healAmount = healComp.HealAmount;
+                            CurrentHP = Math.Min(CurrentHP + healAmount, MaximumHP);
+                            MessageSystem.AddMessage($"{Name} использует {item.Name} и восстанавливает {healAmount} HP!");
+                            used = true;
+                            break;
+                        case DamageComponent dmgComp:
+                            if (target != null)
+                            {
+                                int damage = dmgComp.Damage;
+                                target.CurrentHP = Math.Max(target.CurrentHP - damage, 0);
+                                MessageSystem.AddMessage($"{Name} использует {item.Name} и наносит {damage} урона {target.Name}!");
+                                used = true;
+                            }
+                            break;
+                        case EquipComponent equipComp:
+                            // вызовем твой существующий метод EquipItem через Inventory
+                            if (EquipItem(inventoryItem))
+                            {
+                                MessageSystem.AddMessage($"{Name} экипировал {item.Name} в слот {equipComp.Slot} " +
+                                    $"(Атака +{equipComp.AttackBonus}, Защита +{equipComp.DefenceBonus}, " +
+                                    $"Ловкость +{equipComp.AgilityBonus}, Здоровье +{equipComp.HealthBonus}).");
+                                used = true;
+                            }
+                            else
+                            {
+                                MessageSystem.AddMessage($"{item.Name} не удалось экипировать.");
+                            }
+                            break;
+
+                        //case BuffComponent buffComp:
+                        //    AddBuff(buffComp.Attribute, buffComp.Amount, buffComp.DurationTurns);
+                        //    MessageSystem.AddMessage($"{Name} использует {item.Name}: {buffComp.Attribute} +{buffComp.Amount} на {buffComp.DurationTurns} ходов!");
+                        //    used = true;
+                        //    break;
+
+                        default:
+                            MessageSystem.AddMessage($"{item.Name} имеет неизвестный компонент {comp.ComponentType}.");
+                            break;
+                    }
+                }
+            }
+            else
+            {
+                // Старый путь: HealingItem
+                if (item is HealingItem healingItem)
+                {
+                    int healAmount = healingItem.AmountToHeal;
+                    CurrentHP = Math.Min(CurrentHP + healAmount, MaximumHP);
+                    MessageSystem.AddMessage($"{Name} использует {item.Name} и восстанавливает {healAmount} HP!");
+                    used = true;
+                }
+                // Старый путь: Equipment
+                else if (item is Equipment)
+                {
+                    used = EquipItem(inventoryItem); // <- дергаем Player.EquipItem, который внутри зовет Inventory.EquipItem
+                }
+            }
+
+            // Если предмет был использован, уменьшаем количество
+            if (used)
+            {
+                inventoryItem.Quantity--;
+            }
+            else
+            {
+                MessageSystem.AddMessage($"{item.Name} не может быть использован.");
+            }
+        }
+
         public void RecieveReward(Monster monster)
         {
             Gold += monster.RewardGold;

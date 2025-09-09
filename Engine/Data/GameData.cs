@@ -25,14 +25,15 @@ namespace Engine.Data
         public int Price { get; set; }
         public string Description { get; set; } = string.Empty;
 
-        // Для Equipment
+        // Старые поля
         public int? AttackBonus { get; set; }
         public int? DefenceBonus { get; set; }
         public int? AgilityBonus { get; set; }
         public int? HealthBonus { get; set; }
-
-        // Для HealingItem
         public int? AmountToHeal { get; set; }
+
+        // Компонентная система
+        public List<IItemComponent> Components { get; set; } = new List<IItemComponent>();
     }
 
     public class MonsterData

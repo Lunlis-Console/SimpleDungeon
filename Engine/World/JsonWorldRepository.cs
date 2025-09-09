@@ -39,6 +39,7 @@ namespace Engine.World
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             };
             _jsonOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase));
+            _jsonOptions.Converters.Add(new ItemComponentConverter());
 
             LoadFromJson(jsonFilePath);
         }
@@ -314,6 +315,48 @@ namespace Engine.World
         {
             if (itemData == null) return null;
 
+            // Если есть старые поля, и Components пусты — мигрируем их в компоненты (неубирая поля)
+            if ((itemData.Components == null || itemData.Components.Count == 0))
+            {
+                if (itemData.AmountToHeal.HasValue)
+                {
+                    itemData.Components = itemData.Components ?? new List<IItemComponent>();
+                    itemData.Components.Add(new HealComponent { HealAmount = itemData.AmountToHeal.Value });
+                }
+
+                // если есть бонусы — можно добавить BuffComponent или DamageComponent по соглашению
+                if (itemData.AttackBonus.HasValue && itemData.AttackBonus.Value != 0)
+                {
+                    itemData.Components = itemData.Components ?? new List<IItemComponent>();
+                    itemData.Components.Add(new DamageComponent { Damage = itemData.AttackBonus.Value, Range = 1 });
+                }
+                // аналогично для Defence/Agility/HealthBonus — можно добавлять BuffComponent
+                if (itemData.DefenceBonus.HasValue && itemData.DefenceBonus.Value != 0)
+                {
+                    itemData.Components = itemData.Components ?? new List<IItemComponent>();
+                    itemData.Components.Add(new BuffComponent { Attribute = "Defence", Amount = itemData.DefenceBonus.Value });
+                }
+            }
+
+            // Если есть компоненты — создаём CompositeItem
+            if (itemData.Components != null && itemData.Components.Count > 0)
+            {
+                var compItem = new CompositeItem(
+                    itemData.ID,
+                    itemData.Name,
+                    itemData.NamePlural,
+                    itemData.Type,
+                    itemData.Price,
+                    itemData.Description
+                );
+
+                foreach (var c in itemData.Components)
+                    compItem.Components.Add(c);
+
+                return compItem;
+            }
+
+            // Иначе — поведение как раньше (старые nullable-поля)
             if (itemData.AmountToHeal.HasValue)
             {
                 return new HealingItem(
