@@ -604,6 +604,24 @@
           "IsUnique": false
         }
       ]
+    },
+    {
+      "ID": 2006,
+      "Name": "\u0410\u043D\u0433\u0435\u043B",
+      "Level": 100,
+      "CurrentHP": 1000,
+      "MaximumHP": 1000,
+      "RewardEXP": 0,
+      "RewardGold": 0,
+      "Attributes": {
+        "Strength": 100,
+        "Constitution": 100,
+        "Dexterity": 100,
+        "Intelligence": 100,
+        "Wisdom": 100,
+        "Charisma": 100
+      },
+      "LootTable": []
     }
   ],
   "Locations": [
@@ -729,7 +747,9 @@
       "NPCsHere": [
         4005
       ],
-      "MonsterTemplates": [],
+      "MonsterTemplates": [
+        2006
+      ],
       "ScaleMonstersToPlayerLevel": false,
       "LocationToNorth": null,
       "LocationToEast": null,

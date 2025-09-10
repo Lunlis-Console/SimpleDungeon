@@ -403,6 +403,7 @@ namespace JsonEditor
                 q.ID,
                 q.Name,
                 RewardGold = q.RewardGold,
+                RewardEXP = q.RewardEXP,
                 QuestItems = q.QuestItems?.Count ?? 0
             }).ToList();
 
@@ -520,7 +521,14 @@ namespace JsonEditor
 
         private void EditQuest(QuestData quest)
         {
-            MessageBox.Show("Редактирование квестов пока не реализовано");
+            using (var form = new EditQuestForm(_gameData, quest))
+            {
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    RefreshDataGrids();
+                    statusLabel.Text = "Квест обновлен";
+                }
+            }
         }
 
         private void AddNewItem()
@@ -597,7 +605,27 @@ namespace JsonEditor
 
         private void AddNewQuest()
         {
-            MessageBox.Show("Добавление квестов пока не реализовано");
+            var newQuest = new QuestData
+            {
+                ID = GetNextAvailableId(_gameData.Quests),
+                Name = "Новый квест",
+                Description = "",
+                RewardGold = 0,
+                RewardEXP = 0,
+                QuestItems = new List<QuestItemData>()
+            };
+
+            using (var form = new EditQuestForm(_gameData, newQuest))
+            {
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    _gameData.Quests ??= new List<QuestData>();
+                    _gameData.Quests.Add(form.GetQuest());
+                    RefreshDataGrids();
+                    statusLabel.Text = "Новый квест добавлен";
+                    tabControl.SelectedTab = tabQuests;
+                }
+            }
         }
 
         private int GetNextAvailableId<T>(List<T> list) where T : class
@@ -810,7 +838,7 @@ namespace JsonEditor
             return _gameData?.Monsters?.FirstOrDefault(m => m.ID == id);
         }
 
-        private QuestData? GetSelectedQuest()
+        private QuestData GetSelectedQuest()
         {
             if (gridQuests.CurrentRow == null) return null;
             var idObj = gridQuests.CurrentRow.Cells["ID"].Value;
