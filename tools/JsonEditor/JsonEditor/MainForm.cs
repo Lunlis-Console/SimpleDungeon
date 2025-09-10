@@ -33,6 +33,7 @@ namespace JsonEditor
         private TabPage tabQuests;
         private TabPage tabDialogues;
 
+        private DataGridView gridNPCs;
         private DataGridView gridItems;
         private DataGridView gridMonsters;
         private DataGridView gridLocations;
@@ -48,12 +49,19 @@ namespace JsonEditor
         private Button btnEditDialogue;
         private Button btnDeleteDialogue;
 
-        private ComboBox comboGreetingDialogue;
-
-        private DataGridView gridNPCs;
         private Button btnAddNPC;
         private Button btnEditNPC;
         private Button btnDeleteNPC;
+
+        private Button btnAddLocation;
+        private Button btnEditLocation;
+        private Button btnDeleteLocation;
+
+        private ComboBox comboGreetingDialogue;
+
+        
+        
+
 
 
 
@@ -145,20 +153,6 @@ namespace JsonEditor
             gridMonsters.CellDoubleClick += (s, e) => EditSelectedMonster();
             tabMonsters.Controls.Add(gridMonsters);
 
-            // Вкладка локаций
-            tabLocations = new TabPage("Локации");
-            gridLocations = new DataGridView
-            {
-                Dock = DockStyle.Fill,
-                ReadOnly = true,
-                AllowUserToAddRows = false,
-                AllowUserToDeleteRows = false,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
-                SelectionMode = DataGridViewSelectionMode.FullRowSelect
-            };
-            gridLocations.CellDoubleClick += (s, e) => EditSelectedLocation();
-            tabLocations.Controls.Add(gridLocations);
-
             // Вкладка квестов
             tabQuests = new TabPage("Квесты");
             gridQuests = new DataGridView
@@ -173,7 +167,7 @@ namespace JsonEditor
             gridQuests.CellDoubleClick += (s, e) => EditSelectedQuest();
             tabQuests.Controls.Add(gridQuests);
 
-            tabControl.TabPages.AddRange(new[] { tabItems, tabMonsters, tabLocations, tabQuests });
+            tabControl.TabPages.AddRange(new[] { tabItems, tabMonsters, tabQuests });
 
             // === Dialogues tab initialization ===
             tabDialogues = new TabPage("Диалоги");
@@ -236,10 +230,21 @@ namespace JsonEditor
             btnDeleteNPC = new Button { Text = "Удалить NPC", Left = 270, Width = 110, Top = 4 };
 
             btnAddNPC.Click += (s, e) => OpenEditNPCForm(null);
-            btnEditNPC.Click += (s, e) => { if (gridNPCs.CurrentRow != null) OpenEditNPCForm(GetSelectedNPCData()); };
+            btnEditNPC.Click += (s, e) =>
+            {
+                var npc = GetSelectedNPCData();
+                if (npc != null) OpenEditNPCForm(npc);
+            };
             btnDeleteNPC.Click += (s, e) => DeleteSelectedNPC();
 
-            gridNPCs.CellDoubleClick += (s, e) => { if (e.RowIndex >= 0) OpenEditNPCForm(GetSelectedNPCData()); };
+            gridNPCs.CellDoubleClick += (s, e) =>
+            {
+                if (e.RowIndex >= 0)
+                {
+                    var npc = GetSelectedNPCData();
+                    if (npc != null) OpenEditNPCForm(npc);
+                }
+            };
 
             panelNPCButtons.Controls.Add(btnAddNPC);
             panelNPCButtons.Controls.Add(btnEditNPC);
@@ -253,6 +258,56 @@ namespace JsonEditor
             // В конце инициализации — отображаем NPC
             RefreshNPCGrid();
 
+            // Создаём вкладку Локации
+            tabLocations = new TabPage("Locations");
+
+            gridLocations = new DataGridView
+            {
+                Dock = DockStyle.Top,
+                Height = 400,
+                ReadOnly = true,
+                AllowUserToAddRows = false,
+                AllowUserToDeleteRows = false,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                MultiSelect = false
+            };
+
+            var panelLocationButtons = new Panel { Dock = DockStyle.Bottom, Height = 36 };
+            btnAddLocation = new Button { Text = "Добавить", Left = 8, Width = 100, Top = 4 };
+            btnEditLocation = new Button { Text = "Редактировать", Left = 120, Width = 120, Top = 4 };
+            btnDeleteLocation = new Button { Text = "Удалить", Left = 250, Width = 100, Top = 4 };
+
+            btnAddLocation.Click += (s, e) => OpenEditLocationForm(null);
+            btnEditLocation.Click += (s, e) =>
+            {
+                var location = GetSelectedLocation();
+                if (location != null) OpenEditLocationForm(location);
+            };
+            btnDeleteLocation.Click += (s, e) => DeleteSelectedLocation();
+
+            gridLocations.CellDoubleClick += (s, e) =>
+            {
+                if (e.RowIndex >= 0)
+                {
+                    var location = GetSelectedLocation();
+                    if (location != null) OpenEditLocationForm(location);
+                }
+            };
+
+            panelLocationButtons.Controls.Add(btnAddLocation);
+            panelLocationButtons.Controls.Add(btnEditLocation);
+            panelLocationButtons.Controls.Add(btnDeleteLocation);
+
+            tabLocations.Controls.Add(gridLocations);
+            tabLocations.Controls.Add(panelLocationButtons);
+
+            tabControl.TabPages.Add(tabLocations);
+
+            RefreshLocationGrid();
+
+
+
 
 
             // StatusStrip
@@ -264,7 +319,7 @@ namespace JsonEditor
             var buttonPanel = new Panel { Dock = DockStyle.Top, Height = 40 };
             var btnAddItem = new Button { Text = "Добавить предмет", Left = 10, Top = 8, Width = 120 };
             var btnAddMonster = new Button { Text = "Добавить монстра", Left = 140, Top = 8, Width = 120 };
-            var btnAddLocation = new Button { Text = "Добавить локацию", Left = 270, Top = 8, Width = 120 };
+            btnAddLocation = new Button { Text = "Добавить локацию", Left = 270, Top = 8, Width = 120 };
             var btnAddQuest = new Button { Text = "Добавить квест", Left = 400, Top = 8, Width = 120 };
 
             btnAddItem.Click += (s, e) => AddNewItem();
@@ -446,7 +501,7 @@ namespace JsonEditor
             if (gridItems.SelectedRows.Count > 0)
             {
                 var selectedId = (int)gridItems.SelectedRows[0].Cells["ID"].Value;
-                var item = _gameData.Items?.FirstOrDefault(i => i.ID == selectedId);
+                var item = GetSelectedItem();
                 if (item != null) EditItem(item);
             }
         }
@@ -456,7 +511,7 @@ namespace JsonEditor
             if (gridMonsters.SelectedRows.Count > 0)
             {
                 var selectedId = (int)gridMonsters.SelectedRows[0].Cells["ID"].Value;
-                var monster = _gameData.Monsters?.FirstOrDefault(m => m.ID == selectedId);
+                var monster = GetSelectedMonster();
                 if (monster != null) EditMonster(monster);
             }
         }
@@ -476,7 +531,7 @@ namespace JsonEditor
             if (gridQuests.SelectedRows.Count > 0)
             {
                 var selectedId = (int)gridQuests.SelectedRows[0].Cells["ID"].Value;
-                var quest = _gameData.Quests?.FirstOrDefault(q => q.ID == selectedId);
+                var quest = GetSelectedQuest();
                 if (quest != null) EditQuest(quest);
             }
         }
@@ -739,13 +794,13 @@ namespace JsonEditor
             if (gridNPCs.Columns["GreetingDialogue"] != null) gridNPCs.Columns["GreetingDialogue"].HeaderText = "GreetingDialogueId";
         }
 
-        private NPCData GetSelectedNPCData()
+        private NPCData? GetSelectedNPCData()
         {
             if (gridNPCs.CurrentRow == null) return null;
             var idObj = gridNPCs.CurrentRow.Cells["ID"].Value;
             if (idObj == null) return null;
             int id = Convert.ToInt32(idObj);
-            return _gameData.NPCs.FirstOrDefault(n => n.ID == id);
+            return _gameData?.NPCs?.FirstOrDefault(n => n.ID == id);
         }
 
         private void OpenEditNPCForm(NPCData npc)
@@ -793,6 +848,105 @@ namespace JsonEditor
             }
         }
 
+        private void RefreshLocationGrid()
+        {
+            if (_gameData == null) return;
+
+            var list = _gameData.Locations
+                .Select(l => new
+                {
+                    l.ID,
+                    l.Name,
+                    NPCs = string.Join(", ", l.NPCsHere ?? new List<int>()),
+                    Monsters = string.Join(", ", l.MonsterTemplates ?? new List<int>()),
+                    North = l.LocationToNorth,
+                    East = l.LocationToEast,
+                    South = l.LocationToSouth,
+                    West = l.LocationToWest
+                })
+                .OrderBy(l => l.ID)
+                .ToList();
+
+            gridLocations.DataSource = null;
+            gridLocations.DataSource = list;
+        }
+
+        private LocationData? GetSelectedLocation()
+        {
+            if (gridLocations.CurrentRow == null) return null;
+            var idObj = gridLocations.CurrentRow.Cells["ID"].Value;
+            if (idObj == null) return null;
+            int id = Convert.ToInt32(idObj);
+            return _gameData?.Locations?.FirstOrDefault(l => l.ID == id);
+        }
+
+        private void OpenEditLocationForm(LocationData loc)
+        {
+            LocationData editing = loc;
+            var dialogLoc = editing ?? new LocationData();
+
+            using (var form = new EditLocationForm(_gameData, dialogLoc))
+            {
+                var res = form.ShowDialog(this);
+                if (res == DialogResult.OK)
+                {
+                    var updated = form.GetLocation();
+                    if (editing == null)
+                    {
+                        if (_gameData.Locations.Any(l => l.ID == updated.ID))
+                        {
+                            MessageBox.Show("Локация с таким ID уже существует.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
+                        _gameData.Locations.Add(updated);
+                    }
+                    RefreshLocationGrid();
+                    statusLabel.Text = "Изменения не сохранены";
+                }
+            }
+        }
+
+        private void DeleteSelectedLocation()
+        {
+            var sel = GetSelectedLocation();
+            if (sel == null) return;
+            var ans = MessageBox.Show(this, $"Удалить локацию '{sel.Name}'?", "Подтверждение", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (ans == DialogResult.Yes)
+            {
+                _gameData.Locations.Remove(sel);
+                RefreshLocationGrid();
+                statusLabel.Text = "Изменения не сохранены";
+            }
+        }
+
+        private ItemData? GetSelectedItem()
+        {
+            if (gridItems.CurrentRow == null) return null;
+            var idObj = gridItems.CurrentRow.Cells["ID"].Value;
+            if (idObj == null) return null;
+            int id = Convert.ToInt32(idObj);
+            return _gameData?.Items?.FirstOrDefault(i => i.ID == id);
+        }
+
+        private MonsterData? GetSelectedMonster()
+        {
+            if (gridMonsters.CurrentRow == null) return null;
+            var idObj = gridMonsters.CurrentRow.Cells["ID"].Value;
+            if (idObj == null) return null;
+            int id = Convert.ToInt32(idObj);
+            return _gameData?.Monsters?.FirstOrDefault(m => m.ID == id);
+        }
+
+        private QuestData? GetSelectedQuest()
+        {
+            if (gridQuests.CurrentRow == null) return null;
+            var idObj = gridQuests.CurrentRow.Cells["ID"].Value;
+            if (idObj == null) return null;
+            int id = Convert.ToInt32(idObj);
+            return _gameData?.Quests?.FirstOrDefault(q => q.ID == id);
+        }
+
+        
 
     }
 }

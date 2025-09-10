@@ -62,9 +62,9 @@ namespace Engine.Data
         public int ID { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public List<MonsterSpawnData> MonsterSpawns { get; set; } = new List<MonsterSpawnData>();
-        public List<int> NPCsHere { get; set; } = new List<int>();
-        public List<int> MonsterTemplates { get; set; } = new List<int>();
+        public List<MonsterSpawnData> MonsterSpawns { get; set; } = new();
+        public List<int> NPCsHere { get; set; } = new();
+        public List<int> MonsterTemplates { get; set; } = new();
         public bool ScaleMonstersToPlayerLevel { get; set; }
         public int? LocationToNorth { get; set; }
         public int? LocationToEast { get; set; }
