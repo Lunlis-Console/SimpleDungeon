@@ -713,7 +713,6 @@ namespace JsonEditor
         {
             // Защита: если _gameData почему-то не инициализирован (null) —
             // безопасно создаём пустой контейнер (чтобы форма не падала).
-            // Замените Engine.Data.GameData на фактический тип, если у вас другой.
             if (_gameData == null)
             {
                 _gameData = new Engine.Data.GameData();
@@ -731,8 +730,10 @@ namespace JsonEditor
                 Nodes = new List<Engine.Data.DialogueNodeData>()
             };
 
-            // Используем EditDialogueForm (твой редактор диалогов)
-            using (var form = new EditDialogueForm(newDialogue))
+            // ЗАМЕНИТЬ ЭТУ СТРОКУ:
+            // using (var form = new EditDialogueForm(newDialogue))
+            // НА ЭТУ:
+            using (var form = new EditDialogueForm(newDialogue, _gameData))
             {
                 // owner передаём this (опционально)
                 if (form.ShowDialog(this) == DialogResult.OK)
@@ -744,7 +745,6 @@ namespace JsonEditor
                 }
             }
         }
-
         private void EditSelectedDialogue()
         {
             if (gridDialogues.CurrentRow == null) return;
@@ -754,8 +754,10 @@ namespace JsonEditor
             var dialog = _gameData.Dialogues.FirstOrDefault(d => d.Id == id);
             if (dialog == null) return;
 
-            // ЗАМЕНА: используем EditDialogueForm вместо VisualDialogueForm
-            using (var form = new EditDialogueForm(dialog))
+            // ЗАМЕНИТЬ ЭТУ СТРОКУ:
+            // using (var form = new EditDialogueForm(dialog))
+            // НА ЭТУ:
+            using (var form = new EditDialogueForm(dialog, _gameData))
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
@@ -764,7 +766,6 @@ namespace JsonEditor
                 }
             }
         }
-
         // Метод для глубокого копирования диалога
 
         private void RefreshNPCGrid()

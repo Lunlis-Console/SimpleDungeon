@@ -133,10 +133,32 @@ namespace Engine.Data
     {
         public string Text { get; set; }
         public string TargetNodeId { get; set; }
-        public string Action { get; set; } // Например: "StartQuest", "CompleteQuest", "OpenShop"
-        public string Parameter { get; set; } // Параметр для действия (ID квеста и т.д.)
+        public DialogueAction Action { get; set; }
+        public string ActionParameter { get; set; }
+        public List<ItemReward> ItemRewards { get; set; } = new List<ItemReward>();
+        public int GoldReward { get; set; }
+        public int ExperienceReward { get; set; }
+        public string QuestId { get; set; }
+        public bool StartTrade { get; set; }
+        public bool EndDialogue { get; set; }
+    }
+    public class ItemReward
+    {
+        public int ItemId { get; set; }
+        public int Quantity { get; set; }
     }
 
+    public enum DialogueAction
+    {
+        None,
+        GiveQuest,
+        CompleteQuest,
+        GiveItems,
+        GiveGold,
+        GiveExperience,
+        StartTrade,
+        EndDialogue
+    }
 
 
     public class MerchantData
