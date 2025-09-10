@@ -123,18 +123,47 @@ namespace JsonEditor
                                         _gameData.Locations.Select(l => ((int?)l.ID, $"{l.ID} - {l.Name}"))
                                     );
 
-            void BindCombo(ComboBox combo, int? selected)
-            {
-                combo.DataSource = new List<(int?, string)>(locationOptions);
-                combo.DisplayMember = "Item2";
-                combo.ValueMember = "Item1";
-                combo.SelectedValue = selected;
-            }
+            //void BindCombo(ComboBox combo, int? selected)
+            //{
+            //    combo.DataSource = new List<(int?, string)>(locationOptions);
+            //    combo.DisplayMember = "Item2";
+            //    combo.ValueMember = "Item1";
+            //    combo.SelectedValue = selected;
+            //}
 
             BindCombo(comboNorth, _location.LocationToNorth);
             BindCombo(comboEast, _location.LocationToEast);
             BindCombo(comboSouth, _location.LocationToSouth);
             BindCombo(comboWest, _location.LocationToWest);
+        }
+
+        private void BindCombo(ComboBox combo, int? selected)
+        {
+            var locationOptions = new List<object> { new { Value = (int?)null, DisplayText = "(нет)" } };
+            locationOptions.AddRange(
+                _gameData.Locations.Select(l => new { Value = (int?)l.ID, DisplayText = $"{l.ID} - {l.Name}" })
+            );
+
+            combo.DataSource = locationOptions;
+            combo.DisplayMember = "DisplayText";
+            combo.ValueMember = "Value";
+
+            if (selected.HasValue)
+            {
+                var selectedOption = locationOptions.Cast<dynamic>().FirstOrDefault(opt => opt.Value == selected.Value);
+                if (selectedOption != null)
+                {
+                    combo.SelectedItem = selectedOption;
+                }
+                else
+                {
+                    combo.SelectedIndex = 0;
+                }
+            }
+            else
+            {
+                combo.SelectedIndex = 0;
+            }
         }
 
         private void BtnOk_Click(object sender, EventArgs e)

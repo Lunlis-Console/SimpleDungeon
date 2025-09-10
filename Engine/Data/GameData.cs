@@ -118,6 +118,7 @@ namespace Engine.Data
     {
         public string Id { get; set; } = string.Empty; // уникальный id узла
         public string Text { get; set; } = string.Empty; // текст ноды
+        public string ParentId { get; set; }
         public List<DialogueOptionData> Options { get; set; } = new List<DialogueOptionData>();
         public List<DialogueResponseData> Responses { get; set; } = new List<DialogueResponseData>();
     }
