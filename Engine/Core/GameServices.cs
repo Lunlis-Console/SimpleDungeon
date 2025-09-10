@@ -154,11 +154,6 @@ namespace Engine.Core
             }
         }
 
-        public static IOutputService OutputService
-        {
-            get => _outputService ??= new ConsoleOutputService();
-            set => _outputService = value;
-        }
 
         public static IGameFactory GameFactory
         {
@@ -166,29 +161,6 @@ namespace Engine.Core
             set => _gameFactory = value;
         }
 
-        public static void Initialize()
-        {
-            try
-            {
-                Console.OutputEncoding = Encoding.UTF8;
-                Console.CursorVisible = false;
-
-                // Инициализируем рендерер первым
-                BufferedRenderer = new EnhancedBufferedRenderer();
-
-                // Остальная инициализация...
-            }
-            catch (Exception ex)
-            {
-                DebugConsole.Log($"Failed to initialize: {ex.Message}");
-                throw;
-            }
-        }
-
-        public static void InitializeForTests(IWorldRepository testRepository)
-        {
-            WorldRepository = testRepository;
-        }
 
         public static void Shutdown()
         {

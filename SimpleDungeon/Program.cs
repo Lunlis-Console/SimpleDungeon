@@ -39,8 +39,8 @@ namespace SimpleDungeon
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Fatal error: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                DebugConsole.Log($"Fatal error: {ex.Message}");
+                DebugConsole.Log($"Stack trace: {ex.StackTrace}");
                 Console.ReadKey();
             }
             finally

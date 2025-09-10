@@ -668,19 +668,17 @@ namespace JsonEditor
                 Nodes = new List<DialogueNodeData>()
             };
 
-            using (var form = new EditDialogueForm(newDialogue))
+            // Заменяем вызов старой формы на новую
+            using (var form = new VisualDialogueForm(newDialogue))
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
-                    // добавляем в gameData и обновляем grid
                     _gameData.Dialogues.Add(newDialogue);
                     RefreshDialoguesGrid();
-                    // выставим флаг, что данные изменены (если у тебя есть такая логика)
                     statusLabel.Text = "Изменения не сохранены";
                 }
             }
         }
-
         private void EditSelectedDialogue()
         {
             if (gridDialogues.CurrentRow == null) return;
@@ -690,19 +688,16 @@ namespace JsonEditor
             var dialog = _gameData.Dialogues.FirstOrDefault(d => d.Id == id);
             if (dialog == null) return;
 
-            // Передаём копию или сам объект? Мы работаем с самим объектом, но можно клонировать при необходимости.
-            var toEdit = dialog;
-            using (var form = new EditDialogueForm(toEdit))
+            // Заменяем вызов старой формы на новую
+            using (var form = new VisualDialogueForm(dialog))
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
-                    // Изменения уже применены в объекте
                     RefreshDialoguesGrid();
                     statusLabel.Text = "Изменения не сохранены";
                 }
             }
         }
-
         private void DeleteSelectedDialogue()
         {
             if (gridDialogues.CurrentRow == null) return;

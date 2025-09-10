@@ -88,12 +88,10 @@ namespace Engine.World
             try
             {
                 DebugConsole.Log($"[LoadFromJson] START. Path: {jsonFilePath}");
-                Console.WriteLine($"[LoadFromJson] START. Path: {jsonFilePath}");
 
                 if (!File.Exists(jsonFilePath))
                 {
                     DebugConsole.Log($"[LoadFromJson] File not found: {jsonFilePath}");
-                    Console.WriteLine($"[LoadFromJson] File not found: {jsonFilePath}");
                     throw new FileNotFoundException($"JSON файл не найден: {jsonFilePath}");
                 }
 
@@ -105,17 +103,14 @@ namespace Engine.World
                 catch (Exception ex)
                 {
                     DebugConsole.Log($"[LoadFromJson] Ошибка чтения файла: {ex.Message}");
-                    Console.WriteLine($"[LoadFromJson] Ошибка чтения файла: {ex}");
                     throw;
                 }
 
                 DebugConsole.Log($"[LoadFromJson] Размер файла: {json?.Length ?? 0} символов");
-                Console.WriteLine($"[LoadFromJson] Размер файла: {json?.Length ?? 0} символов");
 
                 if (string.IsNullOrWhiteSpace(json))
                 {
                     DebugConsole.Log("[LoadFromJson] JSON пустой");
-                    Console.WriteLine("[LoadFromJson] JSON пустой");
                     throw new Exception("JSON файл пустой");
                 }
 
@@ -124,39 +119,31 @@ namespace Engine.World
                 {
                     _gameData = JsonSerializer.Deserialize<GameData>(json, _jsonOptions) ?? new GameData();
                     DebugConsole.Log("[LoadFromJson] JSON десериализован успешно");
-                    Console.WriteLine("[LoadFromJson] JSON десериализован успешно");
                     DebugConsole.Log($"[LoadFromJson] Counts: Items={_gameData?.Items?.Count ?? 0}, Monsters={_gameData?.Monsters?.Count ?? 0}, NPCs={_gameData?.NPCs?.Count ?? 0}, Quests={_gameData?.Quests?.Count ?? 0}, Locations={_gameData?.Locations?.Count ?? 0}");
-                    Console.WriteLine($"[LoadFromJson] Counts: Items={_gameData?.Items?.Count ?? 0}, Monsters={_gameData?.Monsters?.Count ?? 0}, NPCs={_gameData?.NPCs?.Count ?? 0}, Quests={_gameData?.Quests?.Count ?? 0}, Locations={_gameData?.Locations?.Count ?? 0}");
                 }
                 catch (JsonException jex)
                 {
                     DebugConsole.Log($"[LoadFromJson] JsonException: {jex.Message} at {jex.BytePositionInLine}");
-                    Console.WriteLine($"[LoadFromJson] JsonException: {jex}");
                     throw;
                 }
 
                 // Валидация уникальности ID
                 var errors = UniqueIdHelper.ValidateUniqueIds(_gameData);
                 DebugConsole.Log($"[LoadFromJson] UniqueIdHelper returned {errors.Count} errors");
-                Console.WriteLine($"[LoadFromJson] UniqueIdHelper returned {errors.Count} errors");
 
                 if (errors.Any())
                 {
                     // подробный лог дублей
                     DebugConsole.Log("[LoadFromJson] ПОДРОБНЫЕ ДУБЛИ (если есть):");
-                    Console.WriteLine("[LoadFromJson] ПОДРОБНЫЕ ДУБЛИ (если есть):");
                     LogDuplicatesVerbose(_gameData);
 
                     DebugConsole.Log("[LoadFromJson] Errors: " + string.Join(" | ", errors));
-                    Console.WriteLine("[LoadFromJson] Errors: " + string.Join(" | ", errors));
 
 #if DEBUG
                     DebugConsole.Log("[LoadFromJson] DEBUG mode: attempting auto-fix of duplicates...");
-                    Console.WriteLine("[LoadFromJson] DEBUG mode: attempting auto-fix of duplicates...");
 
                     var mappingPerType = UniqueIdHelper.FixDuplicateIds(_gameData);
                     DebugConsole.Log("[LoadFromJson] Auto-fixed mapping:\n" + FormatMapping(mappingPerType));
-                    Console.WriteLine("[LoadFromJson] Auto-fixed mapping:\n" + FormatMapping(mappingPerType));
 
                     // Создаем бэкап и записываем исправленный файл
                     try
@@ -164,17 +151,14 @@ namespace Engine.World
                         var bak = jsonFilePath + ".bak";
                         File.Copy(jsonFilePath, bak, overwrite: true);
                         DebugConsole.Log($"[LoadFromJson] Backup created: {bak}");
-                        Console.WriteLine($"[LoadFromJson] Backup created: {bak}");
 
                         var newJson = JsonSerializer.Serialize(_gameData, _jsonOptions);
                         File.WriteAllText(jsonFilePath, newJson);
                         DebugConsole.Log($"[LoadFromJson] Fixed GameData saved to: {jsonFilePath}");
-                        Console.WriteLine($"[LoadFromJson] Fixed GameData saved to: {jsonFilePath}");
                     }
                     catch (Exception ex)
                     {
                         DebugConsole.Log($"[LoadFromJson] Failed to save fixed GameData: {ex.Message}");
-                        Console.WriteLine($"[LoadFromJson] Failed to save fixed GameData: {ex}");
                     }
 #else
             // В релизе — fail fast, чтобы не запускать игру с неконсистентными данными
@@ -186,33 +170,27 @@ namespace Engine.World
                 else
                 {
                     DebugConsole.Log("[LoadFromJson] UniqueIdHelper found no duplicates");
-                    Console.WriteLine("[LoadFromJson] UniqueIdHelper found no duplicates");
                 }
 
                 // Продолжаем инициализацию runtime-структур
                 try
                 {
                     DebugConsole.Log("[LoadFromJson] Calling InitializeFromGameData...");
-                    Console.WriteLine("[LoadFromJson] Calling InitializeFromGameData...");
                     InitializeFromGameData();
                     DebugConsole.Log("[LoadFromJson] InitializeFromGameData completed");
-                    Console.WriteLine("[LoadFromJson] InitializeFromGameData completed");
                     SaveMigratedGameData(_gameData, jsonFilePath);
                 }
                 catch (Exception ex)
                 {
                     DebugConsole.Log($"[LoadFromJson] Ошибка в InitializeFromGameData: {ex.Message}");
-                    Console.WriteLine($"[LoadFromJson] Ошибка в InitializeFromGameData: {ex}");
                     throw;
                 }
 
                 DebugConsole.Log("[LoadFromJson] END");
-                Console.WriteLine("[LoadFromJson] END");
             }
             catch (Exception ex)
             {
                 DebugConsole.Log($"[LoadFromJson] Unhandled exception: {ex.Message}");
-                Console.WriteLine($"[LoadFromJson] Unhandled exception: {ex}");
                 throw;
             }
         }
@@ -230,7 +208,6 @@ namespace Engine.World
                 {
                     File.Copy(path, backupPath, overwrite: false);
                     DebugConsole.Log($"[LoadFromJson] Backup saved to {backupPath}");
-                    Console.WriteLine($"[LoadFromJson] Backup saved to {backupPath}");
                 }
 
                 // Используем существующие опции сериализации если они есть (_jsonOptions),
@@ -249,12 +226,10 @@ namespace Engine.World
                 File.WriteAllText(path, outJson);
 
                 DebugConsole.Log($"[LoadFromJson] Migrated game_data.json saved to {path}");
-                Console.WriteLine($"[LoadFromJson] Migrated game_data.json saved to {path}");
             }
             catch (Exception ex)
             {
                 DebugConsole.Log($"[LoadFromJson] Failed to save migrated game_data.json: {ex.Message}");
-                Console.WriteLine($"[LoadFromJson] Failed to save migrated game_data.json: {ex.Message}");
             }
         }
 

@@ -74,7 +74,7 @@ public static class DebugConsole
         catch (Exception ex)
         {
             // В случае ошибки записи, выводим сообщение в консоль
-            Console.WriteLine($"Ошибка записи в файл логов: {ex.Message}");
+            DebugConsole.Log($"Ошибка записи в файл логов: {ex.Message}");
         }
     }
 
@@ -94,8 +94,6 @@ public static class DebugConsole
             Log($"Ошибка очистки файла логов: {ex.Message}");
         }
     }
-
-
 
     // Включить/выключить консоль полностью
     public static void SetEnabled(bool enabled)
@@ -609,68 +607,6 @@ public static class DebugConsole
             ScreenManager.RequestFullRedraw(); // ← Добавить
         }
     }
-    // Поместите этот метод внутри DebugConsole (например прямо после ExecuteCommand)
-    // --- вставьте этот метод в класс DebugConsole ---
-    private static string EnsureOutputDirectory(string desired)
-    {
-        try
-        {
-            // Если путь указывает на файл — считаем это ошибкой и используем fallback
-            if (File.Exists(desired))
-            {
-                Log($"Путь вывода {desired} существует как файл — используем fallback-путь.");
-                throw new UnauthorizedAccessException("Путь занят файлом");
-            }
-
-            // Если директория существует — проверим возможность записи
-            if (Directory.Exists(desired))
-            {
-                try
-                {
-                    string test = Path.Combine(desired, ".write_test");
-                    File.WriteAllText(test, "test");
-                    File.Delete(test);
-                    return desired;
-                }
-                catch
-                {
-                    Log($"Нет прав на запись в папке {desired} — использую fallback.");
-                    throw new UnauthorizedAccessException("Нет прав записи");
-                }
-            }
-
-            // Попытка создать директорию
-            Directory.CreateDirectory(desired);
-            return desired;
-        }
-        catch (UnauthorizedAccessException)
-        {
-            // fallback: папка в LocalAppData
-            string appName = "SimpleDungeon";
-            string fallback = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                appName, "game_data");
-            try
-            {
-                Directory.CreateDirectory(fallback);
-                Log($"Использую запасной путь для вывода: {fallback}");
-                return fallback;
-            }
-            catch (Exception ex)
-            {
-                Log($"Не удалось создать fallback-папку {fallback}: {ex.Message}");
-                throw; // пробрасываем — вызывающий обработает
-            }
-        }
-        catch (Exception ex)
-        {
-            Log($"Ошибка при подготовке папки вывода '{desired}': {ex.Message}");
-            throw;
-        }
-    }
-
-    // --- и этот метод тоже вставьте в класс DebugConsole (заменит старый TryInvokeDataExporter) ---
-    // Вставь оба метода в класс DebugConsole
 
     // ------------------------
     // ЗАМЕНИТЕ TryInvokeDataExporter этим кодом

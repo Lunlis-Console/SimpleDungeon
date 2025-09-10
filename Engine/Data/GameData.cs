@@ -109,9 +109,8 @@ namespace Engine.Data
     }
     public class DialogueData
     {
-        public string Id { get; set; } = string.Empty;
-        public string Name { get; set; } = string.Empty;
-        public string StartNodeId { get; set; } = null;
+        public string Id { get; set; }
+        public string Name { get; set; }
         public List<DialogueNodeData> Nodes { get; set; } = new List<DialogueNodeData>();
     }
 
@@ -120,12 +119,21 @@ namespace Engine.Data
         public string Id { get; set; } = string.Empty; // уникальный id узла
         public string Text { get; set; } = string.Empty; // текст ноды
         public List<DialogueOptionData> Options { get; set; } = new List<DialogueOptionData>();
+        public List<DialogueResponseData> Responses { get; set; } = new List<DialogueResponseData>();
     }
     public class DialogueOptionData
     {
         public string Text { get; set; } = string.Empty; // текст варианта
         public string NextNodeId { get; set; } = null; // id следующей ноды (null — конец)
                                                        // сюда можно добавить условия/скрипты, награды и т.д.
+    }
+
+    public class DialogueResponseData
+    {
+        public string Text { get; set; }
+        public string TargetNodeId { get; set; }
+        public string Action { get; set; } // Например: "StartQuest", "CompleteQuest", "OpenShop"
+        public string Parameter { get; set; } // Параметр для действия (ID квеста и т.д.)
     }
 
 
