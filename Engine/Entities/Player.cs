@@ -121,25 +121,37 @@ namespace Engine.Entities
 
         public void MoveTo(Location newLocation)
         {
-            if (newLocation != null)
+            if (newLocation == null)
+                return;
+
+            // Сохраняем старую локацию для сообщений
+            var oldLocation = CurrentLocation;
+
+            // Устанавливаем текущую локацию сразу
+            CurrentLocation = newLocation;
+
+            // Спавним монстров в новой локации
+            newLocation.SpawnMonsters(Level);
+
+            // Проверяем квесты на предметы
+            foreach (var quest in QuestLog.ActiveQuests.OfType<CollectibleQuest>())
             {
-                newLocation.SpawnMonsters(Level);
-
-                foreach (var quest in QuestLog.ActiveQuests.OfType<CollectibleQuest>())
+                if (!quest.IsItemsSpawned)
                 {
-                    if (!quest.IsItemsSpawned)
-                    {
-                        quest.SpawnCollectibles();
-                    }
+                    quest.SpawnCollectibles();
                 }
-
-                MessageSystem.ClearMessages();
-                MessageSystem.AddMessage($"Вы переместились в {newLocation.Name}");
             }
 
-            CurrentLocation = newLocation;
-            // НЕ устанавливаем флаг перерисовки здесь - это сделает HandleInput
+            // Очищаем старые сообщения
+            MessageSystem.ClearMessages();
+
+            // Добавляем сообщение о перемещении
+                MessageSystem.AddMessage($"Вы переместились в {newLocation.Name}");
+
+            // Если нужно — здесь можно поставить флаг перерисовки
+            // RedrawNeeded = true;
         }
+
 
         // При завершении квеста убираем предметы
         public void CompleteQuest(Quest quest)

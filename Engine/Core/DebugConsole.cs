@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Engine.Core;
+using Engine.Entities;
+using Engine.UI;
+using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Engine.Core;
-using Engine.Entities;
 
 public static class DebugConsole
 {
@@ -350,6 +351,7 @@ public static class DebugConsole
                 Log(" addItem <id> [qty]  - добавить предмет игроку (по ID, количество по умолчанию = 1)");
                 Log("  spawnMonster [id] [level] [count] - заспавнить монстров");
                 Log("       без аргументов — спавн по шаблонам текущей локации");
+                Log("  teleport <locationId> или tp <locationId> - телепортировать в локацию");
                 Log("  export-json [path] - экспортировать game_data в указанную папку (если путь не указан — используется ./game_data)");
                 break;
 
@@ -461,13 +463,67 @@ public static class DebugConsole
             case "spawnmonster":
                 HandleSpawnMonster(args);
                 break;
-
-
+            case "tp":
+                HandleTeleportCommand(args);
+                break;
 
             default:
                 Log($"Неизвестная команда: {cmd}");
                 break;
         }
+    }
+
+    // Добавьте новый метод для обработки телепортации:
+    private static void HandleTeleportCommand(string[] args)
+    {
+        if (CurrentPlayer == null)
+        {
+            Log("Нет активного игрока");
+            return;
+        }
+
+        if (args.Length < 1)
+        {
+            Log("Использование: tp <locationId>");
+            Log("Доступные локации:");
+            foreach (var location in GameServices.WorldRepository.GetAllLocations())
+            {
+                Log($"  {location.ID}: {location.Name}");
+            }
+            return;
+        }
+
+        if (!int.TryParse(args[0], out int locationId))
+        {
+            Log($"Некорректный ID локации: {args[0]}");
+            return;
+        }
+
+        var targetLocation = GameServices.WorldRepository.LocationByID(locationId);
+        if (targetLocation == null)
+        {
+            Log($"Локация с ID={locationId} не найдена.");
+            return;
+        }
+
+        var oldLocation = CurrentPlayer.CurrentLocation;
+
+        // Обновляем игрока
+        CurrentPlayer.MoveTo(targetLocation);
+
+        // ⚡ Обновляем экран
+        if (ScreenManager.CurrentScreen is GameWorldScreen gameWorldScreen)
+        {
+            // синхронизируем _currentLocation внутри экрана
+            var field = typeof(GameWorldScreen).GetField("_currentLocation", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (field != null)
+                field.SetValue(gameWorldScreen, targetLocation);
+
+            ScreenManager.RequestPartialRedraw();
+        }
+
+        // Лог в консоль
+        Log($"Игрок телепортирован из '{oldLocation?.Name}' (ID={oldLocation?.ID}) в '{targetLocation.Name}' (ID={targetLocation.ID})");
     }
 
     public static void ProcessInput(ConsoleKeyInfo keyInfo)
