@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using System.Reflection; // убедись, что вверху файла есть using System.Reflection;
+using System.Globalization;
 
 namespace JsonEditor
 {
@@ -321,6 +323,9 @@ namespace JsonEditor
 
             try
             {
+                // Перед сохранением — попытка миграции старого формата Responses -> Options (reflection)
+                MigrateAllDialogues();
+
                 SerializerHelper.SaveGameData(_gameData, _currentFilePath);
                 MessageBox.Show("Файл сохранён успешно.", "Успех",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -420,7 +425,6 @@ namespace JsonEditor
         {
             if (gridItems.SelectedRows.Count > 0)
             {
-                var selectedId = (int)gridItems.SelectedRows[0].Cells["ID"].Value;
                 var item = GetSelectedItem();
                 if (item != null) EditItem(item);
             }
@@ -430,7 +434,6 @@ namespace JsonEditor
         {
             if (gridMonsters.SelectedRows.Count > 0)
             {
-                var selectedId = (int)gridMonsters.SelectedRows[0].Cells["ID"].Value;
                 var monster = GetSelectedMonster();
                 if (monster != null) EditMonster(monster);
             }
@@ -440,7 +443,6 @@ namespace JsonEditor
         {
             if (gridQuests.SelectedRows.Count > 0)
             {
-                var selectedId = (int)gridQuests.SelectedRows[0].Cells["ID"].Value;
                 var quest = GetSelectedQuest();
                 if (quest != null) EditQuest(quest);
             }
@@ -449,37 +451,29 @@ namespace JsonEditor
         private void DeleteSelectedItem()
         {
             var currentGrid = GetCurrentDataGridView();
-            if (currentGrid?.SelectedRows.Count > 0)
+            if (currentGrid == null || currentGrid.SelectedRows.Count == 0)
+                return;
+
+            // For dialogues we use string Id; for others — numeric ID
+            if (currentGrid == gridDialogues)
             {
-                var selectedId = (int)currentGrid.SelectedRows[0].Cells["ID"].Value;
-                var result = MessageBox.Show("Вы уверены, что хотите удалить этот элемент?",
+                var id = GetSelectedRowStringId(gridDialogues);
+                if (string.IsNullOrEmpty(id))
+                {
+                    MessageBox.Show("Не удалось определить Id выбранного диалога.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                var result = MessageBox.Show("Вы уверены, что хотите удалить этот диалог?",
                     "Подтверждение удаления", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
 
                 if (result == DialogResult.Yes)
                 {
                     try
                     {
-                        if (currentGrid == gridItems)
-                            _gameData.Items?.RemoveAll(i => i.ID == selectedId);
-                        else if (currentGrid == gridMonsters)
-                            _gameData.Monsters?.RemoveAll(m => m.ID == selectedId);
-                        else if (currentGrid == gridLocations)
-                            _gameData.Locations?.RemoveAll(l => l.ID == selectedId);
-                        else if (currentGrid == gridQuests)
-                            _gameData.Quests?.RemoveAll(q => q.ID == selectedId);
-                        else if (currentGrid == gridDialogues)
-                        {
-                            var id = gridDialogues.SelectedRows[0].Cells["Id"].Value as string;
-                            _gameData.Dialogues?.RemoveAll(d => d.Id == id);
-                        }
-                        else if (currentGrid == gridNPCs)
-                        {
-                            var id = (int)gridNPCs.SelectedRows[0].Cells["ID"].Value;
-                            _gameData.NPCs?.RemoveAll(n => n.ID == id);
-                        }
-
+                        _gameData.Dialogues?.RemoveAll(d => d.Id == id);
                         RefreshDataGrids();
-                        statusLabel.Text = "Элемент удалён";
+                        statusLabel.Text = "Диалог удалён";
                     }
                     catch (Exception ex)
                     {
@@ -487,6 +481,49 @@ namespace JsonEditor
                             MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
+
+                return;
+            }
+
+            // Numeric ID handling for other grids
+            var selectedIdNullable = GetSelectedRowIntId(currentGrid);
+            if (!selectedIdNullable.HasValue)
+            {
+                MessageBox.Show("Не удалось получить числовой ID выбранного элемента.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            int selectedId = selectedIdNullable.Value;
+            var confirm = MessageBox.Show("Вы уверены, что хотите удалить этот элемент?",
+                "Подтверждение удаления", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+            if (confirm != DialogResult.Yes) return;
+
+            try
+            {
+                if (currentGrid == gridItems)
+                    _gameData.Items?.RemoveAll(i => i.ID == selectedId);
+                else if (currentGrid == gridMonsters)
+                    _gameData.Monsters?.RemoveAll(m => m.ID == selectedId);
+                else if (currentGrid == gridLocations)
+                    _gameData.Locations?.RemoveAll(l => l.ID == selectedId);
+                else if (currentGrid == gridQuests)
+                    _gameData.Quests?.RemoveAll(q => q.ID == selectedId);
+                else if (currentGrid == gridNPCs)
+                    _gameData.NPCs?.RemoveAll(n => n.ID == selectedId);
+                else
+                {
+                    MessageBox.Show("Неизвестный тип элементов для удаления.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                RefreshDataGrids();
+                statusLabel.Text = "Элемент удалён";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка удаления: {ex.Message}", "Ошибка",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -674,16 +711,30 @@ namespace JsonEditor
 
         private void AddDialogue()
         {
-            var newDialogue = new DialogueData
+            // Защита: если _gameData почему-то не инициализирован (null) —
+            // безопасно создаём пустой контейнер (чтобы форма не падала).
+            // Замените Engine.Data.GameData на фактический тип, если у вас другой.
+            if (_gameData == null)
+            {
+                _gameData = new Engine.Data.GameData();
+            }
+
+            if (_gameData.Dialogues == null)
+            {
+                _gameData.Dialogues = new List<Engine.Data.DialogueData>();
+            }
+
+            var newDialogue = new Engine.Data.DialogueData
             {
                 Id = Guid.NewGuid().ToString(),
                 Name = "Новый диалог",
-                Nodes = new List<DialogueNodeData>()
+                Nodes = new List<Engine.Data.DialogueNodeData>()
             };
 
-            // ЗАМЕНА: используем EditDialogueForm вместо VisualDialogueForm
+            // Используем EditDialogueForm (твой редактор диалогов)
             using (var form = new EditDialogueForm(newDialogue))
             {
+                // owner передаём this (опционально)
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
                     _gameData.Dialogues.Add(newDialogue);
@@ -745,7 +796,7 @@ namespace JsonEditor
             if (gridNPCs.CurrentRow == null) return null;
             var idObj = gridNPCs.CurrentRow.Cells["ID"].Value;
             if (idObj == null) return null;
-            int id = Convert.ToInt32(idObj);
+            int id = Convert.ToInt32(idObj, CultureInfo.InvariantCulture);
             return _gameData?.NPCs?.FirstOrDefault(n => n.ID == id);
         }
 
@@ -785,7 +836,7 @@ namespace JsonEditor
             if (gridLocations.CurrentRow == null) return null;
             var idObj = gridLocations.CurrentRow.Cells["ID"].Value;
             if (idObj == null) return null;
-            int id = Convert.ToInt32(idObj);
+            int id = Convert.ToInt32(idObj, CultureInfo.InvariantCulture);
             return _gameData?.Locations?.FirstOrDefault(l => l.ID == id);
         }
 
@@ -825,7 +876,7 @@ namespace JsonEditor
             if (gridItems.CurrentRow == null) return null;
             var idObj = gridItems.CurrentRow.Cells["ID"].Value;
             if (idObj == null) return null;
-            int id = Convert.ToInt32(idObj);
+            int id = Convert.ToInt32(idObj, CultureInfo.InvariantCulture);
             return _gameData?.Items?.FirstOrDefault(i => i.ID == id);
         }
 
@@ -834,7 +885,7 @@ namespace JsonEditor
             if (gridMonsters.CurrentRow == null) return null;
             var idObj = gridMonsters.CurrentRow.Cells["ID"].Value;
             if (idObj == null) return null;
-            int id = Convert.ToInt32(idObj);
+            int id = Convert.ToInt32(idObj, CultureInfo.InvariantCulture);
             return _gameData?.Monsters?.FirstOrDefault(m => m.ID == id);
         }
 
@@ -843,8 +894,278 @@ namespace JsonEditor
             if (gridQuests.CurrentRow == null) return null;
             var idObj = gridQuests.CurrentRow.Cells["ID"].Value;
             if (idObj == null) return null;
-            int id = Convert.ToInt32(idObj);
+            int id = Convert.ToInt32(idObj, CultureInfo.InvariantCulture);
             return _gameData?.Quests?.FirstOrDefault(q => q.ID == id);
+        }
+
+        /// <summary>
+        /// Попытка мигрировать все диалоги в _gameData из Responses -> Options (через reflection).
+        /// Работает только если тип DialogueNodeData содержит свойство Options совместимого типа.
+        /// </summary>
+        private void MigrateAllDialogues()
+        {
+            if (_gameData == null || _gameData.Dialogues == null) return;
+
+            foreach (var dlg in _gameData.Dialogues)
+            {
+                if (dlg == null) continue;
+                try
+                {
+                    ConvertResponsesToOptionsReflection(dlg);
+                }
+                catch
+                {
+                    // не критично — пропускаем конкретный диалог
+                }
+            }
+        }
+
+        private void ConvertResponsesToOptionsReflection(Engine.Data.DialogueData dialog)
+        {
+            if (dialog?.Nodes == null) return;
+
+            foreach (var node in dialog.Nodes)
+            {
+                ConvertNodeResponsesToOptionsReflection(node);
+            }
+        }
+
+        private void ConvertNodeResponsesToOptionsReflection(object node)
+        {
+            if (node == null) return;
+
+            var nodeType = node.GetType();
+            var responsesProp = nodeType.GetProperty("Responses", BindingFlags.Public | BindingFlags.Instance);
+            var optionsProp = nodeType.GetProperty("Options", BindingFlags.Public | BindingFlags.Instance);
+
+            if (responsesProp == null || optionsProp == null) return;
+
+            var responsesValue = responsesProp.GetValue(node) as System.Collections.IEnumerable;
+            if (responsesValue == null) return;
+
+            // Создаём экземпляр List<ElemType> (типа свойства Options)
+            var optionsListType = optionsProp.PropertyType;
+            Type elemType = null;
+            if (optionsListType.IsGenericType)
+            {
+                elemType = optionsListType.GetGenericArguments()[0];
+            }
+            if (elemType == null) return;
+
+            var optionsListObj = Activator.CreateInstance(optionsListType) as System.Collections.IList;
+            if (optionsListObj == null) return;
+
+            foreach (var resp in responsesValue)
+            {
+                try
+                {
+                    var optObj = Activator.CreateInstance(elemType);
+                    // Копируем текст (Text / ResponseText)
+                    var respType = resp.GetType();
+
+                    var respTextProp = respType.GetProperty("Text") ?? respType.GetProperty("ResponseText");
+                    var dstTextProp = elemType.GetProperty("Text");
+                    if (respTextProp != null && dstTextProp != null && dstTextProp.CanWrite)
+                    {
+                        var t = respTextProp.GetValue(resp);
+                        dstTextProp.SetValue(optObj, t);
+                    }
+
+                    // Копируем целевой узел: TargetNodeId / NextNodeId / Target / Next
+                    var respTargetProp = respType.GetProperty("TargetNodeId") ?? respType.GetProperty("NextNodeId") ?? respType.GetProperty("Target") ?? respType.GetProperty("Next");
+                    var dstNextProp = elemType.GetProperty("NextNodeId") ?? elemType.GetProperty("TargetNodeId") ?? elemType.GetProperty("Next") ?? elemType.GetProperty("Target");
+                    if (respTargetProp != null && dstNextProp != null && dstNextProp.CanWrite)
+                    {
+                        var v = respTargetProp.GetValue(resp);
+                        // Попробуем безопасно установить, если типы совпадают или можно сконвертировать
+                        try
+                        {
+                            dstNextProp.SetValue(optObj, v);
+                        }
+                        catch
+                        {
+                            // если прямое SetValue не прокатило — попытка конвертации для общих случаев
+                            if (v != null)
+                            {
+                                try
+                                {
+                                    var targetType = dstNextProp.PropertyType;
+                                    var underlying = Nullable.GetUnderlyingType(targetType) ?? targetType;
+                                    object converted = null;
+                                    if (underlying == typeof(int))
+                                    {
+                                        converted = Convert.ToInt32(v, CultureInfo.InvariantCulture);
+                                    }
+                                    else if (underlying == typeof(string))
+                                    {
+                                        converted = v.ToString();
+                                    }
+                                    else
+                                    {
+                                        converted = Convert.ChangeType(v, underlying, CultureInfo.InvariantCulture);
+                                    }
+                                    dstNextProp.SetValue(optObj, converted);
+                                }
+                                catch
+                                {
+                                    // ignore
+                                }
+                            }
+                        }
+                    }
+
+                    // Копируем возможные поля Action, Parameter, Condition
+                    var possibleExtras = new[] { "Action", "Parameter", "Condition", "Value", "Id" };
+                    foreach (var name in possibleExtras)
+                    {
+                        var s = respType.GetProperty(name);
+                        var d = elemType.GetProperty(name);
+                        if (s != null && d != null && d.CanWrite)
+                        {
+                            var vv = s.GetValue(resp);
+                            if (vv != null)
+                            {
+                                try
+                                {
+                                    d.SetValue(optObj, vv);
+                                }
+                                catch
+                                {
+                                    // попытка Convert.ChangeType
+                                    try
+                                    {
+                                        var targetType = d.PropertyType;
+                                        var underlying = Nullable.GetUnderlyingType(targetType) ?? targetType;
+                                        var converted = Convert.ChangeType(vv, underlying, CultureInfo.InvariantCulture);
+                                        d.SetValue(optObj, converted);
+                                    }
+                                    catch
+                                    {
+                                        // ignore
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    optionsListObj.Add(optObj);
+                }
+                catch
+                {
+                    // пропускаем конкретный ответ, если не получилось сконвертировать
+                }
+            }
+
+            // Устанавливаем созданный список в Options
+            try
+            {
+                optionsProp.SetValue(node, optionsListObj);
+            }
+            catch
+            {
+                // пропускаем если не удалось установить
+            }
+
+            // Убираем Responses (если можно)
+            try
+            {
+                if (responsesProp.CanWrite)
+                    responsesProp.SetValue(node, null);
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// Возвращает int? выбранного ID из строки grid. Корректно обрабатывает string/long/etc.
+        /// </summary>
+        private int? GetSelectedRowIntId(DataGridView grid)
+        {
+            if (grid == null || grid.SelectedRows.Count == 0) return null;
+            var row = grid.SelectedRows[0];
+
+            // Попробуем найти колонку с именем "ID" или "Id"
+            DataGridViewCell idCell = null;
+            foreach (DataGridViewColumn col in grid.Columns)
+            {
+                if (string.Equals(col.Name, "ID", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(col.Name, "Id", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(col.HeaderText, "ID", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(col.HeaderText, "Id", StringComparison.OrdinalIgnoreCase))
+                {
+                    idCell = row.Cells[col.Index];
+                    break;
+                }
+            }
+
+            // fallback — первая числовая ячейка
+            if (idCell == null)
+            {
+                foreach (DataGridViewCell c in row.Cells)
+                {
+                    if (c.Value is int || c.Value is long || c.Value is short || c.Value is byte)
+                    {
+                        idCell = c;
+                        break;
+                    }
+                }
+            }
+
+            if (idCell == null || idCell.Value == null) return null;
+
+            var val = idCell.Value;
+
+            if (val is int ii) return ii;
+            if (val is long ll) return (int)ll;
+            if (val is short ss) return (int)ss;
+            if (val is byte bb) return (int)bb;
+
+            if (val is string s)
+            {
+                s = s.Trim();
+                if (int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedInt)) return parsedInt;
+                if (double.TryParse(s, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var parsedDouble))
+                    return (int)parsedDouble;
+                return null;
+            }
+
+            try
+            {
+                return Convert.ToInt32(val, CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Возвращает string Id (если есть) из выбранной строки grid.
+        /// </summary>
+        private string GetSelectedRowStringId(DataGridView grid)
+        {
+            if (grid == null || grid.SelectedRows.Count == 0) return null;
+            var row = grid.SelectedRows[0];
+
+            // Найдём колонку с именем "Id" или "ID"
+            foreach (DataGridViewColumn col in grid.Columns)
+            {
+                if (string.Equals(col.Name, "Id", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(col.Name, "ID", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(col.HeaderText, "Id", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(col.HeaderText, "ID", StringComparison.OrdinalIgnoreCase))
+                {
+                    var v = row.Cells[col.Index].Value;
+                    return v?.ToString();
+                }
+            }
+
+            // fallback — первая не-null ячейка
+            foreach (DataGridViewCell c in row.Cells)
+            {
+                if (c.Value != null) return c.Value.ToString();
+            }
+
+            return null;
         }
     }
 }

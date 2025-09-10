@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Windows.Forms;
 using Engine.Data;
-using System.Text.Json;
 using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
+using System.Reflection;
+using System.Globalization;
+using System.Diagnostics;
 
 namespace JsonEditor
 {
@@ -32,7 +34,6 @@ namespace JsonEditor
         private Button btnSearch;
         private Button btnPreview;
         private TreeNode _draggedNode;
-        private Panel panelResponses;
 
         public EditDialogueForm(DialogueData dialogue)
         {
@@ -57,7 +58,8 @@ namespace JsonEditor
             txtName = new TextBox { Location = new Point(330, 12), Width = 300 };
 
             // Поиск - верхняя строка
-            txtSearch = new TextBox { Location = new Point(640, 12), Width = 200, PlaceholderText = "Поиск узлов..." };
+            txtSearch = new TextBox { Location = new Point(640, 12), Width = 200 };
+            try { txtSearch.PlaceholderText = "Поиск узлов..."; } catch { }
             btnSearch = new Button { Text = "Найти", Location = new Point(850, 12), Width = 60 };
 
             // SplitContainer для дерева и propertyGrid
@@ -74,7 +76,8 @@ namespace JsonEditor
             treeNodes = new TreeView
             {
                 Dock = DockStyle.Fill,
-                ShowNodeToolTips = true
+                ShowNodeToolTips = true,
+                AllowDrop = true
             };
 
             // PropertyGrid для редактирования
@@ -155,19 +158,21 @@ namespace JsonEditor
             lstResponses.MouseClick += LstResponses_MouseClick;
 
             // Добавление элементов на форму в правильном порядке
-            this.Controls.AddRange(new Control[]
-            {
-        lblId, txtId,
-        lblName, txtName,
-        txtSearch, btnSearch,
-        lblNodes,
-        splitContainer,
-        btnAddNode, btnEditNode, btnDeleteNode,
-        lblResponses, lstResponses,
-        btnAddResponse, btnEditResponse, btnDeleteResponse,
-        btnPreview, btnOk, btnCancel
+            this.Controls.AddRange(new Control[] {
+                lblId, txtId,
+                lblName, txtName,
+                txtSearch, btnSearch,
+                lblNodes,
+                splitContainer,
+                btnAddNode, btnEditNode, btnDeleteNode,
+                lblResponses, lstResponses,
+                btnAddResponse, btnEditResponse, btnDeleteResponse,
+                btnPreview, btnOk, btnCancel
             });
         }
+
+        #region Tree drag/drop and helpers
+
         private void TreeNodes_ItemDrag(object sender, ItemDragEventArgs e)
         {
             if (e.Item is TreeNode node)
@@ -186,7 +191,8 @@ namespace JsonEditor
         {
             if (_draggedNode == null) return;
 
-            TreeNode targetNode = treeNodes.GetNodeAt(treeNodes.PointToClient(new Point(e.X, e.Y)));
+            Point targetPoint = treeNodes.PointToClient(new Point(e.X, e.Y));
+            TreeNode targetNode = treeNodes.GetNodeAt(targetPoint);
 
             if (targetNode != null && targetNode != _draggedNode &&
                 !IsDescendant(_draggedNode, targetNode))
@@ -214,10 +220,11 @@ namespace JsonEditor
             return false;
         }
 
-        private void BtnSearch_Click(object sender, EventArgs e)
-        {
-            SearchNodes(txtSearch.Text);
-        }
+        #endregion
+
+        #region Search / Preview / Events
+
+        private void BtnSearch_Click(object sender, EventArgs e) => SearchNodes(txtSearch.Text);
 
         private void TxtSearch_KeyPress(object sender, KeyPressEventArgs e)
         {
@@ -250,8 +257,8 @@ namespace JsonEditor
         {
             if (parentNode.Tag is DialogueNodeData nodeData)
             {
-                if (nodeData.Id.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-                    nodeData.Text.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                if ((!string.IsNullOrEmpty(nodeData.Id) && nodeData.Id.Contains(searchText, StringComparison.OrdinalIgnoreCase)) ||
+                    (!string.IsNullOrEmpty(nodeData.Text) && nodeData.Text.Contains(searchText, StringComparison.OrdinalIgnoreCase)))
                 {
                     return parentNode;
                 }
@@ -293,6 +300,8 @@ namespace JsonEditor
                 }
             }
         }
+
+        #endregion
 
         private void LoadDataToControls()
         {
@@ -344,8 +353,32 @@ namespace JsonEditor
                     treeNode.ToolTipText = "Неверная ссылка на родительский узел";
                 }
 
-                // Проверяем ответы
-                if (nodeData.Responses != null)
+                // Проверяем новый формат Options (через reflection)
+                var ndType = nodeData.GetType();
+                var optProp = ndType.GetProperty("Options", BindingFlags.Public | BindingFlags.Instance);
+                bool foundBroken = false;
+                if (optProp != null)
+                {
+                    var opts = optProp.GetValue(nodeData) as System.Collections.IEnumerable;
+                    if (opts != null)
+                    {
+                        foreach (var o in opts)
+                        {
+                            var oType = o.GetType();
+                            var nextProp = oType.GetProperty("NextNodeId") ?? oType.GetProperty("TargetNodeId") ?? oType.GetProperty("Next") ?? oType.GetProperty("Target");
+                            var nextId = nextProp?.GetValue(o)?.ToString();
+                            if (!string.IsNullOrEmpty(nextId) && !validNodeIds.Contains(nextId))
+                            {
+                                treeNode.BackColor = Color.LightYellow;
+                                treeNode.ToolTipText = "Есть ответы с неверными ссылками";
+                                foundBroken = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!foundBroken && nodeData.Responses != null)
                 {
                     foreach (var response in nodeData.Responses)
                     {
@@ -416,6 +449,7 @@ namespace JsonEditor
             {
                 Id = GenerateUniqueId(),
                 ParentId = parentId,
+                Text = "Новый узел диалога",
                 Responses = new List<DialogueResponseData>()
             };
 
@@ -472,10 +506,7 @@ namespace JsonEditor
             return baseId + counter;
         }
 
-        private void BtnEditNode_Click(object sender, EventArgs e)
-        {
-            EditSelectedNode();
-        }
+        private void BtnEditNode_Click(object sender, EventArgs e) => EditSelectedNode();
 
         private void EditSelectedNode()
         {
@@ -500,10 +531,7 @@ namespace JsonEditor
             }
         }
 
-        private void BtnDeleteNode_Click(object sender, EventArgs e)
-        {
-            DeleteSelectedNode();
-        }
+        private void BtnDeleteNode_Click(object sender, EventArgs e) => DeleteSelectedNode();
 
         private void DeleteSelectedNode()
         {
@@ -567,6 +595,29 @@ namespace JsonEditor
         private void LoadResponsesForNode(DialogueNodeData node)
         {
             lstResponses.Items.Clear();
+
+            // Если есть Options (новый формат) — показываем их (через reflection)
+            var ndType = node.GetType();
+            var optProp = ndType.GetProperty("Options", BindingFlags.Public | BindingFlags.Instance);
+            if (optProp != null)
+            {
+                var opts = optProp.GetValue(node) as System.Collections.IEnumerable;
+                if (opts != null)
+                {
+                    foreach (var opt in opts)
+                    {
+                        var optType = opt.GetType();
+                        var textProp = optType.GetProperty("Text");
+                        var nextProp = optType.GetProperty("NextNodeId") ?? optType.GetProperty("TargetNodeId") ?? optType.GetProperty("Next") ?? optType.GetProperty("Target");
+                        var text = textProp?.GetValue(opt)?.ToString() ?? "(без текста)";
+                        var nextId = nextProp?.GetValue(opt)?.ToString();
+                        lstResponses.Items.Add($"{nextId}: {TruncateText(text, 50)}");
+                    }
+                    return;
+                }
+            }
+
+            // fallback — старый формат Responses
             if (node.Responses != null)
             {
                 foreach (var response in node.Responses)
@@ -579,22 +630,34 @@ namespace JsonEditor
         private void LstResponses_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (treeNodes.SelectedNode?.Tag is DialogueNodeData selectedNode &&
-                lstResponses.SelectedIndex >= 0 &&
-                selectedNode.Responses != null &&
-                lstResponses.SelectedIndex < selectedNode.Responses.Count)
+                lstResponses.SelectedIndex >= 0)
             {
-                propertyGrid.SelectedObject = selectedNode.Responses[lstResponses.SelectedIndex];
+                // Проверяем новый формат Options
+                var ndType = selectedNode.GetType();
+                var optProp = ndType.GetProperty("Options", BindingFlags.Public | BindingFlags.Instance);
+
+                if (optProp != null)
+                {
+                    var opts = optProp.GetValue(selectedNode) as System.Collections.IList;
+                    if (opts != null && lstResponses.SelectedIndex < opts.Count)
+                    {
+                        propertyGrid.SelectedObject = opts[lstResponses.SelectedIndex];
+                        return;
+                    }
+                }
+
+                // Fallback на старый формат Responses
+                if (selectedNode.Responses != null && lstResponses.SelectedIndex < selectedNode.Responses.Count)
+                {
+                    propertyGrid.SelectedObject = selectedNode.Responses[lstResponses.SelectedIndex];
+                    return;
+                }
             }
-            else
-            {
-                propertyGrid.SelectedObject = null;
-            }
+
+            propertyGrid.SelectedObject = null;
         }
 
-        private void BtnAddResponse_Click(object sender, EventArgs e)
-        {
-            AddResponse();
-        }
+        private void BtnAddResponse_Click(object sender, EventArgs e) => AddResponse();
 
         private void AddResponse()
         {
@@ -603,7 +666,7 @@ namespace JsonEditor
                 var newResponse = new DialogueResponseData
                 {
                     Text = "Новый ответ",
-                    TargetNodeId = ""
+                    TargetNodeId = null
                 };
 
                 using (var form = new EditResponseForm(newResponse, _dialogue.Nodes, selectedNode.Id))
@@ -613,10 +676,18 @@ namespace JsonEditor
                         if (selectedNode.Responses == null)
                             selectedNode.Responses = new List<DialogueResponseData>();
 
-                        selectedNode.Responses.Add(form.Response);
-                        LoadResponsesForNode(selectedNode);
-                        if (lstResponses.Items.Count > 0)
-                            lstResponses.SelectedIndex = lstResponses.Items.Count - 1;
+                        // Приводим объект обратно к DialogueResponseData
+                        if (form.Response is DialogueResponseData responseData)
+                        {
+                            selectedNode.Responses.Add(responseData);
+                            LoadResponsesForNode(selectedNode);
+                            if (lstResponses.Items.Count > 0)
+                                lstResponses.SelectedIndex = lstResponses.Items.Count - 1;
+                        }
+                        else
+                        {
+                            MessageBox.Show("Ошибка: неверный тип ответа");
+                        }
                     }
                 }
             }
@@ -625,63 +696,108 @@ namespace JsonEditor
                 MessageBox.Show("Выберите узел для добавления ответа");
             }
         }
-
-        private void BtnEditResponse_Click(object sender, EventArgs e)
-        {
-            EditSelectedResponse();
-        }
+        private void BtnEditResponse_Click(object sender, EventArgs e) => EditSelectedResponse();
 
         private void EditSelectedResponse()
         {
             if (treeNodes.SelectedNode?.Tag is DialogueNodeData selectedNode &&
-                lstResponses.SelectedIndex >= 0 &&
-                selectedNode.Responses != null &&
-                lstResponses.SelectedIndex < selectedNode.Responses.Count)
+                lstResponses.SelectedIndex >= 0)
             {
-                var responseToEdit = selectedNode.Responses[lstResponses.SelectedIndex];
-                using (var form = new EditResponseForm(responseToEdit, _dialogue.Nodes, selectedNode.Id))
+                // Проверяем новый формат Options
+                var ndType = selectedNode.GetType();
+                var optProp = ndType.GetProperty("Options", BindingFlags.Public | BindingFlags.Instance);
+
+                if (optProp != null)
                 {
-                    if (form.ShowDialog() == DialogResult.OK)
+                    var opts = optProp.GetValue(selectedNode) as System.Collections.IList;
+                    if (opts != null && lstResponses.SelectedIndex < opts.Count)
                     {
-                        LoadResponsesForNode(selectedNode);
-                        if (lstResponses.Items.Count > lstResponses.SelectedIndex)
-                            lstResponses.SelectedIndex = lstResponses.SelectedIndex;
+                        var responseToEdit = opts[lstResponses.SelectedIndex];
+                        using (var form = new EditResponseForm(responseToEdit, _dialogue.Nodes, selectedNode.Id))
+                        {
+                            if (form.ShowDialog() == DialogResult.OK)
+                            {
+                                LoadResponsesForNode(selectedNode);
+                                lstResponses.SelectedIndex = lstResponses.SelectedIndex;
+                            }
+                        }
+                        return;
                     }
                 }
+
+                // Fallback на старый формат Responses
+                if (selectedNode.Responses != null && lstResponses.SelectedIndex < selectedNode.Responses.Count)
+                {
+                    var responseToEdit = selectedNode.Responses[lstResponses.SelectedIndex];
+                    using (var form = new EditResponseForm(responseToEdit, _dialogue.Nodes, selectedNode.Id))
+                    {
+                        if (form.ShowDialog() == DialogResult.OK)
+                        {
+                            LoadResponsesForNode(selectedNode);
+                            lstResponses.SelectedIndex = lstResponses.SelectedIndex;
+                        }
+                    }
+                    return;
+                }
             }
-            else
-            {
-                MessageBox.Show("Выберите ответ для редактирования");
-            }
+
+            MessageBox.Show("Выберите ответ для редактирования");
         }
 
-        private void BtnDeleteResponse_Click(object sender, EventArgs e)
-        {
-            DeleteSelectedResponse();
-        }
+        private void BtnDeleteResponse_Click(object sender, EventArgs e) => DeleteSelectedResponse();
 
         private void DeleteSelectedResponse()
         {
             if (treeNodes.SelectedNode?.Tag is DialogueNodeData selectedNode &&
-                lstResponses.SelectedIndex >= 0 &&
-                selectedNode.Responses != null &&
-                lstResponses.SelectedIndex < selectedNode.Responses.Count)
+                lstResponses.SelectedIndex >= 0)
             {
-                if (MessageBox.Show("Удалить этот ответ?", "Подтверждение",
-                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                // Проверяем новый формат Options
+                var ndType = selectedNode.GetType();
+                var optProp = ndType.GetProperty("Options", BindingFlags.Public | BindingFlags.Instance);
+
+                if (optProp != null)
                 {
-                    selectedNode.Responses.RemoveAt(lstResponses.SelectedIndex);
-                    LoadResponsesForNode(selectedNode);
+                    var opts = optProp.GetValue(selectedNode) as System.Collections.IList;
+                    if (opts != null && lstResponses.SelectedIndex < opts.Count)
+                    {
+                        if (MessageBox.Show("Удалить этот ответ?", "Подтверждение",
+                            MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                        {
+                            opts.RemoveAt(lstResponses.SelectedIndex);
+                            LoadResponsesForNode(selectedNode);
+                        }
+                        return;
+                    }
+                }
+
+                // Fallback на старый формат Responses
+                if (selectedNode.Responses != null && lstResponses.SelectedIndex < selectedNode.Responses.Count)
+                {
+                    if (MessageBox.Show("Удалить этот ответ?", "Подтверждение",
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                    {
+                        selectedNode.Responses.RemoveAt(lstResponses.SelectedIndex);
+                        LoadResponsesForNode(selectedNode);
+                    }
+                    return;
                 }
             }
-            else
-            {
-                MessageBox.Show("Выберите ответ для удаления");
-            }
+
+            MessageBox.Show("Выберите ответ для удаления");
         }
 
         private void BtnOk_Click(object sender, EventArgs e)
         {
+            // Попытка миграции Responses -> Options перед валидацией/сохранением
+            try
+            {
+                ConvertResponsesToOptionsReflection(_dialogue);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"ConvertResponsesToOptionsReflection failed: {ex.Message}");
+            }
+
             if (string.IsNullOrWhiteSpace(txtId.Text))
             {
                 MessageBox.Show("ID не может быть пустым", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -716,7 +832,7 @@ namespace JsonEditor
                 }
             }
 
-            // Проверяем, что TargetNodeId в ответах ссылаются на существующие узлы
+            // Проверяем, что TargetNodeId в ответах ссылаются на существующие узлы (если указаны)
             foreach (var node in _dialogue.Nodes)
             {
                 if (node.Responses != null)
@@ -733,6 +849,32 @@ namespace JsonEditor
                 }
             }
 
+            // Проверяем новый формат Options (через reflection) на корректные ссылки
+            foreach (var node in _dialogue.Nodes)
+            {
+                var ndType = node.GetType();
+                var optProp = ndType.GetProperty("Options", BindingFlags.Public | BindingFlags.Instance);
+                if (optProp != null)
+                {
+                    var opts = optProp.GetValue(node) as System.Collections.IEnumerable;
+                    if (opts != null)
+                    {
+                        foreach (var o in opts)
+                        {
+                            var oType = o.GetType();
+                            var nextProp = oType.GetProperty("NextNodeId") ?? oType.GetProperty("TargetNodeId") ?? oType.GetProperty("Next") ?? oType.GetProperty("Target");
+                            var nextId = nextProp?.GetValue(o)?.ToString();
+                            if (!string.IsNullOrEmpty(nextId) && !nodeIds.Contains(nextId))
+                            {
+                                MessageBox.Show($"Опция в узле '{node.Id}' ссылается на несуществующий целевой узел '{nextId}'",
+                                    "Ошибка структуры", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+
             // Проверяем, что есть хотя бы один корневой узел
             if (!_dialogue.Nodes.Any(n => string.IsNullOrEmpty(n.ParentId)))
             {
@@ -743,6 +885,220 @@ namespace JsonEditor
 
             return true;
         }
+
+        #region Responses -> Options migration & helpers
+
+        private void ConvertResponsesToOptionsReflection(DialogueData dialog)
+        {
+            if (dialog?.Nodes == null) return;
+
+            foreach (var node in dialog.Nodes)
+            {
+                ConvertNodeResponsesToOptionsReflection(node);
+            }
+        }
+
+        private void ConvertNodeResponsesToOptionsReflection(object node)
+        {
+            if (node == null) return;
+
+            var nodeType = node.GetType();
+            var responsesProp = nodeType.GetProperty("Responses", BindingFlags.Public | BindingFlags.Instance);
+            var optionsProp = nodeType.GetProperty("Options", BindingFlags.Public | BindingFlags.Instance);
+
+            if (responsesProp == null || optionsProp == null) return;
+
+            var responsesValue = responsesProp.GetValue(node) as System.Collections.IEnumerable;
+            if (responsesValue == null) return;
+
+            var optionsListType = optionsProp.PropertyType;
+            Type elemType = null;
+            if (optionsListType.IsGenericType)
+            {
+                elemType = optionsListType.GetGenericArguments()[0];
+            }
+            if (elemType == null) return;
+
+            var optionsListObj = Activator.CreateInstance(optionsListType) as System.Collections.IList;
+            if (optionsListObj == null) return;
+
+            foreach (var resp in responsesValue)
+            {
+                try
+                {
+                    var optObj = Activator.CreateInstance(elemType);
+                    var respType = resp.GetType();
+
+                    var respTextProp = respType.GetProperty("Text") ?? respType.GetProperty("ResponseText");
+                    var dstTextProp = elemType.GetProperty("Text");
+                    if (respTextProp != null && dstTextProp != null && dstTextProp.CanWrite)
+                    {
+                        var t = respTextProp.GetValue(resp);
+                        TrySetPropertyValue(optObj, dstTextProp, t);
+                    }
+
+                    var respTargetProp = respType.GetProperty("TargetNodeId") ?? respType.GetProperty("NextNodeId") ?? respType.GetProperty("Target") ?? respType.GetProperty("Next");
+                    var dstNextProp = elemType.GetProperty("NextNodeId") ?? elemType.GetProperty("TargetNodeId") ?? elemType.GetProperty("Next") ?? elemType.GetProperty("Target");
+                    if (respTargetProp != null && dstNextProp != null && dstNextProp.CanWrite)
+                    {
+                        var v = respTargetProp.GetValue(resp);
+
+                        if (v is string vs && string.IsNullOrWhiteSpace(vs))
+                        {
+                            // пустая строка -> null для nullable/sref или пропустить
+                            if (!dstNextProp.PropertyType.IsValueType || Nullable.GetUnderlyingType(dstNextProp.PropertyType) != null)
+                                TrySetPropertyValue(optObj, dstNextProp, null);
+                        }
+                        else
+                        {
+                            TrySetPropertyValue(optObj, dstNextProp, v);
+                        }
+                    }
+
+                    var possibleExtras = new[] { "Action", "Parameter", "Condition", "Value", "Id" };
+                    foreach (var name in possibleExtras)
+                    {
+                        var s = respType.GetProperty(name);
+                        var d = elemType.GetProperty(name);
+                        if (s != null && d != null && d.CanWrite)
+                        {
+                            var vv = s.GetValue(resp);
+                            if (vv != null) TrySetPropertyValue(optObj, d, vv);
+                        }
+                    }
+
+                    optionsListObj.Add(optObj);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"ConvertNodeResponsesToOptionsReflection: skipped response due to {ex.Message}");
+                }
+            }
+
+            try { optionsProp.SetValue(node, optionsListObj); } catch { }
+            try { if (responsesProp.CanWrite) responsesProp.SetValue(node, null); } catch { }
+        }
+
+        /// <summary>
+        /// Безопасная установка свойства с попыткой конвертации типов.
+        /// </summary>
+        private bool TrySetPropertyValue(object targetObj, PropertyInfo prop, object value)
+        {
+            if (prop == null || !prop.CanWrite) return false;
+            if (targetObj == null) return false;
+
+            if (value == null)
+            {
+                try
+                {
+                    prop.SetValue(targetObj, null);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            var targetType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
+
+            try
+            {
+                // если значение уже того типа
+                if (value != null && targetType.IsInstanceOfType(value))
+                {
+                    prop.SetValue(targetObj, value);
+                    return true;
+                }
+
+                // если строка — пробуем парсить
+                if (value is string s)
+                {
+                    s = s.Trim();
+                    if (string.IsNullOrEmpty(s))
+                    {
+                        // пустая строка -> null если возможно
+                        if (!prop.PropertyType.IsValueType || Nullable.GetUnderlyingType(prop.PropertyType) != null)
+                        {
+                            prop.SetValue(targetObj, null);
+                            return true;
+                        }
+                        return false;
+                    }
+
+                    if (targetType.IsEnum)
+                    {
+                        if (Enum.TryParse(targetType, s, true, out var enumVal))
+                        {
+                            prop.SetValue(targetObj, enumVal);
+                            return true;
+                        }
+                    }
+
+                    if (targetType == typeof(Guid) && Guid.TryParse(s, out var g))
+                    {
+                        prop.SetValue(targetObj, g);
+                        return true;
+                    }
+
+                    if (targetType == typeof(int) && int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var i))
+                    {
+                        prop.SetValue(targetObj, i); return true;
+                    }
+                    if (targetType == typeof(long) && long.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var l))
+                    {
+                        prop.SetValue(targetObj, l); return true;
+                    }
+                    if (targetType == typeof(short) && short.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var sh))
+                    {
+                        prop.SetValue(targetObj, sh); return true;
+                    }
+                    if (targetType == typeof(byte) && byte.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var by))
+                    {
+                        prop.SetValue(targetObj, by); return true;
+                    }
+                    if (targetType == typeof(bool) && bool.TryParse(s, out var b))
+                    {
+                        prop.SetValue(targetObj, b); return true;
+                    }
+                    if (targetType == typeof(double) && double.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var d))
+                    {
+                        prop.SetValue(targetObj, d); return true;
+                    }
+                    if (targetType == typeof(float) && float.TryParse(s, NumberStyles.Any, CultureInfo.InvariantCulture, out var f))
+                    {
+                        prop.SetValue(targetObj, f); return true;
+                    }
+
+                    // последняя попытка
+                    var converted = Convert.ChangeType(s, targetType, CultureInfo.InvariantCulture);
+                    prop.SetValue(targetObj, converted);
+                    return true;
+                }
+                else
+                {
+                    // value не строка — попытка Convert.ChangeType
+                    if (value is IConvertible)
+                    {
+                        var converted = Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture);
+                        prop.SetValue(targetObj, converted);
+                        return true;
+                    }
+
+                    // пробуем прямую установку через ChangeType как последнее средство
+                    var conv2 = Convert.ChangeType(value, targetType, CultureInfo.InvariantCulture);
+                    prop.SetValue(targetObj, conv2);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"TrySetPropertyValue failed for '{prop.Name}' -> {ex.Message}");
+                return false;
+            }
+        }
+
+        #endregion
     }
 
     // Форма для предпросмотра диалога
@@ -755,7 +1111,16 @@ namespace JsonEditor
         {
             _dialogue = dialogue;
             InitializeComponents();
-            BuildPreview();
+
+            if (_dialogue?.Nodes != null)
+            {
+                var rootNodes = _dialogue.Nodes.Where(n => string.IsNullOrEmpty(n.ParentId)).ToList();
+                var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (var root in rootNodes)
+                {
+                    AddNodeToPreview(root, 0, visited);
+                }
+            }
         }
 
         private void InitializeComponents()
@@ -769,22 +1134,60 @@ namespace JsonEditor
             this.Controls.Add(txtPreview);
         }
 
-        private void BuildPreview()
+        private void AddNodeToPreview(DialogueNodeData node, int indentLevel, HashSet<string> visited)
         {
-            txtPreview.Clear();
+            if (node == null) return;
 
-            var rootNodes = _dialogue.Nodes.Where(n => string.IsNullOrEmpty(n.ParentId));
-            foreach (var node in rootNodes)
+            if (!string.IsNullOrEmpty(node.Id))
             {
-                AddNodeToPreview(node, 0);
+                if (visited.Contains(node.Id)) return;
+                visited.Add(node.Id);
             }
-        }
 
-        private void AddNodeToPreview(DialogueNodeData node, int indentLevel)
-        {
             string indent = new string(' ', indentLevel * 4);
             txtPreview.AppendText($"{indent}[{node.Id}] {node.Text}\n");
 
+            // Сначала пробуем Options (новый формат) через reflection
+            var nodeType = node.GetType();
+            var optionsProp = nodeType.GetProperty("Options", BindingFlags.Public | BindingFlags.Instance);
+            if (optionsProp != null)
+            {
+                var optionsVal = optionsProp.GetValue(node) as System.Collections.IEnumerable;
+                if (optionsVal != null)
+                {
+                    foreach (var opt in optionsVal)
+                    {
+                        var optType = opt.GetType();
+                        var textProp = optType.GetProperty("Text");
+                        var nextProp = optType.GetProperty("NextNodeId") ?? optType.GetProperty("TargetNodeId") ?? optType.GetProperty("Next") ?? optType.GetProperty("Target");
+                        var text = textProp?.GetValue(opt)?.ToString() ?? "(без текста)";
+                        var targetId = nextProp?.GetValue(opt)?.ToString();
+
+                        txtPreview.AppendText($"{indent}  → {text}");
+
+                        if (!string.IsNullOrWhiteSpace(targetId))
+                        {
+                            var targetNode = _dialogue.Nodes.FirstOrDefault(n => n.Id == targetId);
+                            if (targetNode != null)
+                            {
+                                txtPreview.AppendText($" → [{targetNode.Id}]\n");
+                                AddNodeToPreview(targetNode, indentLevel + 2, visited);
+                            }
+                            else
+                            {
+                                txtPreview.AppendText($" [НЕТ УЗЛА {targetId}]\n");
+                            }
+                        }
+                        else
+                        {
+                            txtPreview.AppendText(" [КОНЕЦ]\n");
+                        }
+                    }
+                    return;
+                }
+            }
+
+            // Fallback на старый формат Responses
             if (node.Responses != null)
             {
                 foreach (var response in node.Responses)
@@ -797,7 +1200,11 @@ namespace JsonEditor
                         if (targetNode != null)
                         {
                             txtPreview.AppendText($" → [{targetNode.Id}]\n");
-                            AddNodeToPreview(targetNode, indentLevel + 2);
+                            AddNodeToPreview(targetNode, indentLevel + 2, visited);
+                        }
+                        else
+                        {
+                            txtPreview.AppendText($" [НЕТ УЗЛА {response.TargetNodeId}]\n");
                         }
                     }
                     else
@@ -850,8 +1257,7 @@ namespace JsonEditor
             btnOk.Click += BtnOk_Click;
             btnCancel.Click += (s, e) => { this.DialogResult = DialogResult.Cancel; this.Close(); };
 
-            this.Controls.AddRange(new Control[]
-            {
+            this.Controls.AddRange(new Control[] {
                 lblId, txtId,
                 lblText, txtText,
                 lblParent, cmbParentId,
@@ -865,6 +1271,7 @@ namespace JsonEditor
             txtText.Text = Node.Text;
 
             // Заполняем комбобокс доступными ID узлов (исключая текущий узел и его потомков)
+            cmbParentId.Items.Clear();
             cmbParentId.Items.Add(""); // Пустой элемент для корневого узла
 
             var availableNodes = _allNodes
@@ -882,7 +1289,6 @@ namespace JsonEditor
 
         private bool IsDescendant(string potentialAncestorId, string potentialDescendantId)
         {
-            // Проверяем, является ли potentialDescendantId потомком potentialAncestorId
             var currentNode = _allNodes.FirstOrDefault(n => n.Id == potentialDescendantId);
             while (currentNode != null && !string.IsNullOrEmpty(currentNode.ParentId))
             {
@@ -910,7 +1316,7 @@ namespace JsonEditor
 
             Node.Id = txtId.Text.Trim();
             Node.Text = txtText.Text.Trim();
-            Node.ParentId = cmbParentId.Text.Trim();
+            Node.ParentId = (cmbParentId.Text ?? "").Trim();
 
             this.DialogResult = DialogResult.OK;
             this.Close();
@@ -920,7 +1326,7 @@ namespace JsonEditor
     // Вспомогательная форма для редактирования ответа
     public class EditResponseForm : Form
     {
-        public DialogueResponseData Response { get; private set; }
+        public object Response { get; private set; }
         private List<DialogueNodeData> _allNodes;
         private string _currentNodeId;
         private TextBox txtText;
@@ -928,7 +1334,7 @@ namespace JsonEditor
         private Button btnOk;
         private Button btnCancel;
 
-        public EditResponseForm(DialogueResponseData response, List<DialogueNodeData> allNodes, string currentNodeId)
+        public EditResponseForm(object response, List<DialogueNodeData> allNodes, string currentNodeId)
         {
             Response = response;
             _allNodes = allNodes;
@@ -941,7 +1347,7 @@ namespace JsonEditor
         {
             this.Text = "Редактирование ответа";
             this.Width = 400;
-            this.Height = 200;
+            this.Height = 220;
             this.StartPosition = FormStartPosition.CenterParent;
 
             var lblText = new Label { Text = "Текст ответа:", Left = 10, Top = 15, Width = 100 };
@@ -964,8 +1370,7 @@ namespace JsonEditor
             btnOk.Click += BtnOk_Click;
             btnCancel.Click += (s, e) => { this.DialogResult = DialogResult.Cancel; this.Close(); };
 
-            this.Controls.AddRange(new Control[]
-            {
+            this.Controls.AddRange(new Control[] {
                 lblText, txtText,
                 lblTarget, cmbTargetNodeId,
                 btnOk, btnCancel
@@ -974,9 +1379,24 @@ namespace JsonEditor
 
         private void LoadDataToControls()
         {
-            txtText.Text = Response.Text;
+            // Получаем текст ответа через reflection
+            var responseType = Response.GetType();
+            var textProp = responseType.GetProperty("Text") ?? responseType.GetProperty("ResponseText");
+            if (textProp != null)
+            {
+                txtText.Text = textProp.GetValue(Response)?.ToString() ?? "";
+            }
+
+            // Получаем целевой узел через reflection
+            var targetProp = responseType.GetProperty("TargetNodeId") ?? responseType.GetProperty("NextNodeId") ?? responseType.GetProperty("Target") ?? responseType.GetProperty("Next");
+            string currentTargetId = null;
+            if (targetProp != null)
+            {
+                currentTargetId = targetProp.GetValue(Response)?.ToString();
+            }
 
             // Автодополнение для целевых узлов
+            cmbTargetNodeId.Items.Clear();
             cmbTargetNodeId.Items.Add(""); // Пустой элемент для завершения диалога
 
             var availableNodes = _allNodes
@@ -993,11 +1413,18 @@ namespace JsonEditor
             }
 
             // Устанавливаем значение
-            var selectedItem = availableNodes.FirstOrDefault(n => n.Id == Response.TargetNodeId);
-            if (selectedItem != null)
-                cmbTargetNodeId.SelectedItem = selectedItem;
+            if (!string.IsNullOrEmpty(currentTargetId))
+            {
+                var selectedItem = availableNodes.FirstOrDefault(n => n.Id == currentTargetId);
+                if (selectedItem != null)
+                    cmbTargetNodeId.SelectedItem = selectedItem;
+                else
+                    cmbTargetNodeId.Text = currentTargetId;
+            }
             else
-                cmbTargetNodeId.Text = Response.TargetNodeId;
+            {
+                cmbTargetNodeId.Text = "";
+            }
         }
 
         private string TruncateText(string text, int maxLength)
@@ -1014,17 +1441,28 @@ namespace JsonEditor
                 return;
             }
 
-            Response.Text = txtText.Text.Trim();
-
-            // Сохраняем выбранный ID целевого узла
-            if (cmbTargetNodeId.SelectedItem != null)
+            // Устанавливаем текст ответа через reflection
+            var responseType = Response.GetType();
+            var textProp = responseType.GetProperty("Text") ?? responseType.GetProperty("ResponseText");
+            if (textProp != null && textProp.CanWrite)
             {
-                dynamic selectedItem = cmbTargetNodeId.SelectedItem;
-                Response.TargetNodeId = selectedItem.Id;
+                textProp.SetValue(Response, txtText.Text.Trim());
             }
-            else
+
+            // Устанавливаем целевой узел через reflection
+            var targetProp = responseType.GetProperty("TargetNodeId") ?? responseType.GetProperty("NextNodeId") ?? responseType.GetProperty("Target") ?? responseType.GetProperty("Next");
+            if (targetProp != null && targetProp.CanWrite)
             {
-                Response.TargetNodeId = cmbTargetNodeId.Text.Trim();
+                if (cmbTargetNodeId.SelectedItem != null)
+                {
+                    dynamic selectedItem = cmbTargetNodeId.SelectedItem;
+                    targetProp.SetValue(Response, selectedItem?.Id?.ToString());
+                }
+                else
+                {
+                    var txt = (cmbTargetNodeId.Text ?? "").Trim();
+                    targetProp.SetValue(Response, string.IsNullOrEmpty(txt) ? null : txt);
+                }
             }
 
             this.DialogResult = DialogResult.OK;

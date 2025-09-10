@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Reflection; // <- Добавлено
 
 namespace Engine.World
 {
@@ -27,10 +28,14 @@ namespace Engine.World
         private Dictionary<int, Title> _titles;
 
         private readonly JsonSerializerOptions _jsonOptions;
+        public static JsonWorldRepository Instance { get; private set; }
+
 
 
         public JsonWorldRepository(string jsonFilePath)
         {
+            Instance = this;
+
             if (string.IsNullOrWhiteSpace(jsonFilePath))
                 throw new ArgumentException("jsonFilePath is null or empty", nameof(jsonFilePath));
 
@@ -563,55 +568,325 @@ namespace Engine.World
             return npc;
         }
 
-        private DialogueSystem.DialogueNode BuildDialogueFromData(Engine.Data.DialogueData data)
+        // Пример исправленного фрагмента — вставь вместо того, что у тебя не работало:
+        // замените существующий метод BuildDialogueFromData этим кодом
+        // Замените существующий метод BuildDialogueFromData(...) на этот:
+        private Dialogue.DialogueSystem.DialogueNode BuildDialogueFromData(Engine.Data.DialogueData data)
         {
             if (data == null || data.Nodes == null || data.Nodes.Count == 0)
                 return null;
 
-            // 1) Создаём словарь id -> DialogueNode
-            var map = new Dictionary<string, DialogueSystem.DialogueNode>(StringComparer.OrdinalIgnoreCase);
+            DebugConsole.Log($"[BuildDialogueFromData] Building dialogue '{data.Id ?? data.Name}' nodes={data.Nodes.Count}");
+
+            // вспомогательные наборы имён полей (на всякий случай разные форматы JSON)
+            var parentNames = new[] { "ParentId", "Parent", "ParentNodeId", "ParentNode" };
+            var optionsNames = new[] { "Options", "Replies", "Choices" };
+            var responsesNames = new[] { "Responses", "ResponsesList", "Answers" };
+            var textNames = new[] { "Text", "Dialogue", "ResponseText" };
+            var nextNames = new[] { "NextNodeId", "TargetNodeId", "Next", "Target" };
+
+            // 1) создаём карту id->node
+            var map = new Dictionary<string, Dialogue.DialogueSystem.DialogueNode>(StringComparer.OrdinalIgnoreCase);
             foreach (var nodeData in data.Nodes)
             {
-                // создаём узел с текстом (OnEnter можно расширить позже)
-                var node = new DialogueSystem.DialogueNode(nodeData.Text);
-                map[nodeData.Id] = node;
+                // попытка получить текст через reflection (разные DTO могут называться по-разному)
+                string text = null;
+                try
+                {
+                    var ndType = nodeData.GetType();
+                    foreach (var tn in textNames)
+                    {
+                        var tp = ndType.GetProperty(tn, BindingFlags.Public | BindingFlags.Instance);
+                        if (tp != null)
+                        {
+                            text = tp.GetValue(nodeData)?.ToString();
+                            break;
+                        }
+                    }
+                }
+                catch { }
+
+                var node = new Dialogue.DialogueSystem.DialogueNode(text ?? string.Empty);
+                // сохраняем node под id (поле Id ожидается в DTO, если нет — попробуем через reflection)
+                string id = null;
+                try
+                {
+                    var idProp = nodeData.GetType().GetProperty("Id", BindingFlags.Public | BindingFlags.Instance);
+                    if (idProp != null) id = idProp.GetValue(nodeData)?.ToString();
+                }
+                catch { }
+
+                if (string.IsNullOrEmpty(id))
+                {
+                    // если нет Id — создаём временный уникальный
+                    id = Guid.NewGuid().ToString();
+                    DebugConsole.Log($"[BuildDialogueFromData] Warning: node without Id encountered, created temp id='{id}'");
+                }
+
+                map[id] = node;
+                // Логируем Id и Parent (получим Parent ниже отдельно)
+                DebugConsole.Log($"[BuildDialogueFromData] Created node '{id}' text='{(text ?? "").Replace('\n', ' ')}'");
             }
 
-            // 2) Привязываем опции у каждого узла
+            // Вспомогательная функция: получить Id и Parent для nodeData через reflection
+            string GetId(object nodeData)
+            {
+                try
+                {
+                    var p = nodeData.GetType().GetProperty("Id", BindingFlags.Public | BindingFlags.Instance);
+                    return p?.GetValue(nodeData)?.ToString();
+                }
+                catch { return null; }
+            }
+            string GetParentId(object nodeData)
+            {
+                try
+                {
+                    var t = nodeData.GetType();
+                    foreach (var pn in parentNames)
+                    {
+                        var p = t.GetProperty(pn, BindingFlags.Public | BindingFlags.Instance);
+                        if (p != null) return p.GetValue(nodeData)?.ToString();
+                    }
+                }
+                catch { }
+                return null;
+            }
+            object GetOptionsObj(object nodeData)
+            {
+                try
+                {
+                    var t = nodeData.GetType();
+                    foreach (var nm in optionsNames)
+                    {
+                        var p = t.GetProperty(nm, BindingFlags.Public | BindingFlags.Instance);
+                        if (p != null) return p.GetValue(nodeData);
+                    }
+                }
+                catch { }
+                return null;
+            }
+            object GetResponsesObj(object nodeData)
+            {
+                try
+                {
+                    var t = nodeData.GetType();
+                    foreach (var nm in responsesNames)
+                    {
+                        var p = t.GetProperty(nm, BindingFlags.Public | BindingFlags.Instance);
+                        if (p != null) return p.GetValue(nodeData);
+                    }
+                }
+                catch { }
+                return null;
+            }
+
+            // 2) привязываем Options (если они явно заданы) — через reflection
             foreach (var nodeData in data.Nodes)
             {
-                if (!map.TryGetValue(nodeData.Id, out var node))
-                    continue;
-
-                if (nodeData.Options == null) continue;
-
-                foreach (var optData in nodeData.Options)
+                var id = GetId(nodeData) ?? null;
+                // find corresponding runtime node in map (we used id values above)
+                if (id == null)
                 {
-                    DialogueSystem.DialogueNode next = null;
-                    if (!string.IsNullOrWhiteSpace(optData.NextNodeId) && map.TryGetValue(optData.NextNodeId, out var nextNode))
-                    {
-                        next = nextNode;
-                    }
+                    // если Id не нашли — пропускаем (мы уже залогировали предупреждение)
+                    continue;
+                }
 
-                    var option = new DialogueSystem.DialogueOption(optData.Text, next);
-                    node.Options.Add(option);
+                if (!map.TryGetValue(id, out var node)) continue;
+
+                // LOG parent id
+                var parentId = GetParentId(nodeData);
+                DebugConsole.Log($"[BuildDialogueFromData] Node '{id}' ParentId='{parentId ?? "(null)"}'");
+
+                // Options field (new format)
+                var optsObj = GetOptionsObj(nodeData);
+                if (optsObj is System.Collections.IEnumerable optsEnum)
+                {
+                    foreach (var optData in optsEnum)
+                    {
+                        try
+                        {
+                            // читаем text
+                            string optText = null;
+                            var odt = optData.GetType();
+                            foreach (var tn in textNames)
+                            {
+                                var tp = odt.GetProperty(tn, BindingFlags.Public | BindingFlags.Instance);
+                                if (tp != null) { optText = tp.GetValue(optData)?.ToString(); break; }
+                            }
+                            // читаем nextId
+                            string nextId = null;
+                            foreach (var nn in nextNames)
+                            {
+                                var np = odt.GetProperty(nn, BindingFlags.Public | BindingFlags.Instance);
+                                if (np != null) { nextId = np.GetValue(optData)?.ToString(); break; }
+                            }
+
+                            Dialogue.DialogueSystem.DialogueNode next = null;
+                            if (!string.IsNullOrWhiteSpace(nextId) && map.TryGetValue(nextId, out var nextNode))
+                                next = nextNode;
+
+                            var option = new Dialogue.DialogueSystem.DialogueOption(optText ?? string.Empty, next);
+
+                            // копируем доп. поля если есть
+                            try
+                            {
+                                var extraProps = new[] { "Action", "Parameter", "Condition", "Value", "Id" };
+                                var dstType = option.GetType();
+                                foreach (var propName in extraProps)
+                                {
+                                    var sp = odt.GetProperty(propName, BindingFlags.Public | BindingFlags.Instance);
+                                    var dp = dstType.GetProperty(propName, BindingFlags.Public | BindingFlags.Instance);
+                                    if (sp != null && dp != null && dp.CanWrite)
+                                    {
+                                        var val = sp.GetValue(optData);
+                                        if (val != null) dp.SetValue(option, val);
+                                    }
+                                }
+                            }
+                            catch { }
+
+                            node.Options.Add(option);
+                            DebugConsole.Log($"[BuildDialogueFromData] Node '{id}' +Option '{option.Text}' -> next='{nextId ?? "(null)"}'");
+                        }
+                        catch (Exception ex)
+                        {
+                            DebugConsole.Log($"[BuildDialogueFromData] Warning building option: {ex.Message}");
+                        }
+                    }
+                }
+
+                // Responses (old format)
+                var respObj = GetResponsesObj(nodeData);
+                if (respObj is System.Collections.IEnumerable respEnum)
+                {
+                    foreach (var resp in respEnum)
+                    {
+                        try
+                        {
+                            var rtype = resp.GetType();
+                            // text
+                            string rText = null;
+                            foreach (var tn in textNames)
+                            {
+                                var tp = rtype.GetProperty(tn, BindingFlags.Public | BindingFlags.Instance);
+                                if (tp != null) { rText = tp.GetValue(resp)?.ToString(); break; }
+                            }
+                            // next
+                            string nextId = null;
+                            foreach (var nn in nextNames)
+                            {
+                                var np = rtype.GetProperty(nn, BindingFlags.Public | BindingFlags.Instance);
+                                if (np != null) { nextId = np.GetValue(resp)?.ToString(); break; }
+                            }
+
+                            Dialogue.DialogueSystem.DialogueNode next = null;
+                            if (!string.IsNullOrWhiteSpace(nextId) && map.TryGetValue(nextId, out var nextNode))
+                                next = nextNode;
+
+                            var option = new Dialogue.DialogueSystem.DialogueOption(rText ?? string.Empty, next);
+
+                            // copy extras
+                            try
+                            {
+                                var extraProps = new[] { "Action", "Parameter", "Condition", "Value", "Id" };
+                                var dstType = option.GetType();
+                                foreach (var propName in extraProps)
+                                {
+                                    var sp = rtype.GetProperty(propName, BindingFlags.Public | BindingFlags.Instance);
+                                    var dp = dstType.GetProperty(propName, BindingFlags.Public | BindingFlags.Instance);
+                                    if (sp != null && dp != null && dp.CanWrite)
+                                    {
+                                        var val = sp.GetValue(resp);
+                                        if (val != null) dp.SetValue(option, val);
+                                    }
+                                }
+                            }
+                            catch { }
+
+                            node.Options.Add(option);
+                            DebugConsole.Log($"[BuildDialogueFromData] Node '{id}' +RespOption '{option.Text}' -> next='{nextId ?? "(null)"}'");
+                        }
+                        catch (Exception ex)
+                        {
+                            DebugConsole.Log($"[BuildDialogueFromData] Warning building response: {ex.Message}");
+                        }
+                    }
                 }
             }
 
-            // 3) Возвращаем корневую ноду.
-            //    По умолчанию — первая нода в списке Nodes. Можно поменять на StartNodeId, если добавите.
-            var rootId = data.Nodes[0].Id;
-            return map.ContainsKey(rootId) ? map[rootId] : null;
+            // 3) FALLBACK: если у ноды нет опций — создать их из дочерних нод (ParentId полей)
+            foreach (var nodeData in data.Nodes)
+            {
+                var id = GetId(nodeData);
+                if (id == null) continue;
+                if (!map.TryGetValue(id, out var node)) continue;
+                if (node.Options != null && node.Options.Count > 0) continue;
+
+                // находим детей, сравнивая ParentId (reflection)
+                var children = data.Nodes.Where(nd =>
+                {
+                    var p = GetParentId(nd);
+                    return !string.IsNullOrEmpty(p) && string.Equals(p, id, StringComparison.OrdinalIgnoreCase);
+                }).ToList();
+
+                if (children.Count == 0) continue;
+
+                DebugConsole.Log($"[BuildDialogueFromData] Node '{id}' has no options — will create {children.Count} inferred option(s) from children");
+
+                foreach (var child in children)
+                {
+                    var childId = GetId(child) ?? null;
+                    string childText = null;
+                    try
+                    {
+                        var ct = child.GetType();
+                        foreach (var tn in textNames)
+                        {
+                            var tp = ct.GetProperty(tn, BindingFlags.Public | BindingFlags.Instance);
+                            if (tp != null) { childText = tp.GetValue(child)?.ToString(); break; }
+                        }
+                    }
+                    catch { }
+
+                    var optionText = string.IsNullOrWhiteSpace(childText) ? $"Перейти к {childId}" :
+                                     (childText.Length > 40 ? childText.Substring(0, 37) + "..." : childText);
+
+                    var nextNode = (childId != null && map.TryGetValue(childId, out var nnode)) ? nnode : null;
+                    var option = new Dialogue.DialogueSystem.DialogueOption(optionText, nextNode) { IsAvailable = true };
+
+                    node.Options.Add(option);
+                    DebugConsole.Log($"[BuildDialogueFromData] Node '{id}' +InferredOption '{option.Text}' -> next='{childId ?? "(null)"}'");
+                }
+            }
+
+            // 4) final summary
+            foreach (var kv in map)
+            {
+                DebugConsole.Log($"[BuildDialogueFromData] NodeSummary '{kv.Key}' options={kv.Value.Options?.Count ?? 0}");
+            }
+
+            // попытка найти реальный root: из data.Nodes берем первый Id (как раньше)
+            string rootId = null;
+            try { rootId = data.Nodes[0].GetType().GetProperty("Id")?.GetValue(data.Nodes[0])?.ToString(); } catch { }
+            if (string.IsNullOrEmpty(rootId))
+            {
+                // fallback: первый ключ из map
+                rootId = map.Keys.FirstOrDefault();
+            }
+
+            DebugConsole.Log($"[BuildDialogueFromData] Root node id='{rootId ?? "(null)"}'");
+            return rootId != null && map.ContainsKey(rootId) ? map[rootId] : map.Values.FirstOrDefault();
         }
 
 
-        private DialogueSystem.DialogueNode BuildDialogueNodeFromData(DialogueData data)
+        private Dialogue.DialogueSystem.DialogueNode BuildDialogueNodeFromData(Engine.Data.DialogueData data)
         {
             // создаём словарь id -> node
-            var map = new Dictionary<string, DialogueSystem.DialogueNode>();
+            var map = new Dictionary<string, Dialogue.DialogueSystem.DialogueNode>();
             foreach (var nodeData in data.Nodes)
             {
-                var node = new DialogueSystem.DialogueNode(nodeData.Text);
+                var node = new Dialogue.DialogueSystem.DialogueNode(nodeData.Text);
                 map[nodeData.Id] = node;
             }
 
@@ -619,14 +894,83 @@ namespace Engine.World
             foreach (var nodeData in data.Nodes)
             {
                 var node = map[nodeData.Id];
-                foreach (var optData in nodeData.Options)
-                {
-                    DialogueSystem.DialogueNode next = null;
-                    if (!string.IsNullOrEmpty(optData.NextNodeId) && map.ContainsKey(optData.NextNodeId))
-                        next = map[optData.NextNodeId];
 
-                    var option = new DialogueSystem.DialogueOption(optData.Text, next);
-                    node.Options.Add(option);
+                if (nodeData.Options != null)
+                {
+                    foreach (var optData in nodeData.Options)
+                    {
+                        Dialogue.DialogueSystem.DialogueNode next = null;
+                        if (!string.IsNullOrEmpty(optData.NextNodeId) && map.ContainsKey(optData.NextNodeId))
+                            next = map[optData.NextNodeId];
+
+                        // ==== Исправлено: создаём DialogueOption (а не DialogueNode) ====
+                        var option = new Dialogue.DialogueSystem.DialogueOption(optData.Text, next);
+
+                        // копирование возможных дополнительных полей
+                        try
+                        {
+                            var optDataType = optData.GetType();
+                            var optionType = option.GetType();
+                            var extras = new[] { "Action", "Parameter", "Condition" };
+                            foreach (var propName in extras)
+                            {
+                                var sdProp = optDataType.GetProperty(propName, BindingFlags.Public | BindingFlags.Instance);
+                                var rtProp = optionType.GetProperty(propName, BindingFlags.Public | BindingFlags.Instance);
+                                if (sdProp != null && rtProp != null && rtProp.CanWrite)
+                                {
+                                    var val = sdProp.GetValue(optData);
+                                    if (val != null)
+                                        rtProp.SetValue(option, val);
+                                }
+                            }
+                        }
+                        catch { }
+
+                        node.Options.Add(option);
+                    }
+                }
+
+                // Backwards compatibility: if Responses present — add them too
+                if (nodeData.Responses != null)
+                {
+                    foreach (var resp in nodeData.Responses)
+                    {
+                        try
+                        {
+                            var respType = resp.GetType();
+                            var nextProp = respType.GetProperty("NextNodeId") ?? respType.GetProperty("TargetNodeId") ?? respType.GetProperty("Next") ?? respType.GetProperty("Target");
+                            string nextId = nextProp?.GetValue(resp)?.ToString();
+                            Dialogue.DialogueSystem.DialogueNode next = null;
+                            if (!string.IsNullOrEmpty(nextId) && map.ContainsKey(nextId))
+                                next = map[nextId];
+
+                            var textProp = respType.GetProperty("Text") ?? respType.GetProperty("ResponseText") ?? respType.GetProperty("Dialogue");
+                            var text = textProp?.GetValue(resp)?.ToString() ?? string.Empty;
+
+                            // ==== Исправлено: создаём DialogueOption (а не DialogueNode) ====
+                            var option = new Dialogue.DialogueSystem.DialogueOption(text, next);
+
+                            var optType = option.GetType();
+                            var extraProps = new[] { "Action", "Parameter", "Condition", "Value", "Id" };
+                            foreach (var propName in extraProps)
+                            {
+                                var rProp = respType.GetProperty(propName, BindingFlags.Public | BindingFlags.Instance);
+                                var oProp = optType.GetProperty(propName, BindingFlags.Public | BindingFlags.Instance);
+                                if (rProp != null && oProp != null && oProp.CanWrite)
+                                {
+                                    var val = rProp.GetValue(resp);
+                                    if (val != null)
+                                        oProp.SetValue(option, val);
+                                }
+                            }
+
+                            node.Options.Add(option);
+                        }
+                        catch
+                        {
+                            // игнорируем некритичные ошибки
+                        }
+                    }
                 }
             }
 

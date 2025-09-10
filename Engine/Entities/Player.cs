@@ -337,7 +337,41 @@ namespace Engine.Entities
         {
             Inventory.AddItem(item, quantity);
         }
-                
+
+        public void AddQuest(Quest quest)
+        {
+            if (quest == null) return;
+
+            // Попытаемся вызвать метод в QuestLog (AddQuest / StartQuest / AcceptQuest), если он есть
+            try
+            {
+                var t = QuestLog?.GetType();
+                if (t != null)
+                {
+                    var mi = t.GetMethod("AddQuest") ?? t.GetMethod("StartQuest") ?? t.GetMethod("AcceptQuest");
+                    if (mi != null)
+                    {
+                        mi.Invoke(QuestLog, new object[] { quest });
+                        return;
+                    }
+
+                    // если нет методов — попробуем добавить в коллекцию ActiveQuests напрямую
+                    var prop = t.GetProperty("ActiveQuests") ?? t.GetProperty("Quests");
+                    if (prop != null)
+                    {
+                        var coll = prop.GetValue(QuestLog) as System.Collections.IList;
+                        coll?.Add(quest);
+                        return;
+                    }
+                }
+            }
+            catch { }
+
+            // Если не получилось, попробуем логировать и ничего не делать
+            DebugConsole.Log("AddQuest: unable to add quest via QuestLog reflection. Please integrate with your QuestLog API.");
+        }
+
+
         public void UseItemToHeal(InventoryItem item)
         {
             // Пока проработаны только расходники лечения
@@ -643,5 +677,50 @@ namespace Engine.Entities
 
             return Attack + bonus;
         }
+
+        // Подстройте имя коллекции: ActiveQuests, CurrentQuests, Quests и т.п.
+        // Универсальная проверка: ищет в QuestLog активные квесты через reflection (поддерживает разные реализации QuestLog)
+        public bool HasQuest(string questId)
+        {
+            if (string.IsNullOrWhiteSpace(questId)) return false;
+            if (QuestLog == null) return false;
+
+            try
+            {
+                // пытаемся получить коллекцию активных квестов из QuestLog
+                var prop = QuestLog.GetType().GetProperty("ActiveQuests") ?? QuestLog.GetType().GetProperty("Quests");
+                if (prop != null)
+                {
+                    var coll = prop.GetValue(QuestLog) as System.Collections.IEnumerable;
+                    if (coll != null)
+                    {
+                        foreach (var q in coll)
+                        {
+                            var idProp = q.GetType().GetProperty("ID") ?? q.GetType().GetProperty("Id");
+                            var nameProp = q.GetType().GetProperty("Name");
+                            if (idProp != null)
+                            {
+                                var idVal = idProp.GetValue(q)?.ToString();
+                                if (idVal == questId) return true;
+                            }
+                            if (nameProp != null)
+                            {
+                                var nameVal = nameProp.GetValue(q) as string;
+                                if (!string.IsNullOrWhiteSpace(nameVal) && string.Equals(nameVal, questId, StringComparison.OrdinalIgnoreCase))
+                                    return true;
+                            }
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // если что-то пошло не так — считаем, что квеста нет
+            }
+
+            return false;
+        }
+
+
     }
 }
