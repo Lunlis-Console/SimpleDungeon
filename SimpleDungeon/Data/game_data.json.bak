@@ -1003,35 +1003,6 @@
     }
   ],
   "Dialogues": [
-    {
-      "Id": "7001",
-      "Name": null,
-      "Nodes": [
-        {
-          "Id": "n1",
-          "Text": "\u043F\u0440\u0438\u0432\u0435\u0442",
-          "ParentId": null,
-          "Options": [
-            {
-              "Text": "\u043F\u0440\u0438\u0432\u0435\u0442, \u044F \u043F\u043E\u0448\u0435\u043B, \u0443 \u043C\u0435\u043D\u044F \u043D\u0435\u0442 \u0432\u0440\u0435\u043C\u0435\u043D\u0438.",
-              "NextNodeId": null
-            }
-          ],
-          "Responses": null
-        },
-        {
-          "Id": "n2",
-          "Text": "\u043B\u0430\u0434\u043D\u043E, \u0438\u0434\u0438 \u0443\u0436\u0435",
-          "ParentId": null,
-          "Options": [
-            {
-              "Text": "(\u0437\u0430\u0432\u0435\u0440\u0448\u0438\u0442\u044C \u0434\u0438\u0430\u043B\u043E\u0433)",
-              "NextNodeId": null
-            }
-          ],
-          "Responses": null
-        }
-      ]
-    }
+    
   ]
 }

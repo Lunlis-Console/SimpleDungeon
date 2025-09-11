@@ -1,22 +1,22 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using Engine.Dialogue;
 using Engine.Entities;
+using Engine.Dialogue.Legacy;
 
 namespace Engine.UI
 {
     public class DialogueScreen : BaseScreen, IDialogueUI
     {
         private readonly NPC _npc;
-        private Dialogue.DialogueSystem.DialogueNode _currentNode;
+        private Dialogue.Legacy.DialogueSystem.DialogueNode _currentNode;
         private int _selectedIndex;
         private Player _player;
 
-        public Dialogue.DialogueSystem.DialogueOption SelectedOption { get; private set; }
+        public Dialogue.Legacy.DialogueSystem.DialogueOption SelectedOption { get; private set; }
 
         // Передаём player (если у тебя есть глобальный доступ — можно передавать null и брать внутри)
-        public DialogueScreen(NPC npc, Dialogue.DialogueSystem.DialogueNode startNode, Player player = null)
+        public DialogueScreen(NPC npc, Dialogue.Legacy.DialogueSystem.DialogueNode startNode, Player player = null)
         {
             _npc = npc;
             _currentNode = startNode;
@@ -199,7 +199,7 @@ namespace Engine.UI
         }
 
         // IDialogueUI implementation — эти методы вызываются из ExecuteSelection
-        public void SetCurrentNode(Dialogue.DialogueSystem.DialogueNode node)
+        public void SetCurrentNode(Dialogue.Legacy.DialogueSystem.DialogueNode node)
         {
             if (node == null) return;
             _currentNode = node;

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Engine.Entities;
 using Engine.World;
 
-namespace Engine.Dialogue
+namespace Engine.Dialogue.Legacy
 {
     // Интерфейс для UI диалогов
     public interface IDialogueUI

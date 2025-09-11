@@ -1,7 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\..\Engine\Engine.csproj" />
+    <ProjectReference Include="..\..\DialogueEditor\DialogueEditor.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

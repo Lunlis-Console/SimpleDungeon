@@ -7,6 +7,13 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Reflection; // убедись, что вверху файла есть using System.Reflection;
 using System.Globalization;
+using JsonEditor;
+
+// --- Изменённые/оставшиеся usings ---
+using SimpleDungeon.Engine.Dialogue; // модели диалогов
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using SimpleDungeon.Tools.DialogueEditor;
 
 namespace JsonEditor
 {
@@ -98,7 +105,7 @@ namespace JsonEditor
             addMonsterMenuItem.Click += (s, e) => AddNewMonster();
             addLocationMenuItem.Click += (s, e) => AddNewLocation();
             addQuestMenuItem.Click += (s, e) => AddNewQuest();
-            addDialogueMenuItem.Click += (s, e) => AddDialogue();
+            addDialogueMenuItem.Click += (s, e) => AddDialogueMenuItem_Click(s, e);
             addNPCMenuItem.Click += (s, e) => OpenEditNPCForm(null);
 
             editMenu.DropDownItems.Add(addItemMenuItem);
@@ -168,7 +175,14 @@ namespace JsonEditor
                 SelectionMode = DataGridViewSelectionMode.FullRowSelect,
                 MultiSelect = false
             };
-            gridDialogues.CellDoubleClick += (s, e) => { if (e.RowIndex >= 0) EditSelectedDialogue(); };
+            // подключаем двойной клик на редактирование диалога
+            gridDialogues.CellDoubleClick += (s, e) =>
+            {
+                if (e.RowIndex >= 0)
+                {
+                    EditSelectedDialogue();
+                }
+            };
             tabDialogues.Controls.Add(gridDialogues);
 
             // Вкладка NPC
@@ -235,7 +249,7 @@ namespace JsonEditor
             btnAddMonster.Click += (s, e) => AddNewMonster();
             btnAddLocation.Click += (s, e) => AddNewLocation();
             btnAddQuest.Click += (s, e) => AddNewQuest();
-            btnAddDialogue.Click += (s, e) => AddDialogue();
+            btnAddDialogue.Click += (s, e) => AddDialogueMenuItem_Click(s, e);
             btnAddNPC.Click += (s, e) => OpenEditNPCForm(null);
 
             buttonPanel.Controls.AddRange(new Control[] { btnAddItem, btnAddMonster, btnAddLocation, btnAddQuest, btnAddDialogue, btnAddNPC });
@@ -709,65 +723,6 @@ namespace JsonEditor
             if (gridDialogues.Columns["Nodes"] != null) gridDialogues.Columns["Nodes"].HeaderText = "Узлов";
         }
 
-        private void AddDialogue()
-        {
-            // Защита: если _gameData почему-то не инициализирован (null) —
-            // безопасно создаём пустой контейнер (чтобы форма не падала).
-            if (_gameData == null)
-            {
-                _gameData = new Engine.Data.GameData();
-            }
-
-            if (_gameData.Dialogues == null)
-            {
-                _gameData.Dialogues = new List<Engine.Data.DialogueData>();
-            }
-
-            var newDialogue = new Engine.Data.DialogueData
-            {
-                Id = Guid.NewGuid().ToString(),
-                Name = "Новый диалог",
-                Nodes = new List<Engine.Data.DialogueNodeData>()
-            };
-
-            // ЗАМЕНИТЬ ЭТУ СТРОКУ:
-            // using (var form = new EditDialogueForm(newDialogue))
-            // НА ЭТУ:
-            using (var form = new EditDialogueForm(newDialogue, _gameData))
-            {
-                // owner передаём this (опционально)
-                if (form.ShowDialog(this) == DialogResult.OK)
-                {
-                    _gameData.Dialogues.Add(newDialogue);
-                    RefreshDataGrids();
-                    statusLabel.Text = "Новый диалог добавлен";
-                    tabControl.SelectedTab = tabDialogues;
-                }
-            }
-        }
-        private void EditSelectedDialogue()
-        {
-            if (gridDialogues.CurrentRow == null) return;
-            var id = gridDialogues.CurrentRow.Cells["Id"].Value as string;
-            if (string.IsNullOrEmpty(id)) return;
-
-            var dialog = _gameData.Dialogues.FirstOrDefault(d => d.Id == id);
-            if (dialog == null) return;
-
-            // ЗАМЕНИТЬ ЭТУ СТРОКУ:
-            // using (var form = new EditDialogueForm(dialog))
-            // НА ЭТУ:
-            using (var form = new EditDialogueForm(dialog, _gameData))
-            {
-                if (form.ShowDialog(this) == DialogResult.OK)
-                {
-                    RefreshDataGrids();
-                    statusLabel.Text = "Диалог обновлён";
-                }
-            }
-        }
-        // Метод для глубокого копирования диалога
-
         private void RefreshNPCGrid()
         {
             if (_gameData == null) return;
@@ -1167,6 +1122,290 @@ namespace JsonEditor
             }
 
             return null;
+        }
+
+        // ---------------------------
+        // Новые методы интеграции диалогов (обновлённые)
+        // ---------------------------
+
+        /// <summary>
+        /// Открывает DialogueEditor для нового диалога (внутри текущего game_data.json).
+        /// Если DialogueEditorForm отсутствует в сборке, покажет сообщение.
+        /// </summary>
+        private void AddDialogueMenuItem_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(_currentFilePath) || !System.IO.File.Exists(_currentFilePath))
+            {
+                MessageBox.Show("Сначала откройте game_data.json через Файл → Открыть.", "Файл не открыт", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Создаём пустой новый диалог (в формате DialogueDocument)
+            var newDoc = new DialogueDocument
+            {
+                Id = Guid.NewGuid().ToString(),
+                Nodes = new List<DialogueNode>()
+            };
+
+            bool opened = TryOpenDialogueEditorWithDocument(newDoc);
+            if (opened)
+            {
+                // После закрытия — перезагрузим _gameData из файла, чтобы синхронизировать модель
+                try
+                {
+                    _gameData = SerializerHelper.LoadGameData(_currentFilePath);
+                    RefreshDataGrids();
+                    statusLabel.Text = "Диалог добавлен/обновлён";
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Не удалось перезагрузить game_data.json: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Редактирование выбранного диалога: извлекаем выбранный Engine.Data.DialogueData, конвертируем в DialogueDocument и открываем редактор.
+        /// После закрытия — перезагружаем game_data.json.
+        /// </summary>
+        private void EditSelectedDialogue()
+        {
+            if (_gameData == null || _gameData.Dialogues == null)
+            {
+                MessageBox.Show("Диалоги не загружены.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            if (gridDialogues.CurrentRow == null)
+            {
+                MessageBox.Show("Выберите диалог в таблице.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var id = GetSelectedRowStringId(gridDialogues);
+            if (string.IsNullOrEmpty(id))
+            {
+                MessageBox.Show("Не удалось определить Id выбранного диалога.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            var engineDialog = _gameData.Dialogues.FirstOrDefault(d => d.Id == id);
+            if (engineDialog == null)
+            {
+                MessageBox.Show("Диалог не найден в данных.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // Конвертация engine -> DialogueDocument
+            var doc = ConvertEngineDialogueToDialogueDocument(engineDialog);
+
+            bool opened = TryOpenDialogueEditorWithDocument(doc);
+            if (opened)
+            {
+                // После закрытия — обновим _gameData и UI
+                try
+                {
+                    _gameData = SerializerHelper.LoadGameData(_currentFilePath);
+                    RefreshDataGrids();
+                    statusLabel.Text = "Диалог обновлён";
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Не удалось перезагрузить game_data.json: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Пытается найти тип DialogueEditorForm в загруженных сборках, создать его и вызвать метод EditDialogFromGameData(path, doc).
+        /// Покажет предупреждение, если тип не найден или создание не удалось.
+        /// Возвращает true, если редактор был показан.
+        /// </summary>
+        private bool TryOpenDialogueEditorWithDocument(DialogueDocument doc)
+        {
+            // Ищем тип DialogueEditorForm в загруженных сборках
+            Type editorType = null;
+            try
+            {
+                var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                foreach (var a in assemblies)
+                {
+                    Type[] types;
+                    try { types = a.GetTypes(); } catch { continue; }
+                    foreach (var t in types)
+                    {
+                        if (t.Name == "DialogueEditorForm")
+                        {
+                            editorType = t;
+                            break;
+                        }
+                    }
+                    if (editorType != null) break;
+                }
+            }
+            catch
+            {
+                editorType = null;
+            }
+
+            if (editorType == null)
+            {
+                MessageBox.Show("DialogueEditorForm не найден. Проверьте, что вы добавили файл DialogueEditorForm.cs в проект и он включён в сборку.", "Editor not found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
+            }
+
+            object editorInstance = null;
+            try
+            {
+                editorInstance = Activator.CreateInstance(editorType);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Не удалось создать экземпляр DialogueEditorForm: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+
+            // Если есть метод EditDialogFromGameData, вызываем его
+            try
+            {
+                var method = editorType.GetMethod("EditDialogFromGameData", BindingFlags.Public | BindingFlags.Instance);
+                if (method != null)
+                {
+                    method.Invoke(editorInstance, new object[] { _currentFilePath, doc });
+                }
+                else
+                {
+                    // Если метода нет, попробуем вызвать LoadFileProgrammatically или LoadFromPath
+                    var loadProg = editorType.GetMethod("LoadFileProgrammatically", BindingFlags.Public | BindingFlags.Instance);
+                    if (loadProg != null)
+                    {
+                        // сначала загрузим файл (если есть), затем, если есть публичное поле/свойство _doc - попытка установить — но скорее всего не получится
+                        loadProg.Invoke(editorInstance, new object[] { _currentFilePath });
+                        // примитивно: если есть свойство Doc или поле _doc, попытаемся установить его напрямую
+                        var prop = editorType.GetProperty("_doc", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+                        if (prop != null && prop.PropertyType == typeof(DialogueDocument))
+                        {
+                            prop.SetValue(editorInstance, doc);
+                        }
+                    }
+                }
+            }
+            catch (TargetInvocationException tie)
+            {
+                MessageBox.Show($"Ошибка при подготовке редактора: {tie.InnerException?.Message ?? tie.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при подготовке редактора: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+
+            // Показываем форму (если это Form)
+            if (editorInstance is Form form)
+            {
+                try
+                {
+                    form.ShowDialog(this);
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Ошибка при показе редактора диалогов: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return false;
+                }
+            }
+            else
+            {
+                MessageBox.Show("Найденный DialogueEditorForm не является Form и не может быть показан.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Конвертирует ваш старый Engine.Data.DialogueData (в _gameData) в новый SimpleDungeon.Engine.Dialogue.DialogueDocument.
+        /// Делает толерантный мэппинг полей (Id/Name/Nodes/Responses/Options/Target/Text).
+        /// </summary>
+        private DialogueDocument ConvertEngineDialogueToDialogueDocument(Engine.Data.DialogueData engineDialog)
+        {
+            if (engineDialog == null) return new DialogueDocument { Nodes = new List<DialogueNode>() };
+
+            // Преобразуем исходный объект в JObject для гибкой работы с полями
+            var jo = JObject.FromObject(engineDialog);
+
+            var doc = new DialogueDocument
+            {
+                Id = (string)(jo["Id"] ?? jo["id"] ?? jo["Id"]),
+                // если есть поле Start/StartNode/StartId
+                Start = (string)(jo["Start"] ?? jo["start"] ?? jo["StartNode"] ?? jo["startNode"] ?? jo["startId"] ?? null),
+                Nodes = new List<DialogueNode>()
+            };
+
+            // Найти массив узлов (варианты имён)
+            JToken nodesToken = jo["Nodes"] ?? jo["nodes"] ?? jo["NodesList"] ?? jo["nodesList"] ?? jo["nodesArray"];
+            if (nodesToken != null && nodesToken.Type == JTokenType.Array)
+            {
+                foreach (var n in nodesToken)
+                {
+                    var node = new DialogueNode
+                    {
+                        Id = (string)(n["Id"] ?? n["id"] ?? n["NodeId"] ?? n["nodeId"] ?? Guid.NewGuid().ToString()),
+                        Text = (string)(n["Text"] ?? n["text"] ?? n["DialogueText"] ?? n["dialogueText"] ?? "")
+                    };
+                    node.Responses = new List<Response>();
+
+                    // Ответы/опции у узла
+                    JToken responsesToken = n["Responses"] ?? n["responses"] ?? n["Options"] ?? n["options"] ?? n["Choices"];
+                    if (responsesToken != null && responsesToken.Type == JTokenType.Array)
+                    {
+                        foreach (var r in responsesToken)
+                        {
+                            var resp = new Response
+                            {
+                                Text = (string)(r["Text"] ?? r["text"] ?? r["ResponseText"] ?? r["Title"] ?? ""),
+                                Target = (string)(r["Target"] ?? r["target"] ?? r["Next"] ?? r["NextNodeId"] ?? r["NextNode"] ?? null)
+                            };
+
+                            // действия (Actions) — если есть
+                            JToken actionsToken = r["Actions"] ?? r["actions"] ?? r["Action"] ?? r["action"];
+                            if (actionsToken != null)
+                            {
+                                var actionsList = new List<SimpleDungeon.Engine.Dialogue.DialogueAction>();
+                                if (actionsToken.Type == JTokenType.Array)
+                                {
+                                    foreach (var a in actionsToken)
+                                    {
+                                        actionsList.Add(new SimpleDungeon.Engine.Dialogue.DialogueAction
+                                        {
+                                            Type = (string)(a["Type"] ?? a["type"] ?? a["Action"] ?? a["action"]),
+                                            Param = (string)(a["Param"] ?? a["param"] ?? a["Value"] ?? a["value"])
+                                        });
+                                    }
+                                }
+                                else if (actionsToken.Type == JTokenType.Object)
+                                {
+                                    actionsList.Add(new SimpleDungeon.Engine.Dialogue.DialogueAction
+                                    {
+                                        Type = (string)(actionsToken["Type"] ?? actionsToken["type"] ?? actionsToken["Action"] ?? actionsToken["action"]),
+                                        Param = (string)(actionsToken["Param"] ?? actionsToken["param"] ?? actionsToken["Value"] ?? actionsToken["value"])
+                                    });
+                                }
+                                if (actionsList.Count > 0) resp.Actions = actionsList;
+                            }
+
+                            node.Responses.Add(resp);
+                        }
+                    }
+
+                    doc.Nodes.Add(node);
+                }
+            }
+
+            // Если start пустой, поставим первый узел (если есть)
+            if (string.IsNullOrEmpty(doc.Start) && doc.Nodes.Count > 0)
+                doc.Start = doc.Nodes[0].Id;
+
+            return doc;
         }
     }
 }

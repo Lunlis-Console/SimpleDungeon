@@ -1,7 +1,6 @@
 ﻿// JsonWorldRepository.cs
 using Engine.Core;
 using Engine.Data;
-using Engine.Dialogue;
 using Engine.Entities;
 using Engine.Quests;
 using Engine.Titles;
@@ -13,7 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Reflection; // <- Добавлено
+using System.Reflection;
 
 namespace Engine.World
 {
@@ -571,7 +570,7 @@ namespace Engine.World
         // Пример исправленного фрагмента — вставь вместо того, что у тебя не работало:
         // замените существующий метод BuildDialogueFromData этим кодом
         // Замените существующий метод BuildDialogueFromData(...) на этот:
-        private Dialogue.DialogueSystem.DialogueNode BuildDialogueFromData(Engine.Data.DialogueData data)
+        private Dialogue.Legacy.DialogueSystem.DialogueNode BuildDialogueFromData(Engine.Data.DialogueData data)
         {
             if (data == null || data.Nodes == null || data.Nodes.Count == 0)
                 return null;
@@ -586,7 +585,7 @@ namespace Engine.World
             var nextNames = new[] { "NextNodeId", "TargetNodeId", "Next", "Target" };
 
             // 1) создаём карту id->node
-            var map = new Dictionary<string, Dialogue.DialogueSystem.DialogueNode>(StringComparer.OrdinalIgnoreCase);
+            var map = new Dictionary<string, Dialogue.Legacy.DialogueSystem.DialogueNode>(StringComparer.OrdinalIgnoreCase);
             foreach (var nodeData in data.Nodes)
             {
                 // попытка получить текст через reflection (разные DTO могут называться по-разному)
@@ -606,7 +605,7 @@ namespace Engine.World
                 }
                 catch { }
 
-                var node = new Dialogue.DialogueSystem.DialogueNode(text ?? string.Empty);
+                var node = new Dialogue.Legacy.DialogueSystem.DialogueNode(text ?? string.Empty);
                 // сохраняем node под id (поле Id ожидается в DTO, если нет — попробуем через reflection)
                 string id = null;
                 try
@@ -722,11 +721,11 @@ namespace Engine.World
                                 if (np != null) { nextId = np.GetValue(optData)?.ToString(); break; }
                             }
 
-                            Dialogue.DialogueSystem.DialogueNode next = null;
+                            Dialogue.Legacy.DialogueSystem.DialogueNode next = null;
                             if (!string.IsNullOrWhiteSpace(nextId) && map.TryGetValue(nextId, out var nextNode))
                                 next = nextNode;
 
-                            var option = new Dialogue.DialogueSystem.DialogueOption(optText ?? string.Empty, next);
+                            var option = new Dialogue.Legacy.DialogueSystem.DialogueOption(optText ?? string.Empty, next);
 
                             // копируем доп. поля если есть
                             try
@@ -780,11 +779,11 @@ namespace Engine.World
                                 if (np != null) { nextId = np.GetValue(resp)?.ToString(); break; }
                             }
 
-                            Dialogue.DialogueSystem.DialogueNode next = null;
+                            Dialogue.Legacy.DialogueSystem.DialogueNode next = null;
                             if (!string.IsNullOrWhiteSpace(nextId) && map.TryGetValue(nextId, out var nextNode))
                                 next = nextNode;
 
-                            var option = new Dialogue.DialogueSystem.DialogueOption(rText ?? string.Empty, next);
+                            var option = new Dialogue.Legacy.DialogueSystem.DialogueOption(rText ?? string.Empty, next);
 
                             // copy extras
                             try
@@ -853,7 +852,7 @@ namespace Engine.World
                                      (childText.Length > 40 ? childText.Substring(0, 37) + "..." : childText);
 
                     var nextNode = (childId != null && map.TryGetValue(childId, out var nnode)) ? nnode : null;
-                    var option = new Dialogue.DialogueSystem.DialogueOption(optionText, nextNode) { IsAvailable = true };
+                    var option = new Dialogue.Legacy.DialogueSystem.DialogueOption(optionText, nextNode) { IsAvailable = true };
 
                     node.Options.Add(option);
                     DebugConsole.Log($"[BuildDialogueFromData] Node '{id}' +InferredOption '{option.Text}' -> next='{childId ?? "(null)"}'");
@@ -880,13 +879,13 @@ namespace Engine.World
         }
 
 
-        private Dialogue.DialogueSystem.DialogueNode BuildDialogueNodeFromData(Engine.Data.DialogueData data)
+        private Dialogue.Legacy.DialogueSystem.DialogueNode BuildDialogueNodeFromData(Engine.Data.DialogueData data)
         {
             // создаём словарь id -> node
-            var map = new Dictionary<string, Dialogue.DialogueSystem.DialogueNode>();
+            var map = new Dictionary<string, Dialogue.Legacy.DialogueSystem.DialogueNode>();
             foreach (var nodeData in data.Nodes)
             {
-                var node = new Dialogue.DialogueSystem.DialogueNode(nodeData.Text);
+                var node = new Dialogue.Legacy.DialogueSystem.DialogueNode(nodeData.Text);
                 map[nodeData.Id] = node;
             }
 
@@ -899,12 +898,12 @@ namespace Engine.World
                 {
                     foreach (var optData in nodeData.Options)
                     {
-                        Dialogue.DialogueSystem.DialogueNode next = null;
+                        Dialogue.Legacy.DialogueSystem.DialogueNode next = null;
                         if (!string.IsNullOrEmpty(optData.NextNodeId) && map.ContainsKey(optData.NextNodeId))
                             next = map[optData.NextNodeId];
 
                         // ==== Исправлено: создаём DialogueOption (а не DialogueNode) ====
-                        var option = new Dialogue.DialogueSystem.DialogueOption(optData.Text, next);
+                        var option = new Dialogue.Legacy.DialogueSystem.DialogueOption(optData.Text, next);
 
                         // копирование возможных дополнительных полей
                         try
@@ -940,7 +939,7 @@ namespace Engine.World
                             var respType = resp.GetType();
                             var nextProp = respType.GetProperty("NextNodeId") ?? respType.GetProperty("TargetNodeId") ?? respType.GetProperty("Next") ?? respType.GetProperty("Target");
                             string nextId = nextProp?.GetValue(resp)?.ToString();
-                            Dialogue.DialogueSystem.DialogueNode next = null;
+                            Dialogue.Legacy.DialogueSystem.DialogueNode next = null;
                             if (!string.IsNullOrEmpty(nextId) && map.ContainsKey(nextId))
                                 next = map[nextId];
 
@@ -948,7 +947,7 @@ namespace Engine.World
                             var text = textProp?.GetValue(resp)?.ToString() ?? string.Empty;
 
                             // ==== Исправлено: создаём DialogueOption (а не DialogueNode) ====
-                            var option = new Dialogue.DialogueSystem.DialogueOption(text, next);
+                            var option = new Dialogue.Legacy.DialogueSystem.DialogueOption(text, next);
 
                             var optType = option.GetType();
                             var extraProps = new[] { "Action", "Parameter", "Condition", "Value", "Id" };

@@ -1,0 +1,33 @@
+{
+  "schema": "dialogue.v1",
+  "id": "7001",
+  "nodes": [
+    {
+      "id": "n1",
+      "text": "Привет",
+      "responses": [
+        {
+          "text": "Привет, кто ты?",
+          "target": "n2",
+          "actions": []
+        }
+      ]
+    },
+    {
+      "id": "n2",
+      "text": "Я разработчик",
+      "responses": [
+        {
+          "text": "Ладно, я пошел.",
+          "target": "n3",
+          "actions": []
+        }
+      ]
+    },
+    {
+      "id": "n3",
+      "text": "Ясно, пока",
+      "responses": []
+    }
+  ]
+}

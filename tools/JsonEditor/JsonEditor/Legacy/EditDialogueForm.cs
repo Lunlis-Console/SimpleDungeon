@@ -5,7 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace JsonEditor
+namespace JsonEditor.Legacy
 {
     public class EditDialogueForm : Form
     {
@@ -35,9 +35,9 @@ namespace JsonEditor
 
         private void InitializeComponents()
         {
-            this.Text = "Редактирование диалога";
-            this.Size = new Size(1000, 600);
-            this.StartPosition = FormStartPosition.CenterParent;
+            Text = "Редактирование диалога";
+            Size = new Size(1000, 600);
+            StartPosition = FormStartPosition.CenterParent;
 
             // Основные поля
             var lblId = new Label { Text = "ID:", Location = new Point(10, 15), Width = 30 };
@@ -92,7 +92,7 @@ namespace JsonEditor
             btnEditOption.Click += (s, e) => EditSelectedOption();
             btnDeleteOption.Click += (s, e) => DeleteSelectedOption();
             btnOk.Click += BtnOk_Click;
-            btnCancel.Click += (s, e) => { this.DialogResult = DialogResult.Cancel; this.Close(); };
+            btnCancel.Click += (s, e) => { DialogResult = DialogResult.Cancel; Close(); };
 
             treeNodes.AfterSelect += (s, e) =>
             {
@@ -114,7 +114,7 @@ namespace JsonEditor
                 }
             };
 
-            this.Controls.AddRange(new Control[] {
+            Controls.AddRange(new Control[] {
                 lblId, txtId, lblName, txtName,
                 treeNodes, propertyGrid,
                 btnAddNode, btnEditNode, btnDeleteNode,
@@ -277,8 +277,8 @@ namespace JsonEditor
 
             _dialogue.Id = txtId.Text.Trim();
             _dialogue.Name = txtName.Text.Trim();
-            this.DialogResult = DialogResult.OK;
-            this.Close();
+            DialogResult = DialogResult.OK;
+            Close();
         }
     }
 
@@ -297,9 +297,9 @@ namespace JsonEditor
 
         private void InitializeComponents(List<DialogueNodeData> allNodes)
         {
-            this.Text = "Редактирование узла";
-            this.Size = new Size(400, 200);
-            this.StartPosition = FormStartPosition.CenterParent;
+            Text = "Редактирование узла";
+            Size = new Size(400, 200);
+            StartPosition = FormStartPosition.CenterParent;
 
             var lblId = new Label { Text = "ID:", Left = 10, Top = 15, Width = 80 };
             txtId = new TextBox { Left = 100, Top = 12, Width = 280, Text = Node.Id };
@@ -327,13 +327,13 @@ namespace JsonEditor
                 Node.Id = txtId.Text;
                 Node.Text = txtText.Text;
                 Node.ParentId = cmbParentId.Text;
-                this.DialogResult = DialogResult.OK;
-                this.Close();
+                DialogResult = DialogResult.OK;
+                Close();
             };
 
-            btnCancel.Click += (s, e) => { this.DialogResult = DialogResult.Cancel; this.Close(); };
+            btnCancel.Click += (s, e) => { DialogResult = DialogResult.Cancel; Close(); };
 
-            this.Controls.AddRange(new Control[] { lblId, txtId, lblText, txtText, lblParent, cmbParentId, btnOk, btnCancel });
+            Controls.AddRange(new Control[] { lblId, txtId, lblText, txtText, lblParent, cmbParentId, btnOk, btnCancel });
         }
     }
 }
