@@ -863,33 +863,33 @@
       "nodes": [
         {
           "id": "n1",
-          "text": "привет",
-          "responses": [
+          "text": "Привет",
+          "choices": [
             {
-              "text": "привет, ты кто?",
-              "target": "n2",
-              "actions": []
+              "text": "Привет, а ты кто?",
+              "nextNodeId": "n2",
+              "itemRewards": []
             }
           ]
         },
         {
           "id": "n2",
-          "text": "я разраб",
-          "responses": [
+          "text": "Я разработчик",
+          "choices": [
             {
-              "text": "О, ну ясно, я пошел",
-              "target": "n3",
-              "actions": []
+              "text": "О, ну я пойду тогда",
+              "nextNodeId": "n3",
+              "itemRewards": []
             }
           ]
         },
         {
           "id": "n3",
-          "text": "ладно, давай, пока",
-          "responses": [
+          "text": "Ясно, ну иди тогда",
+          "choices": [
             {
               "text": "(закончить диалог)",
-              "actions": []
+              "itemRewards": []
             }
           ]
         }

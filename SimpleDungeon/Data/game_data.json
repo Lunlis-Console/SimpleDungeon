@@ -863,15 +863,47 @@
       "Nodes": [
         {
           "Id": "n1",
-          "Text": "привет"
+          "Text": "Привет",
+          "Choices": [
+            {
+              "Text": "Привет, а ты кто?",
+              "NextNodeId": "n2",
+              "Action": 0,
+              "GoldReward": 0,
+              "ExperienceReward": 0,
+              "StartTrade": false,
+              "EndDialogue": false
+            }
+          ]
         },
         {
           "Id": "n2",
-          "Text": "я разраб"
+          "Text": "Я разработчик",
+          "Choices": [
+            {
+              "Text": "О, ну я пойду тогда",
+              "NextNodeId": "n3",
+              "Action": 0,
+              "GoldReward": 0,
+              "ExperienceReward": 0,
+              "StartTrade": false,
+              "EndDialogue": false
+            }
+          ]
         },
         {
           "Id": "n3",
-          "Text": "ладно, давай, пока"
+          "Text": "Ясно, ну иди тогда",
+          "Choices": [
+            {
+              "Text": "(закончить диалог)",
+              "Action": 0,
+              "GoldReward": 0,
+              "ExperienceReward": 0,
+              "StartTrade": false,
+              "EndDialogue": false
+            }
+          ]
         }
       ]
     }
