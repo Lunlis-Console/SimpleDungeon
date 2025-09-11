@@ -842,6 +842,8 @@ namespace SimpleDungeon.Tools.DialogueEditor
                 dlg.Nodes.Add(nd);
             }
 
+
+
             return dlg;
         }
 
@@ -855,6 +857,10 @@ namespace SimpleDungeon.Tools.DialogueEditor
             public DialogueChoiceData Result { get; private set; }
             private readonly DialogueChoiceData _editing;
             private readonly DialogueData _doc;
+            private ComboBox _comboAction;
+            private TextBox _txtActionParam;
+            private ListBox _lstActions;
+            private Button _btnAddAction, _btnRemoveAction;
 
             public EditChoiceForm(DialogueData doc, DialogueChoiceData existing)
             {
@@ -863,8 +869,42 @@ namespace SimpleDungeon.Tools.DialogueEditor
 
                 Text = existing == null ? "Add Choice" : "Edit Choice";
                 Width = 540;
-                Height = 220;
+                Height = 300; // Увеличим высоту формы
                 StartPosition = FormStartPosition.CenterParent;
+
+                var lblAction = new Label { Left = 10, Top = 80, Width = 100, Text = "Действие" };
+                _comboAction = new ComboBox { Left = 120, Top = 80, Width = 150, DropDownStyle = ComboBoxStyle.DropDownList };
+                _comboAction.Items.AddRange(Enum.GetValues(typeof(DialogueAction)).Cast<object>().ToArray());
+
+                // TextBox для параметра
+                var lblParam = new Label { Left = 10, Top = 110, Width = 100, Text = "Параметр" };
+                _txtActionParam = new TextBox { Left = 120, Top = 110, Width = 200 };
+
+                // ListBox для списка действий
+                var lblActions = new Label { Left = 10, Top = 140, Width = 100, Text = "Список действий" };
+
+                _lstActions = new ListBox { Left = 120, Top = 140, Width = 250, Height = 60 };
+
+                // Кнопки управления действиями
+                _btnAddAction = new Button { Left = 280, Top = 80, Width = 90, Text = "Добавить" };
+                _btnRemoveAction = new Button { Left = 280, Top = 110, Width = 90, Text = "Удалить" };
+
+                // Добавляем элементы на форму
+                Controls.AddRange(new Control[] { lblAction, _comboAction, lblParam, _txtActionParam, lblActions, _lstActions, _btnAddAction, _btnRemoveAction });
+
+                // Обработчики событий
+                _btnAddAction.Click += (s, e) => AddAction();
+                _btnRemoveAction.Click += (s, e) => RemoveAction();
+
+                // Загрузка данных
+                if (existing != null)
+                {
+                    _comboAction.SelectedItem = existing.Action;
+                    _txtActionParam.Text = existing.ActionParameter;
+                    if (existing.Actions != null)
+                        foreach (var action in existing.Actions)
+                            _lstActions.Items.Add(action);
+                }
 
                 var lb1 = new Label { Left = 10, Top = 10, Width = 80, Text = "Text" };
                 Controls.Add(lb1);
@@ -894,6 +934,27 @@ namespace SimpleDungeon.Tools.DialogueEditor
                     _txtTarget.Text = existing.NextNodeId;
                 }
             }
+
+            private void AddAction()
+            {
+                if (_comboAction.SelectedItem != null && _comboAction.SelectedItem is DialogueAction actionType)
+                {
+                    var action = new DialogueActionData
+                    {
+                        Type = actionType,
+                        Parameter = _txtActionParam.Text
+                    };
+                    _lstActions.Items.Add(action);
+                }
+            }
+
+            private void RemoveAction()
+            {
+                if (_lstActions.SelectedIndex >= 0)
+                    _lstActions.Items.RemoveAt(_lstActions.SelectedIndex);
+            }
+
+
 
             private void ShowPickNodeMenu()
             {
@@ -933,12 +994,18 @@ namespace SimpleDungeon.Tools.DialogueEditor
 
                 if (_editing == null)
                 {
-                    Result = new DialogueChoiceData { Text = text, NextNodeId = next };
+                    Result = new DialogueChoiceData
+                    {
+                        Text = text,
+                        NextNodeId = next,
+                        Actions = _lstActions.Items.Cast<DialogueActionData>().ToList()
+                    };
                 }
                 else
                 {
                     _editing.Text = text;
                     _editing.NextNodeId = next;
+                    _editing.Actions = _lstActions.Items.Cast<DialogueActionData>().ToList();
                     Result = _editing;
                 }
 

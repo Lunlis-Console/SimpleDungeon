@@ -151,18 +151,21 @@ namespace Engine.Data
     public class DialogueChoiceData
     {
         public string Text { get; set; } = string.Empty;
-
-        [JsonPropertyName("NextNodeId")]
         public string NextNodeId { get; set; }
 
+        // Для одиночного действия (обратная совместимость)
         public DialogueAction Action { get; set; } = DialogueAction.None;
         public string ActionParameter { get; set; }
-        public List<ItemReward> ItemRewards { get; set; } = new List<ItemReward>();
-        public int GoldReward { get; set; }
-        public int ExperienceReward { get; set; }
-        public string QuestId { get; set; }
-        public bool StartTrade { get; set; }
-        public bool EndDialogue { get; set; }
+
+        // Для множественных действий
+        public List<DialogueActionData> Actions { get; set; } = new List<DialogueActionData>();
+    }
+
+    // Новый класс для хранения данных действия
+    public class DialogueActionData
+    {
+        public DialogueAction Type { get; set; }
+        public string Parameter { get; set; }
     }
 
     public class ItemReward
@@ -171,14 +174,15 @@ namespace Engine.Data
         public int Quantity { get; set; }
     }
 
+    // В Engine.Data.cs добавьте:
     public enum DialogueAction
     {
         None,
-        GiveQuest,
-        CompleteQuest,
-        GiveItems,
+        GiveItem,
         GiveGold,
-        GiveExperience,
+        StartQuest,
+        CompleteQuest,
+        SetFlag,
         StartTrade,
         EndDialogue
     }

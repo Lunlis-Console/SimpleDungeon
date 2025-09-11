@@ -1,8 +1,9 @@
 ﻿// Engine/Dialogue/DialogueSystem.cs
-using System;
-using System.Collections.Generic;
+using Engine.Data;
 using Engine.Entities;
 using Engine.World;
+using System;
+using System.Collections.Generic;
 
 namespace Engine.Dialogue.Legacy
 {
@@ -42,6 +43,8 @@ namespace Engine.Dialogue.Legacy
             public bool IsAvailable { get; set; } = true;
             public bool IsVisited { get; set; } = false;
 
+            public List<DialogueActionData> Actions { get; set; } = new List<DialogueActionData>();
+
             public DialogueOption(string text, DialogueNode nextNode = null)
             {
                 Text = text ?? string.Empty;
@@ -61,6 +64,19 @@ namespace Engine.Dialogue.Legacy
                     {
                         DebugConsole.Log($"DialogueOption.ExecuteSelection: action '{Action}' failed: {ex.Message}");
                     }
+                }
+
+                if (this.Actions != null && this.Actions.Count > 0)
+                {
+                    foreach (var action in this.Actions)
+                    {
+                        DialogueActions.Execute(action.Type.ToString(), action.Parameter, player, ui);
+                    }
+                }
+                // Для обратной совместимости
+                else if (!string.IsNullOrEmpty(Action))
+                {
+                    DialogueActions.Execute(Action, Parameter, player, ui);
                 }
 
                 if (NextNode != null)

@@ -9,10 +9,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Reflection;
+using System.Xml.Linq;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Engine.World
 {
@@ -592,19 +594,38 @@ namespace Engine.World
                 {
                     Dialogue.Legacy.DialogueSystem.DialogueNode next = null;
                     if (!string.IsNullOrEmpty(choice.NextNodeId) && map.ContainsKey(choice.NextNodeId))
+                    {
                         next = map[choice.NextNodeId];
+                    }
 
                     var option = new Dialogue.Legacy.DialogueSystem.DialogueOption(choice.Text ?? string.Empty, next);
 
-                    // копируем действие (если оно нужно в Legacy)
-                    option.Action = choice.Action.ToString();
-                    option.Parameter = choice.ActionParameter;
+                    // Копируем все действия
+                    if (choice.Actions != null && choice.Actions.Count > 0)
+                    {
+                        option.Actions = choice.Actions.Select(a => new DialogueActionData
+                        {
+                            Type = a.Type,
+                            Parameter = a.Parameter
+                        }).ToList();
+                    }
+                    // Для обратной совместимости с одиночными действиями
+                    else if (choice.Action != DialogueAction.None)
+                    {
+                        option.Action = choice.Action.ToString();
+                        option.Parameter = choice.ActionParameter;
+
+                        // Также добавляем в список действий для единообразия
+                        option.Actions.Add(new DialogueActionData
+                        {
+                            Type = choice.Action,
+                            Parameter = choice.ActionParameter
+                        });
+                    }
 
                     node.Options.Add(option);
                 }
-            }
-
-            // 3) возвращаем root (первая нода в списке считается корневой)
+            }            // 3) возвращаем root (первая нода в списке считается корневой)
             var rootId = data.Nodes.Count > 0 ? data.Nodes[0].Id : null;
             return rootId != null && map.ContainsKey(rootId) ? map[rootId] : null;
         }
