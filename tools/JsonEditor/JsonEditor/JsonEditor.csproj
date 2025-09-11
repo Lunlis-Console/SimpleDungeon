@@ -6,7 +6,15 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Engine\Engine.csproj" />
-    <ProjectReference Include="..\..\DialogueEditor\DialogueEditor.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="EditActionForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="EditResponseForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
   </ItemGroup>
 
   <PropertyGroup>

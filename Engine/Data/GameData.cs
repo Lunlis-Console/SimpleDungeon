@@ -8,12 +8,25 @@ namespace Engine.Data
 {
     public class GameData
     {
+        [JsonPropertyName("Items")]
         public List<ItemData> Items { get; set; } = new List<ItemData>();
+
+        [JsonPropertyName("Monsters")]
         public List<MonsterData> Monsters { get; set; } = new List<MonsterData>();
+
+        [JsonPropertyName("Locations")]
         public List<LocationData> Locations { get; set; } = new List<LocationData>();
+
+        [JsonPropertyName("Quests")]
         public List<QuestData> Quests { get; set; } = new List<QuestData>();
+
+        [JsonPropertyName("NPCs")]
         public List<NPCData> NPCs { get; set; } = new List<NPCData>();
+
+        [JsonPropertyName("Titles")]
         public List<TitleData> Titles { get; set; } = new List<TitleData>();
+
+        [JsonPropertyName("Dialogues")]
         public List<DialogueData> Dialogues { get; set; } = new List<DialogueData>();
     }
 
@@ -71,11 +84,12 @@ namespace Engine.Data
         public int? LocationToSouth { get; set; }
         public int? LocationToWest { get; set; }
     }
+
     public class MonsterSpawnData
     {
         public int MonsterTemplateID { get; set; }
         public int Level { get; set; }
-        public int SpawnWeight { get; set; } // Вероятность появления
+        public int SpawnWeight { get; set; }
     }
 
     public class QuestData
@@ -88,7 +102,7 @@ namespace Engine.Data
         public int? QuestGiverID { get; set; }
         public List<QuestItemData> QuestItems { get; set; } = new List<QuestItemData>();
         public List<InventoryItemData> RewardItems { get; set; } = new List<InventoryItemData>();
-        public string QuestType { get; set; } = string.Empty; // "Standard" или "Collectible"
+        public string QuestType { get; set; } = string.Empty;
         public List<CollectibleSpawnData> SpawnLocations { get; set; } = new List<CollectibleSpawnData>();
     }
 
@@ -107,33 +121,41 @@ namespace Engine.Data
         public MerchantData Merchant { get; set; } = new MerchantData();
         public string GreetingDialogueId { get; set; } = null;
     }
+
     public class DialogueData
     {
+        [JsonPropertyName("id")]
         public string Id { get; set; }
+
+        [JsonPropertyName("name")]
         public string Name { get; set; }
+
+        // Стартовая нода (id). Форма и парсеры ожидают это поле.
+        [JsonPropertyName("start")]
+        public string Start { get; set; } = null;
+
+        [JsonPropertyName("nodes")]
         public List<DialogueNodeData> Nodes { get; set; } = new List<DialogueNodeData>();
     }
 
     public class DialogueNodeData
     {
-        public string Id { get; set; } = string.Empty; // уникальный id узла
-        public string Text { get; set; } = string.Empty; // текст ноды
+        public string Id { get; set; } = string.Empty;
+        public string Text { get; set; } = string.Empty;
         public string ParentId { get; set; }
-        public List<DialogueOptionData> Options { get; set; } = new List<DialogueOptionData>();
-        public List<DialogueResponseData> Responses { get; set; } = new List<DialogueResponseData>();
-    }
-    public class DialogueOptionData
-    {
-        public string Text { get; set; } = string.Empty; // текст варианта
-        public string NextNodeId { get; set; } = null; // id следующей ноды (null — конец)
-                                                       // сюда можно добавить условия/скрипты, награды и т.д.
+
+        [JsonPropertyName("Choices")]
+        public List<DialogueChoiceData> Choices { get; set; } = new List<DialogueChoiceData>();
     }
 
-    public class DialogueResponseData
+    public class DialogueChoiceData
     {
-        public string Text { get; set; }
-        public string TargetNodeId { get; set; }
-        public DialogueAction Action { get; set; }
+        public string Text { get; set; } = string.Empty;
+
+        [JsonPropertyName("NextNodeId")]
+        public string NextNodeId { get; set; }
+
+        public DialogueAction Action { get; set; } = DialogueAction.None;
         public string ActionParameter { get; set; }
         public List<ItemReward> ItemRewards { get; set; } = new List<ItemReward>();
         public int GoldReward { get; set; }
@@ -142,6 +164,7 @@ namespace Engine.Data
         public bool StartTrade { get; set; }
         public bool EndDialogue { get; set; }
     }
+
     public class ItemReward
     {
         public int ItemId { get; set; }
@@ -159,7 +182,6 @@ namespace Engine.Data
         StartTrade,
         EndDialogue
     }
-
 
     public class MerchantData
     {
@@ -189,10 +211,7 @@ namespace Engine.Data
         public int ItemID { get; set; }
         public int Quantity { get; set; }
 
-        // Конструктор по умолчанию (обязателен для JSON)
         public InventoryItemData() { }
-
-        // Конструктор с параметрами
         public InventoryItemData(int itemID, int quantity)
         {
             ItemID = itemID;

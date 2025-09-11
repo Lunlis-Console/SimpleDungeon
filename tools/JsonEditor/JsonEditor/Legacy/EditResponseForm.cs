@@ -16,7 +16,7 @@ namespace JsonEditor
     {
         public class EditResponseForm : Form
         {
-            private DialogueResponseData _response;
+            private DialogueChoiceData _choice;
             private List<DialogueNodeData> _allNodes;
             private GameData _gameData;
             private string _currentNodeId;
@@ -37,11 +37,11 @@ namespace JsonEditor
             private Button btnOk;
             private Button btnCancel;
 
-            public DialogueResponseData Response => _response;
+            public DialogueChoiceData Response => _choice;
 
-            public EditResponseForm(DialogueResponseData response, GameData gameData, List<DialogueNodeData> allNodes, string currentNodeId)
+            public EditResponseForm(DialogueChoiceData response, GameData gameData, List<DialogueNodeData> allNodes, string currentNodeId)
             {
-                _response = response ?? new DialogueResponseData();
+                _choice = response ?? new DialogueChoiceData();
                 _gameData = gameData;
                 _allNodes = allNodes;
                 _currentNodeId = currentNodeId;
@@ -157,7 +157,7 @@ namespace JsonEditor
 
             private void LoadDataToControls()
             {
-                txtText.Text = _response.Text;
+                txtText.Text = _choice.Text;
 
                 // Заполнение целевых узлов
                 cmbTargetNodeId.Items.Clear();
@@ -173,26 +173,26 @@ namespace JsonEditor
                     cmbTargetNodeId.Items.Add(node);
                 }
 
-                if (!string.IsNullOrEmpty(_response.TargetNodeId))
+                if (!string.IsNullOrEmpty(_choice.NextNodeId))
                 {
-                    var selectedItem = availableNodes.FirstOrDefault(n => n.Id == _response.TargetNodeId);
+                    var selectedItem = availableNodes.FirstOrDefault(n => n.Id == _choice.NextNodeId);
                     if (selectedItem != null)
                         cmbTargetNodeId.SelectedItem = selectedItem;
                     else
-                        cmbTargetNodeId.Text = _response.TargetNodeId;
+                        cmbTargetNodeId.Text = _choice.NextNodeId;
                 }
 
                 // Флаги
-                chkEndDialogue.Checked = _response.EndDialogue;
-                chkStartTrade.Checked = _response.StartTrade;
+                chkEndDialogue.Checked = _choice.EndDialogue;
+                chkStartTrade.Checked = _choice.StartTrade;
 
                 // Действия
-                cmbAction.SelectedItem = _response.Action;
-                txtActionParameter.Text = _response.ActionParameter;
+                cmbAction.SelectedItem = _choice.Action;
+                txtActionParameter.Text = _choice.ActionParameter;
 
                 // Награды
-                nudGoldReward.Value = _response.GoldReward;
-                nudExperienceReward.Value = _response.ExperienceReward;
+                nudGoldReward.Value = _choice.GoldReward;
+                nudExperienceReward.Value = _choice.ExperienceReward;
 
                 // Квесты
                 cmbQuestId.Items.Clear();
@@ -205,10 +205,10 @@ namespace JsonEditor
                     }
                 }
 
-                if (!string.IsNullOrEmpty(_response.QuestId))
+                if (!string.IsNullOrEmpty(_choice.QuestId))
                 {
                     var selectedQuest = cmbQuestId.Items.Cast<object>()
-                        .FirstOrDefault(item => item.ToString().Contains(_response.QuestId));
+                        .FirstOrDefault(item => item.ToString().Contains(_choice.QuestId));
                     if (selectedQuest != null)
                         cmbQuestId.SelectedItem = selectedQuest;
                 }
@@ -222,7 +222,7 @@ namespace JsonEditor
             private void RefreshItemRewardsGrid()
             {
                 gridItemRewards.Rows.Clear();
-                foreach (var reward in _response.ItemRewards)
+                foreach (var reward in _choice.ItemRewards)
                 {
                     var itemName = _gameData?.Items?.FirstOrDefault(i => i.ID == reward.ItemId)?.Name ?? "Неизвестный предмет";
                     gridItemRewards.Rows.Add(reward.ItemId, itemName, reward.Quantity);
@@ -231,7 +231,7 @@ namespace JsonEditor
 
             private void UpdateControlsState()
             {
-                bool hasTarget = !string.IsNullOrEmpty(_response.TargetNodeId);
+                bool hasTarget = !string.IsNullOrEmpty(_choice.NextNodeId);
                 bool endDialogue = chkEndDialogue.Checked;
 
                 cmbTargetNodeId.Enabled = !endDialogue;
@@ -262,7 +262,7 @@ namespace JsonEditor
                 {
                     if (form.ShowDialog() == DialogResult.OK)
                     {
-                        _response.ItemRewards.Add(form.ItemReward);
+                        _choice.ItemRewards.Add(form.ItemReward);
                         RefreshItemRewardsGrid();
                     }
                 }
@@ -273,9 +273,9 @@ namespace JsonEditor
                 if (gridItemRewards.SelectedRows.Count > 0)
                 {
                     int index = gridItemRewards.SelectedRows[0].Index;
-                    if (index < _response.ItemRewards.Count)
+                    if (index < _choice.ItemRewards.Count)
                     {
-                        var reward = _response.ItemRewards[index];
+                        var reward = _choice.ItemRewards[index];
                         using (var form = new EditItemRewardForm(reward, _gameData))
                         {
                             if (form.ShowDialog() == DialogResult.OK)
@@ -292,9 +292,9 @@ namespace JsonEditor
                 if (gridItemRewards.SelectedRows.Count > 0)
                 {
                     int index = gridItemRewards.SelectedRows[0].Index;
-                    if (index < _response.ItemRewards.Count)
+                    if (index < _choice.ItemRewards.Count)
                     {
-                        _response.ItemRewards.RemoveAt(index);
+                        _choice.ItemRewards.RemoveAt(index);
                         RefreshItemRewardsGrid();
                     }
                 }
@@ -308,15 +308,15 @@ namespace JsonEditor
                     return;
                 }
 
-                _response.Text = txtText.Text.Trim();
-                _response.TargetNodeId = chkEndDialogue.Checked ? null : (cmbTargetNodeId.SelectedItem?.ToString() ?? cmbTargetNodeId.Text);
-                _response.EndDialogue = chkEndDialogue.Checked;
-                _response.StartTrade = chkStartTrade.Checked;
-                _response.Action = (DialogueAction)cmbAction.SelectedItem;
-                _response.ActionParameter = txtActionParameter.Text.Trim();
-                _response.GoldReward = (int)nudGoldReward.Value;
-                _response.ExperienceReward = (int)nudExperienceReward.Value;
-                _response.QuestId = cmbQuestId.SelectedItem?.ToString();
+                _choice.Text = txtText.Text.Trim();
+                _choice.NextNodeId = chkEndDialogue.Checked ? null : (cmbTargetNodeId.SelectedItem?.ToString() ?? cmbTargetNodeId.Text);
+                _choice.EndDialogue = chkEndDialogue.Checked;
+                _choice.StartTrade = chkStartTrade.Checked;
+                _choice.Action = (DialogueAction)cmbAction.SelectedItem;
+                _choice.ActionParameter = txtActionParameter.Text.Trim();
+                _choice.GoldReward = (int)nudGoldReward.Value;
+                _choice.ExperienceReward = (int)nudExperienceReward.Value;
+                _choice.QuestId = cmbQuestId.SelectedItem?.ToString();
 
                 DialogResult = DialogResult.OK;
                 Close();

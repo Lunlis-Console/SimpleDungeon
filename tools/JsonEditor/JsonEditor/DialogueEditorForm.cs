@@ -1,20 +1,20 @@
 ﻿// DialogueEditorForm.cs
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
-using SimpleDungeon.Engine.Dialogue;
-using System.IO;
+using Engine.Data;
 
 namespace SimpleDungeon.Tools.DialogueEditor
 {
     /// <summary>
-    /// DialogueEditorForm с поддержкой имени диалога (Name).
-    /// Замените существующий файл этим содержимым.
-    /// Требует: Newtonsoft.Json, типы DialogueDocument/DialogueNode/Response/DialogueAction.
+    /// DialogueEditorForm переписан для работы с моделями Engine.Data:
+    /// DialogueData, DialogueNodeData, DialogueChoiceData.
+    /// UI — тот же, что и у тебя (без Designer).
     /// </summary>
     public class DialogueEditorForm : Form
     {
@@ -40,8 +40,8 @@ namespace SimpleDungeon.Tools.DialogueEditor
         private readonly Button _saveCurrentBtn;
         private readonly Label _statusLabel;
 
-        // State
-        private DialogueDocument _doc = new DialogueDocument { Nodes = new List<DialogueNode>() };
+        // State (теперь DialogueData)
+        private DialogueData _doc = new DialogueData { Nodes = new List<DialogueNodeData>() };
         private string _currentFilePath;
         private JObject _loadedJObject; // если открыт контейнер (game_data.json)
 
@@ -85,8 +85,8 @@ namespace SimpleDungeon.Tools.DialogueEditor
             _nodeText.Leave += NodeText_Leave;
             Controls.Add(_nodeText);
 
-            // Responses list
-            var lbResp = new Label { Left = 250, Top = 250, Text = "Responses", Width = 80 };
+            // Responses list (Choices)
+            var lbResp = new Label { Left = 250, Top = 250, Text = "Responses / Choices", Width = 140 };
             Controls.Add(lbResp);
 
             _responsesList = new ListView { Left = 250, Top = 270, Width = 700, Height = 250, View = View.Details, FullRowSelect = true };
@@ -140,7 +140,7 @@ namespace SimpleDungeon.Tools.DialogueEditor
             Controls.Add(_statusLabel);
 
             // Initialize doc
-            if (_doc == null) _doc = new DialogueDocument { Nodes = new List<DialogueNode>() };
+            if (_doc == null) _doc = new DialogueData { Nodes = new List<DialogueNodeData>() };
             CreateNewNode("n1", "Новый узел");
             RefreshNodesList();
         }
@@ -175,14 +175,14 @@ namespace SimpleDungeon.Tools.DialogueEditor
                     return;
                 }
 
-                // изменить id и обновить все target'ы, которые ссылались на старый id
+                // изменить id и обновить все target'ы (NextNodeId), которые ссылались на старый id
                 var oldId = sel.Id;
                 sel.Id = newId;
                 foreach (var n in _doc.Nodes)
                 {
-                    if (n.Responses == null) continue;
-                    foreach (var r in n.Responses)
-                        if (r.Target == oldId) r.Target = newId;
+                    if (n.Choices == null) continue;
+                    foreach (var c in n.Choices)
+                        if (c.NextNodeId == oldId) c.NextNodeId = newId;
                 }
 
                 RefreshNodesList();
@@ -200,7 +200,7 @@ namespace SimpleDungeon.Tools.DialogueEditor
 
         private void CreateNewNode(string id = null, string text = null)
         {
-            if (_doc == null) _doc = new DialogueDocument { Nodes = new List<DialogueNode>() };
+            if (_doc == null) _doc = new DialogueData { Nodes = new List<DialogueNodeData>() };
 
             var nid = id;
             if (string.IsNullOrEmpty(nid))
@@ -210,7 +210,7 @@ namespace SimpleDungeon.Tools.DialogueEditor
                 nid = $"n{idx}";
             }
 
-            var node = new DialogueNode { Id = nid, Text = text ?? "" };
+            var node = new DialogueNodeData { Id = nid, Text = text ?? "", Choices = new List<DialogueChoiceData>() };
             _doc.Nodes.Add(node);
             RefreshNodesList();
             SelectNodeById(nid);
@@ -223,19 +223,19 @@ namespace SimpleDungeon.Tools.DialogueEditor
             var confirm = MessageBox.Show($"Delete node {sel.Id} ?", "Confirm", MessageBoxButtons.YesNo);
             if (confirm != DialogResult.Yes) return;
             _doc.Nodes.Remove(sel);
-            // удалить ссылки на этот node в target у ответов
+            // удалить ссылки на этот node в NextNodeId у choices
             foreach (var n in _doc.Nodes)
             {
-                if (n.Responses == null) continue;
-                foreach (var r in n.Responses)
-                    if (r.Target == sel.Id) r.Target = null;
+                if (n.Choices == null) continue;
+                foreach (var c in n.Choices)
+                    if (c.NextNodeId == sel.Id) c.NextNodeId = null;
             }
             RefreshNodesList();
         }
 
-        private DialogueNode GetSelectedNode()
+        private DialogueNodeData GetSelectedNode()
         {
-            return _nodesList.SelectedItem as DialogueNode;
+            return _nodesList.SelectedItem as DialogueNodeData;
         }
 
         private void SelectNodeById(string id)
@@ -243,7 +243,7 @@ namespace SimpleDungeon.Tools.DialogueEditor
             if (string.IsNullOrEmpty(id)) return;
             for (int i = 0; i < _nodesList.Items.Count; i++)
             {
-                if ((_nodesList.Items[i] as DialogueNode)?.Id == id)
+                if ((_nodesList.Items[i] as DialogueNodeData)?.Id == id)
                 {
                     _nodesList.SelectedIndex = i;
                     return;
@@ -284,31 +284,31 @@ namespace SimpleDungeon.Tools.DialogueEditor
             }
         }
 
-        private void RefreshResponses(DialogueNode node)
+        private void RefreshResponses(DialogueNodeData node)
         {
             _responsesList.Items.Clear();
-            if (node?.Responses == null) return;
-            foreach (var r in node.Responses)
+            if (node?.Choices == null) return;
+            foreach (var c in node.Choices)
             {
-                var item = new ListViewItem(r.Text ?? "(empty)");
-                item.SubItems.Add(r.Target ?? "(null)");
-                item.Tag = r;
+                var item = new ListViewItem(c.Text ?? "(empty)");
+                item.SubItems.Add(c.NextNodeId ?? "(null)");
+                item.Tag = c;
                 _responsesList.Items.Add(item);
             }
         }
 
         // -------------------------
-        // Response editing
+        // Choice editing (замена старого Response редактирования)
         // -------------------------
         private void AddResponse()
         {
             var node = GetSelectedNode();
             if (node == null) return;
-            var form = new EditResponseForm(_doc, null);
+            var form = new EditChoiceForm(_doc, null);
             if (form.ShowDialog(this) == DialogResult.OK)
             {
-                node.Responses ??= new List<Response>();
-                node.Responses.Add(form.Result);
+                node.Choices ??= new List<DialogueChoiceData>();
+                node.Choices.Add(form.Result);
                 RefreshResponses(node);
             }
         }
@@ -317,14 +317,14 @@ namespace SimpleDungeon.Tools.DialogueEditor
         {
             if (_responsesList.SelectedItems.Count == 0) return;
             var item = _responsesList.SelectedItems[0];
-            var resp = item.Tag as Response;
+            var choice = item.Tag as DialogueChoiceData;
             var node = GetSelectedNode();
-            if (resp == null || node == null) return;
+            if (choice == null || node == null) return;
 
-            var form = new EditResponseForm(_doc, resp);
+            var form = new EditChoiceForm(_doc, choice);
             if (form.ShowDialog(this) == DialogResult.OK)
             {
-                // изменения уже внесены в объект resp
+                // изменения уже внесены в объект choice (формой)
                 RefreshResponses(node);
             }
         }
@@ -333,10 +333,10 @@ namespace SimpleDungeon.Tools.DialogueEditor
         {
             if (_responsesList.SelectedItems.Count == 0) return;
             var item = _responsesList.SelectedItems[0];
-            var resp = item.Tag as Response;
+            var choice = item.Tag as DialogueChoiceData;
             var node = GetSelectedNode();
-            if (resp == null || node == null) return;
-            node.Responses.Remove(resp);
+            if (choice == null || node == null) return;
+            node.Choices.Remove(choice);
             RefreshResponses(node);
         }
 
@@ -391,10 +391,11 @@ namespace SimpleDungeon.Tools.DialogueEditor
             LoadFromPath(path);
         }
 
-        public void EditDialogFromGameData(string gameDataPath, SimpleDungeon.Engine.Dialogue.DialogueDocument dialog)
+        // Раньше принимал старый DialogueDocument, теперь — DialogueData
+        public void EditDialogFromGameData(string gameDataPath, DialogueData dialog)
         {
             if (string.IsNullOrEmpty(gameDataPath)) throw new ArgumentNullException(nameof(gameDataPath));
-            if (dialog == null) dialog = new SimpleDungeon.Engine.Dialogue.DialogueDocument { Nodes = new System.Collections.Generic.List<SimpleDungeon.Engine.Dialogue.DialogueNode>() };
+            if (dialog == null) dialog = new DialogueData { Nodes = new System.Collections.Generic.List<DialogueNodeData>() };
 
             try
             {
@@ -418,7 +419,7 @@ namespace SimpleDungeon.Tools.DialogueEditor
             }
 
             _doc = dialog;
-            if (_doc.Nodes == null) _doc.Nodes = new System.Collections.Generic.List<SimpleDungeon.Engine.Dialogue.DialogueNode>();
+            if (_doc.Nodes == null) _doc.Nodes = new System.Collections.Generic.List<DialogueNodeData>();
             RefreshNodesList();
         }
 
@@ -435,14 +436,15 @@ namespace SimpleDungeon.Tools.DialogueEditor
             {
                 var jobj = (JObject)token;
 
-                // heuristics
+                // heuristics (поддержка как плейн-диалога, так и контейнера GameData)
                 bool looksLikePlainDialogue = jobj["nodes"] != null && (jobj["start"] != null || jobj["nodes"].HasValues);
                 bool hasDialogsArray = jobj.Properties().Any(p => string.Equals(p.Name, "dialogs", StringComparison.OrdinalIgnoreCase) && p.Value.Type == JTokenType.Array);
                 bool hasDialoguesArray = jobj.Properties().Any(p => string.Equals(p.Name, "dialogues", StringComparison.OrdinalIgnoreCase) && p.Value.Type == JTokenType.Array);
 
                 if (looksLikePlainDialogue && !hasDialogsArray && !hasDialoguesArray && jobj.Properties().Count() <= 6)
                 {
-                    _doc = jobj.ToObject<DialogueDocument>() ?? new DialogueDocument { Nodes = new List<DialogueNode>() };
+                    // single dialogue object — попытаемся распарсить в new model (или конвертировать старую структуру)
+                    _doc = ParseDialogueTokenToDialogueData(jobj) ?? new DialogueData { Nodes = new List<DialogueNodeData>() };
                     _loadedJObject = null;
                 }
                 else if (hasDialogsArray || hasDialoguesArray)
@@ -479,18 +481,18 @@ namespace SimpleDungeon.Tools.DialogueEditor
                     {
                         if (array.Count == 0)
                         {
-                            _doc = new DialogueDocument { Nodes = new List<DialogueNode>() };
+                            _doc = new DialogueData { Nodes = new List<DialogueNodeData>() };
                         }
                         else
                         {
-                            DialogueDocument found = null;
+                            DialogueData found = null;
                             if (!string.IsNullOrWhiteSpace(_doc?.Id))
                             {
                                 foreach (var it in array)
                                 {
                                     try
                                     {
-                                        var cand = it.ToObject<DialogueDocument>();
+                                        var cand = ParseDialogueTokenToDialogueData(it);
                                         if (cand != null && cand.Id == _doc.Id) { found = cand; break; }
                                     }
                                     catch { }
@@ -498,15 +500,15 @@ namespace SimpleDungeon.Tools.DialogueEditor
                             }
                             if (found == null)
                             {
-                                found = array[0].ToObject<DialogueDocument>();
+                                found = ParseDialogueTokenToDialogueData(array[0]) ?? new DialogueData { Nodes = new List<DialogueNodeData>() };
                             }
-                            _doc = found ?? new DialogueDocument { Nodes = new List<DialogueNode>() };
+                            _doc = found ?? new DialogueData { Nodes = new List<DialogueNodeData>() };
                         }
                         _loadedJObject = jobj;
                     }
                     else
                     {
-                        _doc = new DialogueDocument { Nodes = new List<DialogueNode>() };
+                        _doc = new DialogueData { Nodes = new List<DialogueNodeData>() };
                         _loadedJObject = jobj;
                         MessageBox.Show("Файл содержит другие данные. Редактор загрузил пустой документ. При сохранении используйте «Save As...» чтобы избежать перезаписи исходного файла.");
                     }
@@ -529,12 +531,12 @@ namespace SimpleDungeon.Tools.DialogueEditor
                     }
                     if (anyDialogs != null)
                     {
-                        _doc = anyDialogs[0].ToObject<DialogueDocument>() ?? new DialogueDocument { Nodes = new List<DialogueNode>() };
+                        _doc = ParseDialogueTokenToDialogueData(anyDialogs[0]) ?? new DialogueData { Nodes = new List<DialogueNodeData>() };
                         _loadedJObject = jobj;
                     }
                     else
                     {
-                        _doc = new DialogueDocument { Nodes = new List<DialogueNode>() };
+                        _doc = new DialogueData { Nodes = new List<DialogueNodeData>() };
                         _loadedJObject = jobj;
                         MessageBox.Show("Файл содержит другие данные. Редактор загрузил пустой документ. При сохранении используйте «Save As...» чтобы избежать перезаписи исходного файла.");
                     }
@@ -542,11 +544,20 @@ namespace SimpleDungeon.Tools.DialogueEditor
             }
             else
             {
-                _doc = JsonConvert.DeserializeObject<DialogueDocument>(json) ?? new DialogueDocument { Nodes = new List<DialogueNode>() };
-                _loadedJObject = null;
+                // token is not object — try to deserialize as DialogueData directly
+                try
+                {
+                    _doc = JsonConvert.DeserializeObject<DialogueData>(json) ?? new DialogueData { Nodes = new List<DialogueNodeData>() };
+                    _loadedJObject = null;
+                }
+                catch
+                {
+                    _doc = new DialogueData { Nodes = new List<DialogueNodeData>() };
+                    _loadedJObject = null;
+                }
             }
 
-            if (_doc.Nodes == null) _doc.Nodes = new List<DialogueNode>();
+            if (_doc.Nodes == null) _doc.Nodes = new List<DialogueNodeData>();
             RefreshNodesList();
         }
 
@@ -660,7 +671,7 @@ namespace SimpleDungeon.Tools.DialogueEditor
                     // Safe write: tmp + replace + bak
                     var tmpPath = path + ".tmp";
                     var bakPath = path + ".bak";
-                    File.WriteAllText(tmpPath, original.ToString(Formatting.Indented));
+                    File.WriteAllText(tmpPath, original.ToString(Newtonsoft.Json.Formatting.Indented));
                     if (File.Exists(bakPath)) File.Delete(bakPath);
                     try
                     {
@@ -691,7 +702,7 @@ namespace SimpleDungeon.Tools.DialogueEditor
                         var tmpPath = path + ".tmp";
                         var bakPath = path + ".bak";
 
-                        File.WriteAllText(tmpPath, original.ToString(Formatting.Indented));
+                        File.WriteAllText(tmpPath, original.ToString(Newtonsoft.Json.Formatting.Indented));
                         if (File.Exists(bakPath)) File.Delete(bakPath);
                         try
                         {
@@ -724,8 +735,8 @@ namespace SimpleDungeon.Tools.DialogueEditor
                 var root = new JObject();
                 root["Dialogues"] = new JArray { docJson };
 
-                var json = JsonConvert.SerializeObject(root, settings);
-                File.WriteAllText(path, json);
+                var jsonOut = JsonConvert.SerializeObject(root, settings);
+                File.WriteAllText(path, jsonOut);
                 _currentFilePath = path;
                 _loadedJObject = root;
                 RefreshNodesList();
@@ -753,6 +764,186 @@ namespace SimpleDungeon.Tools.DialogueEditor
             catch (Exception ex)
             {
                 MessageBox.Show("Save failed: " + ex.Message);
+            }
+        }
+
+        // ---------- Вспомогательные методы ----------
+
+        // Универсальный парсер: поддерживает старую структуру (responses/target) и новую (Choices/NextNodeId)
+        private DialogueData ParseDialogueTokenToDialogueData(JToken token)
+        {
+            if (token == null || token.Type != JTokenType.Object) return null;
+            var jobj = (JObject)token;
+
+            var dlg = new DialogueData
+            {
+                Id = jobj["id"]?.ToString() ?? jobj["Id"]?.ToString(),
+                Name = jobj["name"]?.ToString() ?? jobj["Name"]?.ToString(),
+                Nodes = new List<DialogueNodeData>()
+            };
+
+            var nodesToken = jobj["nodes"] ?? jobj["Nodes"];
+            if (nodesToken == null || nodesToken.Type != JTokenType.Array) return dlg;
+
+            foreach (var n in nodesToken)
+            {
+                var nodeObj = n as JObject;
+                if (nodeObj == null) continue;
+
+                var nd = new DialogueNodeData
+                {
+                    Id = nodeObj["id"]?.ToString() ?? nodeObj["Id"]?.ToString() ?? Guid.NewGuid().ToString(),
+                    Text = nodeObj["text"]?.ToString() ?? nodeObj["Text"]?.ToString() ?? string.Empty,
+                    ParentId = nodeObj["parentId"]?.ToString() ?? nodeObj["ParentId"]?.ToString()
+                };
+                nd.Choices = new List<DialogueChoiceData>();
+
+                // First: try new-style choices (Choices / choices)
+                var choicesToken = nodeObj["choices"] ?? nodeObj["Choices"];
+                if (choicesToken != null && choicesToken.Type == JTokenType.Array)
+                {
+                    foreach (var c in choicesToken)
+                    {
+                        if (c is JObject co)
+                        {
+                            var ch = new DialogueChoiceData
+                            {
+                                Text = co["text"]?.ToString() ?? co["Text"]?.ToString() ?? string.Empty,
+                                NextNodeId = co["nextNodeId"]?.ToString() ?? co["NextNodeId"]?.ToString() ?? co["target"]?.ToString() ?? co["Target"]?.ToString()
+                            };
+                            nd.Choices.Add(ch);
+                        }
+                    }
+                    dlg.Nodes.Add(nd);
+                    continue;
+                }
+
+                // Second: try old-style responses (responses / Responses)
+                var responsesToken = nodeObj["responses"] ?? nodeObj["Responses"];
+                if (responsesToken != null && responsesToken.Type == JTokenType.Array)
+                {
+                    foreach (var r in responsesToken)
+                    {
+                        if (r is JObject ro)
+                        {
+                            var ch = new DialogueChoiceData
+                            {
+                                Text = ro["text"]?.ToString() ?? ro["Text"]?.ToString() ?? string.Empty,
+                                NextNodeId = ro["target"]?.ToString() ?? ro["Target"]?.ToString() ?? ro["next"]?.ToString()
+                            };
+                            nd.Choices.Add(ch);
+                        }
+                    }
+                    dlg.Nodes.Add(nd);
+                    continue;
+                }
+
+                // If neither, try to parse any array property named something else
+                dlg.Nodes.Add(nd);
+            }
+
+            return dlg;
+        }
+
+        // --------- Вспомогательная модалка для редактирования DialogueChoiceData -----------
+        private class EditChoiceForm : Form
+        {
+            private readonly TextBox _txtText;
+            private readonly TextBox _txtTarget;
+            private readonly Button _ok;
+            private readonly Button _cancel;
+            public DialogueChoiceData Result { get; private set; }
+            private readonly DialogueChoiceData _editing;
+            private readonly DialogueData _doc;
+
+            public EditChoiceForm(DialogueData doc, DialogueChoiceData existing)
+            {
+                _doc = doc;
+                _editing = existing;
+
+                Text = existing == null ? "Add Choice" : "Edit Choice";
+                Width = 540;
+                Height = 220;
+                StartPosition = FormStartPosition.CenterParent;
+
+                var lb1 = new Label { Left = 10, Top = 10, Width = 80, Text = "Text" };
+                Controls.Add(lb1);
+                _txtText = new TextBox { Left = 100, Top = 10, Width = 400 };
+                Controls.Add(_txtText);
+
+                var lb2 = new Label { Left = 10, Top = 45, Width = 80, Text = "NextNodeId" };
+                Controls.Add(lb2);
+                _txtTarget = new TextBox { Left = 100, Top = 45, Width = 300 };
+                Controls.Add(_txtTarget);
+
+                var pickBtn = new Button { Left = 410, Top = 45, Width = 90, Text = "Pick node..." };
+                pickBtn.Click += (s, e) => { ShowPickNodeMenu(); };
+                Controls.Add(pickBtn);
+
+                _ok = new Button { Left = 320, Top = 120, Width = 80, Text = "OK" };
+                _ok.Click += (s, e) => { OnOk(); };
+                Controls.Add(_ok);
+
+                _cancel = new Button { Left = 410, Top = 120, Width = 80, Text = "Cancel" };
+                _cancel.Click += (s, e) => { DialogResult = DialogResult.Cancel; Close(); };
+                Controls.Add(_cancel);
+
+                if (existing != null)
+                {
+                    _txtText.Text = existing.Text;
+                    _txtTarget.Text = existing.NextNodeId;
+                }
+            }
+
+            private void ShowPickNodeMenu()
+            {
+                if (_doc?.Nodes == null || _doc.Nodes.Count == 0)
+                {
+                    MessageBox.Show("Нет узлов для выбора");
+                    return;
+                }
+                var pick = new Form { Width = 300, Height = 400, StartPosition = FormStartPosition.CenterParent, Text = "Pick Node" };
+                var lb = new ListBox { Dock = DockStyle.Fill };
+                lb.DataSource = _doc.Nodes;
+                lb.DisplayMember = "Id";
+                pick.Controls.Add(lb);
+                var ok = new Button { Text = "Select", Dock = DockStyle.Bottom, Height = 30 };
+                ok.Click += (s, e) =>
+                {
+                    if (lb.SelectedItem is DialogueNodeData nd)
+                    {
+                        _txtTarget.Text = nd.Id;
+                        pick.Close();
+                    }
+                };
+                pick.Controls.Add(ok);
+                pick.ShowDialog(this);
+            }
+
+            private void OnOk()
+            {
+                var text = _txtText.Text?.Trim() ?? string.Empty;
+                var next = string.IsNullOrWhiteSpace(_txtTarget.Text) ? null : _txtTarget.Text.Trim();
+
+                if (string.IsNullOrEmpty(text))
+                {
+                    if (MessageBox.Show("Text is empty. Continue?", "Warning", MessageBoxButtons.YesNo) != DialogResult.Yes)
+                        return;
+                }
+
+                if (_editing == null)
+                {
+                    Result = new DialogueChoiceData { Text = text, NextNodeId = next };
+                }
+                else
+                {
+                    _editing.Text = text;
+                    _editing.NextNodeId = next;
+                    Result = _editing;
+                }
+
+                DialogResult = DialogResult.OK;
+                Close();
             }
         }
     }

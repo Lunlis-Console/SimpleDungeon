@@ -107,10 +107,10 @@ namespace JsonEditor.Legacy
             {
                 if (treeNodes.SelectedNode?.Tag is DialogueNodeData node &&
                     lstOptions.SelectedIndex >= 0 &&
-                    node.Responses != null &&
-                    lstOptions.SelectedIndex < node.Responses.Count)
+                    node.Choices != null &&
+                    lstOptions.SelectedIndex < node.Choices.Count)
                 {
-                    propertyGrid.SelectedObject = node.Responses[lstOptions.SelectedIndex];
+                    propertyGrid.SelectedObject = node.Choices[lstOptions.SelectedIndex];
                 }
             };
 
@@ -172,7 +172,7 @@ namespace JsonEditor.Legacy
                 Id = GenerateUniqueId(),
                 ParentId = parentId,
                 Text = "Новый узел диалога",
-                Responses = new List<DialogueResponseData>()
+                Choices = new List<DialogueChoiceData>()
             };
 
             using (var form = new EditNodeForm(newNode, _dialogue.Nodes))
@@ -220,11 +220,11 @@ namespace JsonEditor.Legacy
         private void LoadOptionsForNode(DialogueNodeData node)
         {
             lstOptions.Items.Clear();
-            if (node.Responses != null)
+            if (node.Choices != null)
             {
-                foreach (var response in node.Responses)
+                foreach (var response in node.Choices)
                 {
-                    string displayText = $"{response.TargetNodeId}: {TruncateText(response.Text, 30)}";
+                    string displayText = $"{response.NextNodeId}: {TruncateText(response.Text, 30)}";
                     if (response.EndDialogue) displayText += " [КОНЕЦ]";
                     if (response.StartTrade) displayText += " [ТОРГОВЛЯ]";
                     lstOptions.Items.Add(displayText);
@@ -236,14 +236,14 @@ namespace JsonEditor.Legacy
         {
             if (treeNodes.SelectedNode?.Tag is DialogueNodeData selectedNode)
             {
-                var newResponse = new DialogueResponseData
+                var newResponse = new DialogueChoiceData
                 {
                     Text = "Новый ответ",
-                    TargetNodeId = null
+                    NextNodeId = null
                 };
 
-                if (selectedNode.Responses == null) selectedNode.Responses = new List<DialogueResponseData>();
-                selectedNode.Responses.Add(newResponse);
+                if (selectedNode.Choices == null) selectedNode.Choices = new List<DialogueChoiceData>();
+                selectedNode.Choices.Add(newResponse);
                 LoadOptionsForNode(selectedNode);
                 lstOptions.SelectedIndex = lstOptions.Items.Count - 1;
             }
@@ -258,11 +258,11 @@ namespace JsonEditor.Legacy
         {
             if (treeNodes.SelectedNode?.Tag is DialogueNodeData selectedNode &&
                 lstOptions.SelectedIndex >= 0 &&
-                selectedNode.Responses != null &&
-                lstOptions.SelectedIndex < selectedNode.Responses.Count &&
+                selectedNode.Choices != null &&
+                lstOptions.SelectedIndex < selectedNode.Choices.Count &&
                 MessageBox.Show("Удалить этот ответ?", "Подтверждение", MessageBoxButtons.YesNo) == DialogResult.Yes)
             {
-                selectedNode.Responses.RemoveAt(lstOptions.SelectedIndex);
+                selectedNode.Choices.RemoveAt(lstOptions.SelectedIndex);
                 LoadOptionsForNode(selectedNode);
             }
         }
