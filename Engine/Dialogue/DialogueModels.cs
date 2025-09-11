@@ -7,17 +7,18 @@ namespace SimpleDungeon.Engine.Dialogue
     // Верхний документ диалога
     public class DialogueDocument
     {
-        [JsonProperty("schema", NullValueHandling = NullValueHandling.Ignore)]
-        public string Schema { get; set; } = "dialogue.v1";
-
-        [JsonProperty("id", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty("id")]
         public string Id { get; set; }
 
-        [JsonProperty("start", NullValueHandling = NullValueHandling.Ignore)]
+        // <-- добавляем это свойство
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("start")]
         public string Start { get; set; }
 
-        [JsonProperty("nodes", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public List<DialogueNode> Nodes { get; set; } = new();
+        [JsonProperty("nodes")]
+        public List<DialogueNode> Nodes { get; set; } = new List<DialogueNode>();
     }
 
     public class DialogueNode
