@@ -1,4 +1,5 @@
 ﻿using Engine.Core;
+using Engine.Dialogue;
 using Engine.Quests;
 using Engine.Trading;
 using Engine.UI;
@@ -17,7 +18,7 @@ namespace Engine.Entities
         public virtual int BuyPriceModifier => 100; // 100% по умолчанию
         public virtual int SellPriceModifier => 80; // 80% по умолчанию
         public ITrader Trader { get; set; } // Добавляем это свойство
-        public Dialogue.Legacy.DialogueSystem.DialogueNode GreetingDialogue { get; set; }
+        public DialogueSystem.DialogueNode GreetingDialogue { get; set; }
 
         private readonly IWorldRepository _worldRepository;
 

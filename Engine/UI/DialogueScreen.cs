@@ -2,21 +2,22 @@
 using System.Linq;
 using System.Collections.Generic;
 using Engine.Entities;
-using Engine.Dialogue.Legacy;
+using Engine.Dialogue;
+using DialogueAction = Engine.Dialogue.DialogueAction;
 
 namespace Engine.UI
 {
-    public class DialogueScreen : BaseScreen, IDialogueUI
+    public class DialogueScreen : BaseScreen, Engine.Dialogue.IDialogueUI
     {
         private readonly NPC _npc;
-        private Dialogue.Legacy.DialogueSystem.DialogueNode _currentNode;
+        private DialogueSystem.DialogueNode _currentNode;
         private int _selectedIndex;
         private Player _player;
 
-        public Dialogue.Legacy.DialogueSystem.DialogueOption SelectedOption { get; private set; }
+        public DialogueSystem.DialogueOption SelectedOption { get; private set; }
 
         // Передаём player (если у тебя есть глобальный доступ — можно передавать null и брать внутри)
-        public DialogueScreen(NPC npc, Dialogue.Legacy.DialogueSystem.DialogueNode startNode, Player player = null)
+        public DialogueScreen(NPC npc, DialogueSystem.DialogueNode startNode, Player player = null)
         {
             _npc = npc;
             _currentNode = startNode;
@@ -69,7 +70,6 @@ namespace Engine.UI
         private void RenderOptions()
         {
             // отладочная печать — покажем сколько опций и их данные
-            DebugConsole.Log($"[RenderOptions] CurrentNodeText='{_currentNode?.Text?.Replace("\\n", " ")}' OptionsCount={_currentNode?.Options?.Count ?? 0}");
 
             if (_currentNode?.Options != null)
             {
@@ -77,7 +77,6 @@ namespace Engine.UI
                 {
                     var o = _currentNode.Options[ii];
                     var nextExists = o.NextNode != null ? "yes" : "no";
-                    DebugConsole.Log($"[RenderOptions] Option[{ii}] Text='{o.Text}' IsAvailable={o.IsAvailable} IsVisited={o.IsVisited} NextExists={nextExists} Condition='{o.Condition}' Action='{o.Action}'");
                 }
             }
 
@@ -199,7 +198,7 @@ namespace Engine.UI
         }
 
         // IDialogueUI implementation — эти методы вызываются из ExecuteSelection
-        public void SetCurrentNode(Dialogue.Legacy.DialogueSystem.DialogueNode node)
+        public void SetCurrentNode(DialogueSystem.DialogueNode node)
         {
             if (node == null) return;
             _currentNode = node;

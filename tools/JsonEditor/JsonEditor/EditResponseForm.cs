@@ -1,8 +1,10 @@
-﻿using SimpleDungeon.Engine.Dialogue;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
+using DialogueAction = Engine.Dialogue.DialogueAction;
+using DialogueDocument = Engine.Dialogue.DialogueDocument;
+using Response = Engine.Dialogue.Response;
 
 namespace SimpleDungeon.Tools.DialogueEditor
 {

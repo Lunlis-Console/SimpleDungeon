@@ -868,7 +868,8 @@
             {
               "text": "Привет, а ты кто?",
               "nextNodeId": "n2",
-              "itemRewards": []
+              "actions": [],
+              "actionSummary": ""
             }
           ]
         },
@@ -879,7 +880,18 @@
             {
               "text": "О, ну я пойду тогда",
               "nextNodeId": "n3",
-              "itemRewards": []
+              "actions": [],
+              "actionSummary": ""
+            },
+            {
+              "text": "Покажи мне свои товары...",
+              "actions": [
+                {
+                  "type": 6,
+                  "parameter": ""
+                }
+              ],
+              "actionSummary": "StartTrade"
             }
           ]
         },
@@ -889,7 +901,8 @@
           "choices": [
             {
               "text": "(закончить диалог)",
-              "itemRewards": []
+              "actions": [],
+              "actionSummary": ""
             }
           ]
         }

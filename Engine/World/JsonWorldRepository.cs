@@ -1,6 +1,7 @@
 ﻿// JsonWorldRepository.cs
 using Engine.Core;
 using Engine.Data;
+using Engine.Dialogue;
 using Engine.Entities;
 using Engine.Quests;
 using Engine.Titles;
@@ -15,6 +16,9 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Xml.Linq;
 using static System.Net.Mime.MediaTypeNames;
+using DialogueDocument = Engine.Dialogue.DialogueDocument;
+using DialogueAction = Engine.Dialogue.DialogueAction;
+using Response = Engine.Dialogue.Response;
 
 namespace Engine.World
 {
@@ -572,16 +576,16 @@ namespace Engine.World
         // Пример исправленного фрагмента — вставь вместо того, что у тебя не работало:
         // замените существующий метод BuildDialogueFromData этим кодом
         // Замените существующий метод BuildDialogueFromData(...) на этот:
-        private Dialogue.Legacy.DialogueSystem.DialogueNode BuildDialogueFromData(Engine.Data.DialogueData data)
+        private DialogueSystem.DialogueNode BuildDialogueFromData(Engine.Data.DialogueData data)
         {
             if (data == null || data.Nodes == null || data.Nodes.Count == 0)
                 return null;
 
             // 1) создаём карту id -> runtime-нода
-            var map = new Dictionary<string, Dialogue.Legacy.DialogueSystem.DialogueNode>();
+            var map = new Dictionary<string, DialogueSystem.DialogueNode>();
             foreach (var nodeData in data.Nodes)
             {
-                var node = new Dialogue.Legacy.DialogueSystem.DialogueNode(nodeData.Text ?? string.Empty);
+                var node = new DialogueSystem.DialogueNode(nodeData.Text ?? string.Empty);
                 map[nodeData.Id] = node;
             }
 
@@ -592,13 +596,13 @@ namespace Engine.World
 
                 foreach (var choice in nodeData.Choices)
                 {
-                    Dialogue.Legacy.DialogueSystem.DialogueNode next = null;
+                    DialogueSystem.DialogueNode next = null;
                     if (!string.IsNullOrEmpty(choice.NextNodeId) && map.ContainsKey(choice.NextNodeId))
                     {
                         next = map[choice.NextNodeId];
                     }
 
-                    var option = new Dialogue.Legacy.DialogueSystem.DialogueOption(choice.Text ?? string.Empty, next);
+                    var option = new DialogueSystem.DialogueOption(choice.Text ?? string.Empty, next);
 
                     // Копируем все действия
                     if (choice.Actions != null && choice.Actions.Count > 0)
@@ -610,12 +614,11 @@ namespace Engine.World
                         }).ToList();
                     }
                     // Для обратной совместимости с одиночными действиями
-                    else if (choice.Action != DialogueAction.None)
+                    if (!System.Object.Equals(choice.Action, default(DialogueAction)))
                     {
                         option.Action = choice.Action.ToString();
                         option.Parameter = choice.ActionParameter;
 
-                        // Также добавляем в список действий для единообразия
                         option.Actions.Add(new DialogueActionData
                         {
                             Type = choice.Action,

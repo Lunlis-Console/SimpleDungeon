@@ -868,11 +868,7 @@
             {
               "Text": "Привет, а ты кто?",
               "NextNodeId": "n2",
-              "Action": 0,
-              "GoldReward": 0,
-              "ExperienceReward": 0,
-              "StartTrade": false,
-              "EndDialogue": false
+              "Action": 0
             }
           ]
         },
@@ -883,11 +879,17 @@
             {
               "Text": "О, ну я пойду тогда",
               "NextNodeId": "n3",
+              "Action": 0
+            },
+            {
+              "Text": "Покажи мне свои товары...",
               "Action": 0,
-              "GoldReward": 0,
-              "ExperienceReward": 0,
-              "StartTrade": false,
-              "EndDialogue": false
+              "Actions": [
+                {
+                  "Type": 6
+                }
+              ],
+              "ActionSummary": "StartTrade"
             }
           ]
         },
@@ -897,11 +899,7 @@
           "Choices": [
             {
               "Text": "(закончить диалог)",
-              "Action": 0,
-              "GoldReward": 0,
-              "ExperienceReward": 0,
-              "StartTrade": false,
-              "EndDialogue": false
+              "Action": 0
             }
           ]
         }

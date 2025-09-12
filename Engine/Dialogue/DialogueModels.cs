@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace SimpleDungeon.Engine.Dialogue
+namespace Engine.Dialogue
 {
     // Верхний документ диалога
     public class DialogueDocument

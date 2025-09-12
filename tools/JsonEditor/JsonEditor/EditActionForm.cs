@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Windows.Forms;
-using SimpleDungeon.Engine.Dialogue;
+using DialogueAction = Engine.Dialogue.DialogueAction;
 
 namespace SimpleDungeon.Tools.DialogueEditor
 {

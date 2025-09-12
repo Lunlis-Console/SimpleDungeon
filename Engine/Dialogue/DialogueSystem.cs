@@ -5,13 +5,24 @@ using Engine.World;
 using System;
 using System.Collections.Generic;
 
-namespace Engine.Dialogue.Legacy
+namespace Engine.Dialogue
 {
     // Интерфейс для UI диалогов
     public interface IDialogueUI
     {
+        /// <summary>
+        /// Показывает текущий узел диалога (вся визуализация делегируется UI).
+        /// </summary>
         void SetCurrentNode(DialogueSystem.DialogueNode node);
+
+        /// <summary>
+        /// Закрыть диалоговое окно / завершить диалог.
+        /// </summary>
         void CloseDialogue();
+
+        /// <summary>
+        /// Лог сообщения от системы диалогов (для отладки/консоли/логов).
+        /// </summary>
     }
 
     public class DialogueSystem
@@ -66,9 +77,9 @@ namespace Engine.Dialogue.Legacy
                     }
                 }
 
-                if (this.Actions != null && this.Actions.Count > 0)
+                if (Actions != null && Actions.Count > 0)
                 {
-                    foreach (var action in this.Actions)
+                    foreach (var action in Actions)
                     {
                         DialogueActions.Execute(action.Type.ToString(), action.Parameter, player, ui);
                     }
