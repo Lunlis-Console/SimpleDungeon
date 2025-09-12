@@ -160,6 +160,19 @@ namespace Engine.Data
 
         // Для множественных действий
         public List<DialogueActionData> Actions { get; set; } = new List<DialogueActionData>();
+
+        [JsonIgnore]
+        public string ActionSummary
+        {
+            get
+            {
+                if (Actions != null && Actions.Count > 0)
+                    return string.Join(", ", Actions.Select(a => a.ToString()));
+                if (Action != DialogueAction.None)
+                    return $"{Action} ({ActionParameter})";
+                return "";
+            }
+        }
     }
 
     // Новый класс для хранения данных действия

@@ -92,6 +92,8 @@ namespace SimpleDungeon.Tools.DialogueEditor
             _responsesList = new ListView { Left = 250, Top = 270, Width = 700, Height = 250, View = View.Details, FullRowSelect = true };
             _responsesList.Columns.Add("Text", 420);
             _responsesList.Columns.Add("Target", 160);
+            // Новая колонка с действием
+            _responsesList.Columns.Add("Action", 120);
             _responsesList.DoubleClick += (s, e) => EditSelectedResponse();
             Controls.Add(_responsesList);
 
@@ -292,6 +294,7 @@ namespace SimpleDungeon.Tools.DialogueEditor
             {
                 var item = new ListViewItem(c.Text ?? "(empty)");
                 item.SubItems.Add(c.NextNodeId ?? "(null)");
+                item.SubItems.Add(c.ActionSummary);
                 item.Tag = c;
                 _responsesList.Items.Add(item);
             }
