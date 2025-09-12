@@ -3,6 +3,7 @@ using Engine.Core;
 using Engine.Entities;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using System.ComponentModel;
 
 namespace Engine.Data
 {
@@ -164,8 +165,17 @@ namespace Engine.Data
     // Новый класс для хранения данных действия
     public class DialogueActionData
     {
+        public DialogueActionData() { Type = DialogueAction.None; }
+
         public DialogueAction Type { get; set; }
         public string Parameter { get; set; }
+
+        public override string ToString()
+        {
+            if (string.IsNullOrEmpty(Parameter))
+                return Type.ToString();
+            return $"{Type} ({Parameter})";
+        }
     }
 
     public class ItemReward
