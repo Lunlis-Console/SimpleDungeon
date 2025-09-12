@@ -66,8 +66,21 @@ namespace Engine.Entities
         {
             if (GreetingDialogue != null)
             {
-                // Создаем и показываем экран диалога
-                var dialogueScreen = new DialogueScreen(this, GreetingDialogue);
+                // Создаём DialogueScreen, передаём player и, если есть, заранее подготовленного трейдера.
+                // Это соответствует конструктору DialogueScreen(NPC npc, Player player, ITrader traderForDialogue = null)
+                var dialogueScreen = new DialogueScreen(this, player, this.Trader);
+
+                // Устанавливаем текущий узел диалога — GreetingDialogue (чтобы показать нужный текст).
+                // SetCurrentNode безопасен — он проверяет null внутри себя.
+                try
+                {
+                    dialogueScreen.SetCurrentNode(GreetingDialogue);
+                }
+                catch (Exception ex)
+                {
+                    DebugConsole.Log($"NPC.Talk: SetCurrentNode failed: {ex.Message}");
+                }
+
                 ScreenManager.PushScreen(dialogueScreen);
             }
             else
