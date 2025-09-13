@@ -887,11 +887,20 @@
               "text": "Покажи мне свои товары...",
               "actions": [
                 {
-                  "type": 6,
-                  "parameter": ""
+                  "type": 6
                 }
               ],
               "actionSummary": "StartTrade"
+            },
+            {
+              "text": "Дай мне 5 шт крысиного мяса...",
+              "actions": [
+                {
+                  "type": 1,
+                  "parameter": "1001,5"
+                }
+              ],
+              "actionSummary": "GiveItem (1001,5)"
             }
           ]
         },

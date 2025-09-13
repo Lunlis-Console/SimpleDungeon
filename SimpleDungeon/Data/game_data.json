@@ -890,6 +890,17 @@
                 }
               ],
               "ActionSummary": "StartTrade"
+            },
+            {
+              "Text": "Дай мне 5 шт крысиного мяса...",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 1,
+                  "Parameter": "1001,5"
+                }
+              ],
+              "ActionSummary": "GiveItem (1001,5)"
             }
           ]
         },
