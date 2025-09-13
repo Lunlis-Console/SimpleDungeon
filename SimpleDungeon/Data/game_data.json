@@ -530,6 +530,30 @@
         "Wisdom": 100,
         "Charisma": 100
       }
+    },
+    {
+      "ID": 2007,
+      "Name": "Волк",
+      "Level": 1,
+      "CurrentHP": 50,
+      "MaximumHP": 50,
+      "RewardEXP": 25,
+      "RewardGold": 0,
+      "Attributes": {
+        "Strength": 10,
+        "Constitution": 10,
+        "Dexterity": 10,
+        "Intelligence": 10,
+        "Wisdom": 10,
+        "Charisma": 10
+      },
+      "LootTable": [
+        {
+          "ItemID": 1001,
+          "DropPercentage": 25,
+          "IsUnique": false
+        }
+      ]
     }
   ],
   "Locations": [
@@ -576,6 +600,17 @@
       "ID": 3002,
       "Name": "Северная Поляна",
       "Description": "Поляна к северу от деревни, тут обитают крысы.",
+      "MonsterSpawns": [
+        {
+          "MonsterTemplateID": 2007,
+          "Level": 0,
+          "SpawnWeight": 0,
+          "Count": 5
+        }
+      ],
+      "MonsterTemplates": [
+        2007
+      ],
       "ScaleMonstersToPlayerLevel": true,
       "LocationToSouth": 3001
     },
