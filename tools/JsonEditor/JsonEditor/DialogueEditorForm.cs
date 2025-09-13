@@ -851,6 +851,7 @@ namespace SimpleDungeon.Tools.DialogueEditor
         }
 
         // --------- Вспомогательная модалка для редактирования DialogueChoiceData -----------
+        // --------- Вспомогательная модалка для редактирования DialogueChoiceData -----------
         private class EditChoiceForm : Form
         {
             private readonly TextBox _txtText;
@@ -872,43 +873,13 @@ namespace SimpleDungeon.Tools.DialogueEditor
 
                 Text = existing == null ? "Add Choice" : "Edit Choice";
                 Width = 540;
-                Height = 300; // Увеличим высоту формы
+                Height = 350; // Увеличиваем высоту формы для размещения всех элементов
                 StartPosition = FormStartPosition.CenterParent;
+                FormBorderStyle = FormBorderStyle.FixedDialog;
+                MaximizeBox = false;
+                MinimizeBox = false;
 
-                var lblAction = new Label { Left = 10, Top = 80, Width = 100, Text = "Действие" };
-                _comboAction = new ComboBox { Left = 120, Top = 80, Width = 150, DropDownStyle = ComboBoxStyle.DropDownList };
-                _comboAction.Items.AddRange(Enum.GetValues(typeof(DialogueAction)).Cast<object>().ToArray());
-
-                // TextBox для параметра
-                var lblParam = new Label { Left = 10, Top = 110, Width = 100, Text = "Параметр" };
-                _txtActionParam = new TextBox { Left = 120, Top = 110, Width = 200 };
-
-                // ListBox для списка действий
-                var lblActions = new Label { Left = 10, Top = 140, Width = 100, Text = "Список действий" };
-
-                _lstActions = new ListBox { Left = 120, Top = 140, Width = 250, Height = 60 };
-
-                // Кнопки управления действиями
-                _btnAddAction = new Button { Left = 280, Top = 80, Width = 90, Text = "Добавить" };
-                _btnRemoveAction = new Button { Left = 280, Top = 110, Width = 90, Text = "Удалить" };
-
-                // Добавляем элементы на форму
-                Controls.AddRange(new Control[] { lblAction, _comboAction, lblParam, _txtActionParam, lblActions, _lstActions, _btnAddAction, _btnRemoveAction });
-
-                // Обработчики событий
-                _btnAddAction.Click += (s, e) => AddAction();
-                _btnRemoveAction.Click += (s, e) => RemoveAction();
-
-                // Загрузка данных
-                if (existing != null)
-                {
-                    _comboAction.SelectedItem = existing.Action;
-                    _txtActionParam.Text = existing.ActionParameter;
-                    if (existing.Actions != null)
-                        foreach (var action in existing.Actions)
-                            _lstActions.Items.Add(action);
-                }
-
+                // Основные элементы (текст и целевой узел)
                 var lb1 = new Label { Left = 10, Top = 10, Width = 80, Text = "Text" };
                 Controls.Add(lb1);
                 _txtText = new TextBox { Left = 100, Top = 10, Width = 400 };
@@ -923,18 +894,57 @@ namespace SimpleDungeon.Tools.DialogueEditor
                 pickBtn.Click += (s, e) => { ShowPickNodeMenu(); };
                 Controls.Add(pickBtn);
 
-                _ok = new Button { Left = 320, Top = 120, Width = 80, Text = "OK" };
+                // Элементы для действий
+                var lblAction = new Label { Left = 10, Top = 80, Width = 100, Text = "Действие" };
+                Controls.Add(lblAction);
+
+                _comboAction = new ComboBox { Left = 120, Top = 80, Width = 150, DropDownStyle = ComboBoxStyle.DropDownList };
+                _comboAction.Items.AddRange(Enum.GetValues(typeof(DialogueAction)).Cast<object>().ToArray());
+                Controls.Add(_comboAction);
+
+                // TextBox для параметра
+                var lblParam = new Label { Left = 10, Top = 110, Width = 100, Text = "Параметр" };
+                Controls.Add(lblParam);
+
+                _txtActionParam = new TextBox { Left = 120, Top = 110, Width = 200 };
+                Controls.Add(_txtActionParam);
+
+                // Кнопки управления действиями
+                _btnAddAction = new Button { Left = 330, Top = 80, Width = 90, Text = "Добавить" };
+                _btnAddAction.Click += (s, e) => AddAction();
+                Controls.Add(_btnAddAction);
+
+                _btnRemoveAction = new Button { Left = 330, Top = 110, Width = 90, Text = "Удалить" };
+                _btnRemoveAction.Click += (s, e) => RemoveAction();
+                Controls.Add(_btnRemoveAction);
+
+                // ListBox для списка действий
+                var lblActions = new Label { Left = 10, Top = 140, Width = 100, Text = "Список действий" };
+                Controls.Add(lblActions);
+
+                _lstActions = new ListBox { Left = 120, Top = 140, Width = 300, Height = 100 };
+                Controls.Add(_lstActions);
+
+                // Кнопки OK/Cancel
+                _ok = new Button { Left = 320, Top = 280, Width = 80, Text = "OK" };
                 _ok.Click += (s, e) => { OnOk(); };
                 Controls.Add(_ok);
 
-                _cancel = new Button { Left = 410, Top = 120, Width = 80, Text = "Cancel" };
+                _cancel = new Button { Left = 410, Top = 280, Width = 80, Text = "Cancel" };
                 _cancel.Click += (s, e) => { DialogResult = DialogResult.Cancel; Close(); };
                 Controls.Add(_cancel);
 
+                // Загрузка данных
                 if (existing != null)
                 {
                     _txtText.Text = existing.Text;
                     _txtTarget.Text = existing.NextNodeId;
+
+                    if (existing.Actions != null)
+                    {
+                        foreach (var action in existing.Actions)
+                            _lstActions.Items.Add(action);
+                    }
                 }
             }
 
@@ -948,6 +958,7 @@ namespace SimpleDungeon.Tools.DialogueEditor
                         Parameter = _txtActionParam.Text
                     };
                     _lstActions.Items.Add(action);
+                    _txtActionParam.Clear(); // Очищаем поле параметра после добавления
                 }
             }
 
@@ -957,8 +968,6 @@ namespace SimpleDungeon.Tools.DialogueEditor
                     _lstActions.Items.RemoveAt(_lstActions.SelectedIndex);
             }
 
-
-
             private void ShowPickNodeMenu()
             {
                 if (_doc?.Nodes == null || _doc.Nodes.Count == 0)
@@ -966,11 +975,21 @@ namespace SimpleDungeon.Tools.DialogueEditor
                     MessageBox.Show("Нет узлов для выбора");
                     return;
                 }
-                var pick = new Form { Width = 300, Height = 400, StartPosition = FormStartPosition.CenterParent, Text = "Pick Node" };
+
+                var pick = new Form
+                {
+                    Width = 300,
+                    Height = 400,
+                    StartPosition = FormStartPosition.CenterParent,
+                    Text = "Pick Node",
+                    FormBorderStyle = FormBorderStyle.FixedDialog
+                };
+
                 var lb = new ListBox { Dock = DockStyle.Fill };
                 lb.DataSource = _doc.Nodes;
                 lb.DisplayMember = "Id";
                 pick.Controls.Add(lb);
+
                 var ok = new Button { Text = "Select", Dock = DockStyle.Bottom, Height = 30 };
                 ok.Click += (s, e) =>
                 {
