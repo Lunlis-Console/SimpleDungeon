@@ -76,9 +76,12 @@ namespace Engine.Data
         public int ID { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
+
         public List<MonsterSpawnData> MonsterSpawns { get; set; } = new();
-        public List<int> NPCsHere { get; set; } = new();
+        public List<int> NPCsHere { get; set; } = new();              // старое, оставить
+        public List<NPCSpawnData> NPCSpawns { get; set; } = new();    // новое поле с количеством
         public List<int> MonsterTemplates { get; set; } = new();
+
         public bool ScaleMonstersToPlayerLevel { get; set; }
         public int? LocationToNorth { get; set; }
         public int? LocationToEast { get; set; }
@@ -86,11 +89,19 @@ namespace Engine.Data
         public int? LocationToWest { get; set; }
     }
 
+    public class NPCSpawnData
+    {
+        public int NPCID { get; set; }
+        public int Count { get; set; } = 1; // по умолчанию 1 — обратная совместимость
+    }
+
+
     public class MonsterSpawnData
     {
         public int MonsterTemplateID { get; set; }
         public int Level { get; set; }
         public int SpawnWeight { get; set; }
+        public int Count { get; set; } = 1; // по умолчанию 1
     }
 
     public class QuestData

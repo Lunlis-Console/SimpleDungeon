@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Windows.Forms;
 using Engine.Data;
 
@@ -15,8 +17,9 @@ namespace JsonEditor
         private TextBox txtName;
         private TextBox txtDescription;
 
-        private CheckedListBox listNPCs;
-        private CheckedListBox listMonsters;
+        // Заменяем CheckedListBox на DataGridView для поддержки Count
+        private DataGridView gridNPCs;
+        private DataGridView gridMonsters;
 
         private ComboBox comboNorth;
         private ComboBox comboEast;
@@ -39,38 +42,60 @@ namespace JsonEditor
         {
             this.Text = "Редактирование локации";
             this.Width = 700;
-            this.Height = 600;
+            this.Height = 640;
             this.StartPosition = FormStartPosition.CenterParent;
 
             var lblID = new Label { Text = "ID:", Left = 10, Top = 14, Width = 60 };
-            numID = new NumericUpDown { Left = 80, Top = 10, Width = 100, Maximum = 9999 };
+            numID = new NumericUpDown { Left = 80, Top = 10, Width = 100, Maximum = 99999, Minimum = 0 };
 
             var lblName = new Label { Text = "Имя:", Left = 200, Top = 14, Width = 60 };
             txtName = new TextBox { Left = 260, Top = 10, Width = 400 };
 
             var lblDesc = new Label { Text = "Описание:", Left = 10, Top = 46, Width = 80 };
-            txtDescription = new TextBox { Left = 100, Top = 42, Width = 560, Height = 60, Multiline = true };
+            txtDescription = new TextBox { Left = 100, Top = 42, Width = 560, Height = 80, Multiline = true, ScrollBars = ScrollBars.Vertical };
 
-            var lblNPCs = new Label { Text = "NPC:", Left = 10, Top = 120, Width = 80 };
-            listNPCs = new CheckedListBox { Left = 100, Top = 120, Width = 560, Height = 120 };
+            var lblNPCs = new Label { Text = "NPC:", Left = 10, Top = 140, Width = 80 };
+            gridNPCs = new DataGridView
+            {
+                Left = 100,
+                Top = 120,
+                Width = 560,
+                Height = 160,
+                AllowUserToAddRows = false,
+                AllowUserToDeleteRows = false,
+                RowHeadersVisible = false,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+            };
 
-            var lblMonsters = new Label { Text = "Монстры:", Left = 10, Top = 250, Width = 80 };
-            listMonsters = new CheckedListBox { Left = 100, Top = 250, Width = 560, Height = 120 };
+            var lblMonsters = new Label { Text = "Монстры:", Left = 10, Top = 300, Width = 80 };
+            gridMonsters = new DataGridView
+            {
+                Left = 100,
+                Top = 280,
+                Width = 560,
+                Height = 160,
+                AllowUserToAddRows = false,
+                AllowUserToDeleteRows = false,
+                RowHeadersVisible = false,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+            };
 
-            var lblNorth = new Label { Text = "Север:", Left = 10, Top = 380, Width = 80 };
-            comboNorth = new ComboBox { Left = 100, Top = 380, Width = 200, DropDownStyle = ComboBoxStyle.DropDownList };
+            var lblNorth = new Label { Text = "Север:", Left = 10, Top = 460, Width = 80 };
+            comboNorth = new ComboBox { Left = 100, Top = 456, Width = 200, DropDownStyle = ComboBoxStyle.DropDownList };
 
-            var lblEast = new Label { Text = "Восток:", Left = 320, Top = 380, Width = 80 };
-            comboEast = new ComboBox { Left = 400, Top = 380, Width = 260, DropDownStyle = ComboBoxStyle.DropDownList };
+            var lblEast = new Label { Text = "Восток:", Left = 320, Top = 460, Width = 80 };
+            comboEast = new ComboBox { Left = 400, Top = 456, Width = 260, DropDownStyle = ComboBoxStyle.DropDownList };
 
-            var lblSouth = new Label { Text = "Юг:", Left = 10, Top = 420, Width = 80 };
-            comboSouth = new ComboBox { Left = 100, Top = 420, Width = 200, DropDownStyle = ComboBoxStyle.DropDownList };
+            var lblSouth = new Label { Text = "Юг:", Left = 10, Top = 500, Width = 80 };
+            comboSouth = new ComboBox { Left = 100, Top = 496, Width = 200, DropDownStyle = ComboBoxStyle.DropDownList };
 
-            var lblWest = new Label { Text = "Запад:", Left = 320, Top = 420, Width = 80 };
-            comboWest = new ComboBox { Left = 400, Top = 420, Width = 260, DropDownStyle = ComboBoxStyle.DropDownList };
+            var lblWest = new Label { Text = "Запад:", Left = 320, Top = 500, Width = 80 };
+            comboWest = new ComboBox { Left = 400, Top = 496, Width = 260, DropDownStyle = ComboBoxStyle.DropDownList };
 
-            btnOk = new Button { Text = "OK", Left = 480, Top = 500, Width = 80 };
-            btnCancel = new Button { Text = "Отмена", Left = 580, Top = 500, Width = 80 };
+            btnOk = new Button { Text = "OK", Left = 480, Top = 540, Width = 80 };
+            btnCancel = new Button { Text = "Отмена", Left = 580, Top = 540, Width = 80 };
 
             btnOk.Click += BtnOk_Click;
             btnCancel.Click += (s, e) => { this.DialogResult = DialogResult.Cancel; this.Close(); };
@@ -82,9 +107,9 @@ namespace JsonEditor
             this.Controls.Add(lblDesc);
             this.Controls.Add(txtDescription);
             this.Controls.Add(lblNPCs);
-            this.Controls.Add(listNPCs);
+            this.Controls.Add(gridNPCs);
             this.Controls.Add(lblMonsters);
-            this.Controls.Add(listMonsters);
+            this.Controls.Add(gridMonsters);
             this.Controls.Add(lblNorth);
             this.Controls.Add(comboNorth);
             this.Controls.Add(lblEast);
@@ -95,6 +120,31 @@ namespace JsonEditor
             this.Controls.Add(comboWest);
             this.Controls.Add(btnOk);
             this.Controls.Add(btnCancel);
+
+            InitializeGridColumns();
+        }
+
+        private void InitializeGridColumns()
+        {
+            // NPCs grid columns: Selected, ID, Name, Count
+            gridNPCs.Columns.Clear();
+            var colSelNpc = new DataGridViewCheckBoxColumn { Name = "Selected", HeaderText = "Вкл.", Width = 40 };
+            var colIdNpc = new DataGridViewTextBoxColumn { Name = "ID", HeaderText = "ID", ReadOnly = true, FillWeight = 20 };
+            var colNameNpc = new DataGridViewTextBoxColumn { Name = "Name", HeaderText = "Имя", ReadOnly = true, FillWeight = 60 };
+            var colCountNpc = new DataGridViewTextBoxColumn { Name = "Count", HeaderText = "Кол-во", FillWeight = 20 };
+            gridNPCs.Columns.AddRange(new DataGridViewColumn[] { colSelNpc, colIdNpc, colNameNpc, colCountNpc });
+
+            // Monsters grid columns: Selected, ID, Name, Count
+            gridMonsters.Columns.Clear();
+            var colSelMon = new DataGridViewCheckBoxColumn { Name = "Selected", HeaderText = "Вкл.", Width = 40 };
+            var colIdMon = new DataGridViewTextBoxColumn { Name = "ID", HeaderText = "ID", ReadOnly = true, FillWeight = 20 };
+            var colNameMon = new DataGridViewTextBoxColumn { Name = "Name", HeaderText = "Имя", ReadOnly = true, FillWeight = 60 };
+            var colCountMon = new DataGridViewTextBoxColumn { Name = "Count", HeaderText = "Кол-во", FillWeight = 20 };
+            gridMonsters.Columns.AddRange(new DataGridViewColumn[] { colSelMon, colIdMon, colNameMon, colCountMon });
+
+            // Удобные настройки
+            gridNPCs.AllowUserToResizeRows = false;
+            gridMonsters.AllowUserToResizeRows = false;
         }
 
         private void LoadData()
@@ -103,38 +153,127 @@ namespace JsonEditor
             txtName.Text = _location.Name;
             txtDescription.Text = _location.Description;
 
-            // NPC
-            listNPCs.Items.Clear();
+            // Получаем маппинги из возможных новых структур, используя reflection - безопасно если поле отсутствует
+            var npcSpawnMap = ReadNpcSpawnsFromLocation(); // Dictionary<int, int>
+            var monsterSpawnMap = ReadMonsterSpawnCountsFromLocation(); // Dictionary<int, int>
+
+            // NPCs: fill grid rows
+            gridNPCs.Rows.Clear();
             foreach (var npc in _gameData.NPCs)
             {
-                int index = listNPCs.Items.Add($"{npc.ID} - {npc.Name}", _location.NPCsHere.Contains(npc.ID));
+                bool selected = false;
+                int count = 1;
+
+                if (npcSpawnMap != null && npcSpawnMap.TryGetValue(npc.ID, out int c1))
+                {
+                    selected = true;
+                    count = Math.Max(1, c1);
+                }
+                else if (_location.NPCsHere != null && _location.NPCsHere.Contains(npc.ID))
+                {
+                    selected = true;
+                    count = 1;
+                }
+
+                gridNPCs.Rows.Add(selected, npc.ID, npc.Name, count);
             }
 
-            // Monsters
-            listMonsters.Items.Clear();
-            foreach (var monster in _gameData.Monsters)
+            // Monsters: fill grid rows
+            gridMonsters.Rows.Clear();
+            foreach (var mon in _gameData.Monsters)
             {
-                int index = listMonsters.Items.Add($"{monster.ID} - {monster.Name}", _location.MonsterTemplates.Contains(monster.ID));
+                bool selected = false;
+                int count = 1;
+
+                if (monsterSpawnMap != null && monsterSpawnMap.TryGetValue(mon.ID, out int c2))
+                {
+                    selected = true;
+                    count = Math.Max(1, c2);
+                }
+                else if (_location.MonsterTemplates != null && _location.MonsterTemplates.Contains(mon.ID))
+                {
+                    selected = true;
+                    count = 1;
+                }
+
+                gridMonsters.Rows.Add(selected, mon.ID, mon.Name, count);
             }
 
             // Локации для переходов
-            var locationOptions = new List<(int?, string)> { (null, "(нет)") };
-            locationOptions.AddRange(
-                                        _gameData.Locations.Select(l => ((int?)l.ID, $"{l.ID} - {l.Name}"))
-                                    );
-
-            //void BindCombo(ComboBox combo, int? selected)
-            //{
-            //    combo.DataSource = new List<(int?, string)>(locationOptions);
-            //    combo.DisplayMember = "Item2";
-            //    combo.ValueMember = "Item1";
-            //    combo.SelectedValue = selected;
-            //}
-
             BindCombo(comboNorth, _location.LocationToNorth);
             BindCombo(comboEast, _location.LocationToEast);
             BindCombo(comboSouth, _location.LocationToSouth);
             BindCombo(comboWest, _location.LocationToWest);
+        }
+
+        private Dictionary<int, int> ReadNpcSpawnsFromLocation()
+        {
+            // Ищем property NPCSpawns (игнорируем регистр)
+            var prop = _location.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                .FirstOrDefault(p => string.Equals(p.Name, "NPCSpawns", StringComparison.OrdinalIgnoreCase));
+            if (prop == null) return null;
+            var value = prop.GetValue(_location);
+            if (value == null) return null;
+
+            // value должен быть IEnumerable
+            if (!(value is IEnumerable enumerable)) return null;
+
+            var dict = new Dictionary<int, int>();
+            foreach (var item in enumerable)
+            {
+                if (item == null) continue;
+                var t = item.GetType();
+                var idProp = t.GetProperties().FirstOrDefault(p => string.Equals(p.Name, "NPCID", StringComparison.OrdinalIgnoreCase) || string.Equals(p.Name, "Id", StringComparison.OrdinalIgnoreCase));
+                var countProp = t.GetProperties().FirstOrDefault(p => string.Equals(p.Name, "Count", StringComparison.OrdinalIgnoreCase));
+                if (idProp == null) continue;
+                object idVal = idProp.GetValue(item);
+                if (idVal == null) continue;
+                if (!int.TryParse(idVal.ToString(), out int id)) continue;
+
+                int cnt = 1;
+                if (countProp != null)
+                {
+                    var cv = countProp.GetValue(item);
+                    if (cv != null && int.TryParse(cv.ToString(), out int tmp)) cnt = Math.Max(1, tmp);
+                }
+
+                dict[id] = cnt;
+            }
+            return dict;
+        }
+
+        private Dictionary<int, int> ReadMonsterSpawnCountsFromLocation()
+        {
+            // Ищем property MonsterSpawns
+            var prop = _location.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                .FirstOrDefault(p => string.Equals(p.Name, "MonsterSpawns", StringComparison.OrdinalIgnoreCase));
+            if (prop == null) return null;
+            var value = prop.GetValue(_location);
+            if (value == null) return null;
+            if (!(value is IEnumerable enumerable)) return null;
+
+            var dict = new Dictionary<int, int>();
+            foreach (var item in enumerable)
+            {
+                if (item == null) continue;
+                var t = item.GetType();
+                var idProp = t.GetProperties().FirstOrDefault(p => string.Equals(p.Name, "MonsterTemplateID", StringComparison.OrdinalIgnoreCase) || string.Equals(p.Name, "TemplateID", StringComparison.OrdinalIgnoreCase) || string.Equals(p.Name, "Id", StringComparison.OrdinalIgnoreCase));
+                var countProp = t.GetProperties().FirstOrDefault(p => string.Equals(p.Name, "Count", StringComparison.OrdinalIgnoreCase));
+                if (idProp == null) continue;
+                object idVal = idProp.GetValue(item);
+                if (idVal == null) continue;
+                if (!int.TryParse(idVal.ToString(), out int id)) continue;
+
+                int cnt = 1;
+                if (countProp != null)
+                {
+                    var cv = countProp.GetValue(item);
+                    if (cv != null && int.TryParse(cv.ToString(), out int tmp)) cnt = Math.Max(1, tmp);
+                }
+
+                dict[id] = cnt;
+            }
+            return dict;
         }
 
         private void BindCombo(ComboBox combo, int? selected)
@@ -168,20 +307,62 @@ namespace JsonEditor
 
         private void BtnOk_Click(object sender, EventArgs e)
         {
+            // Сохраняем базовые поля
             _location.ID = (int)numID.Value;
             _location.Name = txtName.Text.Trim();
             _location.Description = txtDescription.Text.Trim();
 
-            _location.NPCsHere = listNPCs.CheckedItems
-                .Cast<string>()
-                .Select(item => int.Parse(item.Split('-')[0].Trim()))
-                .ToList();
+            // Набор выбранных NPC и их количеств
+            var selectedNpcMap = new Dictionary<int, int>();
+            foreach (DataGridViewRow row in gridNPCs.Rows)
+            {
+                try
+                {
+                    bool sel = Convert.ToBoolean(row.Cells["Selected"].Value);
+                    if (!sel) continue;
+                }
+                catch
+                {
+                    continue;
+                }
 
-            _location.MonsterTemplates = listMonsters.CheckedItems
-                .Cast<string>()
-                .Select(item => int.Parse(item.Split('-')[0].Trim()))
-                .ToList();
+                if (!int.TryParse(Convert.ToString(row.Cells["ID"].Value), out int id)) continue;
+                int cnt = 1;
+                int.TryParse(Convert.ToString(row.Cells["Count"].Value), out cnt);
+                cnt = Math.Max(1, cnt);
+                selectedNpcMap[id] = cnt;
+            }
 
+            // Набор выбранных монстров и их количеств
+            var selectedMonMap = new Dictionary<int, int>();
+            foreach (DataGridViewRow row in gridMonsters.Rows)
+            {
+                try
+                {
+                    bool sel = Convert.ToBoolean(row.Cells["Selected"].Value);
+                    if (!sel) continue;
+                }
+                catch
+                {
+                    continue;
+                }
+
+                if (!int.TryParse(Convert.ToString(row.Cells["ID"].Value), out int id)) continue;
+                int cnt = 1;
+                int.TryParse(Convert.ToString(row.Cells["Count"].Value), out cnt);
+                cnt = Math.Max(1, cnt);
+                selectedMonMap[id] = cnt;
+            }
+
+            // Сохраняем старую совместимую структуру (список ID)
+            _location.NPCsHere = selectedNpcMap.Keys.ToList();
+            _location.MonsterTemplates = selectedMonMap.Keys.ToList();
+
+            // Попытка записать новые структуры, если они есть (через reflection)
+            TrySetNpcSpawnsOnLocation(selectedNpcMap);
+            TrySetMonsterSpawnsOnLocation(selectedMonMap);
+
+            // Сохраняем направления
             _location.LocationToNorth = comboNorth.SelectedValue as int?;
             _location.LocationToEast = comboEast.SelectedValue as int?;
             _location.LocationToSouth = comboSouth.SelectedValue as int?;
@@ -189,6 +370,77 @@ namespace JsonEditor
 
             this.DialogResult = DialogResult.OK;
             this.Close();
+        }
+
+        private void TrySetNpcSpawnsOnLocation(Dictionary<int, int> selectedNpcMap)
+        {
+            var prop = _location.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                .FirstOrDefault(p => string.Equals(p.Name, "NPCSpawns", StringComparison.OrdinalIgnoreCase));
+            if (prop == null) return; // нет нового поля — ничего не делаем
+
+            var propType = prop.PropertyType;
+            // ожидаем List<T>
+            if (!propType.IsGenericType) return;
+            var elemType = propType.GetGenericArguments()[0];
+
+            // Создаём список T: List<T>
+            var listType = typeof(List<>).MakeGenericType(elemType);
+            var listInstance = Activator.CreateInstance(listType) as IList;
+            if (listInstance == null) return;
+
+            // Попробуем найти свойства элемента для записи
+            var idProp = elemType.GetProperties().FirstOrDefault(p => string.Equals(p.Name, "NPCID", StringComparison.OrdinalIgnoreCase) || string.Equals(p.Name, "Id", StringComparison.OrdinalIgnoreCase));
+            var countProp = elemType.GetProperties().FirstOrDefault(p => string.Equals(p.Name, "Count", StringComparison.OrdinalIgnoreCase));
+
+            if (idProp == null) return; // без ID бессмысленно
+
+            foreach (var kv in selectedNpcMap)
+            {
+                var elem = Activator.CreateInstance(elemType);
+                idProp.SetValue(elem, kv.Key);
+                if (countProp != null)
+                {
+                    countProp.SetValue(elem, kv.Value);
+                }
+                listInstance.Add(elem);
+            }
+
+            // Устанавливаем свойство
+            prop.SetValue(_location, listInstance);
+        }
+
+        private void TrySetMonsterSpawnsOnLocation(Dictionary<int, int> selectedMonMap)
+        {
+            var prop = _location.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                .FirstOrDefault(p => string.Equals(p.Name, "MonsterSpawns", StringComparison.OrdinalIgnoreCase));
+            if (prop == null) return; // нет поля — ничего не делаем
+
+            var propType = prop.PropertyType;
+            if (!propType.IsGenericType) return;
+            var elemType = propType.GetGenericArguments()[0];
+
+            var listType = typeof(List<>).MakeGenericType(elemType);
+            var listInstance = Activator.CreateInstance(listType) as IList;
+            if (listInstance == null) return;
+
+            // Нахождение ключевых свойств элемента
+            var idProp = elemType.GetProperties().FirstOrDefault(p => string.Equals(p.Name, "MonsterTemplateID", StringComparison.OrdinalIgnoreCase) || string.Equals(p.Name, "TemplateID", StringComparison.OrdinalIgnoreCase) || string.Equals(p.Name, "Id", StringComparison.OrdinalIgnoreCase));
+            var countProp = elemType.GetProperties().FirstOrDefault(p => string.Equals(p.Name, "Count", StringComparison.OrdinalIgnoreCase));
+            var levelProp = elemType.GetProperties().FirstOrDefault(p => string.Equals(p.Name, "Level", StringComparison.OrdinalIgnoreCase));
+            var weightProp = elemType.GetProperties().FirstOrDefault(p => string.Equals(p.Name, "SpawnWeight", StringComparison.OrdinalIgnoreCase) || string.Equals(p.Name, "Weight", StringComparison.OrdinalIgnoreCase));
+
+            if (idProp == null) return;
+
+            foreach (var kv in selectedMonMap)
+            {
+                var elem = Activator.CreateInstance(elemType);
+                idProp.SetValue(elem, kv.Key);
+                if (countProp != null) countProp.SetValue(elem, kv.Value);
+                // Если есть Level/Weight — оставляем дефолт (иначе можно расширить UI)
+                listInstance.Add(elem);
+            }
+
+            prop.SetValue(_location, listInstance);
         }
 
         public LocationData GetLocation() => _location;

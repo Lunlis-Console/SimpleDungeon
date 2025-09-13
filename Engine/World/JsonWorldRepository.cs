@@ -745,11 +745,31 @@ namespace Engine.World
                     var baseMonster = MonsterByID(spawnData.MonsterTemplateID);
                     if (baseMonster != null)
                     {
-                        // Создаем нового монстра с нужным уровнем
-                        monsterTemplates.Add(new Monster(baseMonster, spawnData.Level));
+                        // определяем, сколько экземпляров нужно добавить (по умолчанию 1)
+                        int count = 1;
+                        try
+                        {
+                            count = spawnData.Count >= 1 ? spawnData.Count : 1;
+                        }
+                        catch
+                        {
+                            count = 1;
+                        }
+
+                        // Если Level указан <=0, используем уровень шаблона (чтобы не создать странного нулевого шаблона)
+                        int templateLevel = spawnData.Level;
+                        if (templateLevel <= 0) templateLevel = baseMonster.Level;
+
+                        for (int i = 0; i < count; i++)
+                        {
+                            // Создаём шаблон монстра (будет клонирован позже при реальном спавне)
+                            monsterTemplates.Add(new Monster(baseMonster, templateLevel));
+                        }
                     }
                 }
             }
+
+
 
             var location = new Location(
                 locationData.ID,
@@ -760,7 +780,24 @@ namespace Engine.World
             );
 
             // Добавление NPC
-            if (locationData.NPCsHere != null)
+            // Добавление NPC — сначала смотрим NPCSpawns (новый формат с количеством),
+            // при его отсутствии используем старое NPCsHere
+            if (locationData.NPCSpawns != null && locationData.NPCSpawns.Count > 0)
+            {
+                foreach (var spawn in locationData.NPCSpawns)
+                {
+                    var npcTemplate = NPCByID(spawn.NPCID);
+                    if (npcTemplate != null)
+                    {
+                        int count = Math.Max(1, spawn.Count);
+                        for (int i = 0; i < count; i++)
+                        {
+                            location.NPCsHere.Add(npcTemplate);
+                        }
+                    }
+                }
+            }
+            else if (locationData.NPCsHere != null) // fallback, старый формат
             {
                 foreach (var npcId in locationData.NPCsHere)
                 {
@@ -771,6 +808,7 @@ namespace Engine.World
                     }
                 }
             }
+
 
             return location;
         }

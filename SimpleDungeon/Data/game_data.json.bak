@@ -544,6 +544,28 @@
         4004,
         4005
       ],
+      "NPCSpawns": [
+        {
+          "NPCID": 4001,
+          "Count": 1
+        },
+        {
+          "NPCID": 4002,
+          "Count": 1
+        },
+        {
+          "NPCID": 4003,
+          "Count": 1
+        },
+        {
+          "NPCID": 4004,
+          "Count": 1
+        },
+        {
+          "NPCID": 4005,
+          "Count": 1
+        }
+      ],
       "ScaleMonstersToPlayerLevel": true,
       "LocationToNorth": 3002,
       "LocationToEast": 3004,
@@ -554,6 +576,17 @@
       "ID": 3002,
       "Name": "Северная Поляна",
       "Description": "Поляна к северу от деревни, тут обитают крысы.",
+      "MonsterSpawns": [
+        {
+          "MonsterTemplateID": 2006,
+          "Level": 0,
+          "SpawnWeight": 0,
+          "Count": 10
+        }
+      ],
+      "MonsterTemplates": [
+        2006
+      ],
       "ScaleMonstersToPlayerLevel": true,
       "LocationToSouth": 3001
     },
@@ -565,7 +598,8 @@
         {
           "MonsterTemplateID": 2003,
           "Level": 1,
-          "SpawnWeight": 1
+          "SpawnWeight": 1,
+          "Count": 1
         }
       ],
       "ScaleMonstersToPlayerLevel": true,
@@ -579,17 +613,20 @@
         {
           "MonsterTemplateID": 2002,
           "Level": 1,
-          "SpawnWeight": 1
+          "SpawnWeight": 1,
+          "Count": 1
         },
         {
           "MonsterTemplateID": 2002,
           "Level": 1,
-          "SpawnWeight": 1
+          "SpawnWeight": 1,
+          "Count": 1
         },
         {
           "MonsterTemplateID": 2002,
           "Level": 1,
-          "SpawnWeight": 1
+          "SpawnWeight": 1,
+          "Count": 1
         }
       ],
       "ScaleMonstersToPlayerLevel": true,
@@ -603,22 +640,26 @@
         {
           "MonsterTemplateID": 2002,
           "Level": 1,
-          "SpawnWeight": 1
+          "SpawnWeight": 1,
+          "Count": 1
         },
         {
           "MonsterTemplateID": 2002,
           "Level": 1,
-          "SpawnWeight": 1
+          "SpawnWeight": 1,
+          "Count": 1
         },
         {
           "MonsterTemplateID": 2002,
           "Level": 1,
-          "SpawnWeight": 1
+          "SpawnWeight": 1,
+          "Count": 1
         },
         {
           "MonsterTemplateID": 2004,
           "Level": 1,
-          "SpawnWeight": 1
+          "SpawnWeight": 1,
+          "Count": 1
         }
       ],
       "ScaleMonstersToPlayerLevel": true,
@@ -630,6 +671,12 @@
       "Description": "Остров вдалеке от мирских забот, отсюда видно материк.",
       "NPCsHere": [
         4005
+      ],
+      "NPCSpawns": [
+        {
+          "NPCID": 4005,
+          "Count": 1
+        }
       ],
       "MonsterTemplates": [
         2006
@@ -858,70 +905,70 @@
   ],
   "Dialogues": [
     {
-      "id": "7001",
-      "name": "Разговор с разрабом",
-      "nodes": [
+      "Id": "7001",
+      "Name": "Разговор с разрабом",
+      "Nodes": [
         {
-          "id": "n1",
-          "text": "Привет",
-          "choices": [
+          "Id": "n1",
+          "Text": "Привет",
+          "Choices": [
             {
-              "text": "Привет, а ты кто?",
-              "nextNodeId": "n2",
-              "actions": [],
-              "actionSummary": ""
+              "Text": "Привет, а ты кто?",
+              "NextNodeId": "n2",
+              "Action": 0
             }
           ]
         },
         {
-          "id": "n2",
-          "text": "Я разработчик",
-          "choices": [
+          "Id": "n2",
+          "Text": "Я разработчик",
+          "Choices": [
             {
-              "text": "О, ну я пойду тогда",
-              "nextNodeId": "n3",
-              "actions": [],
-              "actionSummary": ""
+              "Text": "О, ну я пойду тогда",
+              "NextNodeId": "n3",
+              "Action": 0
             },
             {
-              "text": "Покажи мне свои товары...",
-              "actions": [
+              "Text": "Покажи мне свои товары...",
+              "Action": 0,
+              "Actions": [
                 {
-                  "type": 6
+                  "Type": 6
                 }
               ],
-              "actionSummary": "StartTrade"
+              "ActionSummary": "StartTrade"
             },
             {
-              "text": "Дай мне 5 шт крысиного мяса...",
-              "actions": [
+              "Text": "Дай мне 5 шт крысиного мяса...",
+              "Action": 0,
+              "Actions": [
                 {
-                  "type": 1,
-                  "parameter": "1001,5"
+                  "Type": 1,
+                  "Parameter": "1001,5"
                 }
               ],
-              "actionSummary": "GiveItem (1001,5)"
+              "ActionSummary": "GiveItem (1001,5)"
             },
             {
-              "text": "Дай мне 500 золота.",
-              "actions": [
+              "Text": "Дай мне 500 золота.",
+              "Action": 0,
+              "Actions": [
                 {
-                  "type": 2,
-                  "parameter": "500"
+                  "Type": 2,
+                  "Parameter": "500"
                 }
               ],
-              "actionSummary": "GiveGold (500)"
+              "ActionSummary": "GiveGold (500)"
             }
           ]
         },
         {
-          "id": "n3",
-          "text": "Ясно, ну иди тогда",
-          "choices": [
+          "Id": "n3",
+          "Text": "Ясно, ну иди тогда",
+          "Choices": [
             {
-              "text": "(закончить диалог)",
-              "actions": [],
-              "actionSummary": ""
+              "Text": "(закончить диалог)",
+              "Action": 0
             }
           ]
         }

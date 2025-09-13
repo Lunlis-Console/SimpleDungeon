@@ -544,6 +544,28 @@
         4004,
         4005
       ],
+      "NPCSpawns": [
+        {
+          "NPCID": 4001,
+          "Count": 1
+        },
+        {
+          "NPCID": 4002,
+          "Count": 1
+        },
+        {
+          "NPCID": 4003,
+          "Count": 1
+        },
+        {
+          "NPCID": 4004,
+          "Count": 1
+        },
+        {
+          "NPCID": 4005,
+          "Count": 1
+        }
+      ],
       "ScaleMonstersToPlayerLevel": true,
       "LocationToNorth": 3002,
       "LocationToEast": 3004,
@@ -554,6 +576,26 @@
       "ID": 3002,
       "Name": "Северная Поляна",
       "Description": "Поляна к северу от деревни, тут обитают крысы.",
+      "MonsterSpawns": [
+        {
+          "MonsterTemplateID": 2006,
+          "Level": 0,
+          "SpawnWeight": 0,
+          "Count": 10
+        }
+      ],
+      "NPCsHere": [
+        4005
+      ],
+      "NPCSpawns": [
+        {
+          "NPCID": 4005,
+          "Count": 5
+        }
+      ],
+      "MonsterTemplates": [
+        2006
+      ],
       "ScaleMonstersToPlayerLevel": true,
       "LocationToSouth": 3001
     },
@@ -565,7 +607,8 @@
         {
           "MonsterTemplateID": 2003,
           "Level": 1,
-          "SpawnWeight": 1
+          "SpawnWeight": 1,
+          "Count": 1
         }
       ],
       "ScaleMonstersToPlayerLevel": true,
@@ -579,17 +622,20 @@
         {
           "MonsterTemplateID": 2002,
           "Level": 1,
-          "SpawnWeight": 1
+          "SpawnWeight": 1,
+          "Count": 1
         },
         {
           "MonsterTemplateID": 2002,
           "Level": 1,
-          "SpawnWeight": 1
+          "SpawnWeight": 1,
+          "Count": 1
         },
         {
           "MonsterTemplateID": 2002,
           "Level": 1,
-          "SpawnWeight": 1
+          "SpawnWeight": 1,
+          "Count": 1
         }
       ],
       "ScaleMonstersToPlayerLevel": true,
@@ -603,22 +649,26 @@
         {
           "MonsterTemplateID": 2002,
           "Level": 1,
-          "SpawnWeight": 1
+          "SpawnWeight": 1,
+          "Count": 1
         },
         {
           "MonsterTemplateID": 2002,
           "Level": 1,
-          "SpawnWeight": 1
+          "SpawnWeight": 1,
+          "Count": 1
         },
         {
           "MonsterTemplateID": 2002,
           "Level": 1,
-          "SpawnWeight": 1
+          "SpawnWeight": 1,
+          "Count": 1
         },
         {
           "MonsterTemplateID": 2004,
           "Level": 1,
-          "SpawnWeight": 1
+          "SpawnWeight": 1,
+          "Count": 1
         }
       ],
       "ScaleMonstersToPlayerLevel": true,
@@ -630,6 +680,12 @@
       "Description": "Остров вдалеке от мирских забот, отсюда видно материк.",
       "NPCsHere": [
         4005
+      ],
+      "NPCSpawns": [
+        {
+          "NPCID": 4005,
+          "Count": 1
+        }
       ],
       "MonsterTemplates": [
         2006

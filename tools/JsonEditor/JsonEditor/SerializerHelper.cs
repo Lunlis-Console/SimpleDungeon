@@ -18,6 +18,11 @@ namespace JsonEditor
     ///   удаляет их из JSON перед десериализацией в GameData, чтобы не пытаться инстанцировать интерфейсы;
     /// - при сохранении: берет GameData -> JObject, нормализует диалоги (Options -> Responses),
     ///   затем вставляет обратно сохранённые ранее "сырые" Components по ID предметов и записывает файл атомарно.
+    /// 
+    /// Дополнительно: добавлена нормализация спаунов локаций:
+    /// - если в Location есть старое поле NPCsHere (массив ID), а нет NPCSpawns, то автоматически создаём NPCSpawns = [{ NPCID, Count:1 }, ...]
+    /// - в существующих MonsterSpawns, если отсутствует поле Count, добавляем Count = 1
+    /// Это делает переход на формат с количеством обратнo-совместимым.
     /// </summary>
     public static class SerializerHelper
     {
@@ -88,7 +93,10 @@ namespace JsonEditor
             // 2) Нормализация диалогов: Options -> Responses единый формат
             TryNormalizeDialoguesJsonToResponses(rootObj);
 
-            // 3) Теперь десериализуем модифицированный JSON в GameData (без попытки инстанцировать компонентов)
+            // 3) Нормализация спаунов локаций (обратная совместимость): NPCsHere -> NPCSpawns, добавить Count в MonsterSpawns
+            TryNormalizeLocationSpawns(rootObj);
+
+            // 4) Теперь десериализуем модифицированный JSON в GameData (без попытки инстанцировать компонентов)
             try
             {
                 var gd = JsonConvert.DeserializeObject<GameData>(rootObj.ToString(Formatting.Indented), CreateLoadSettings());
@@ -121,6 +129,9 @@ namespace JsonEditor
 
             // Восстанавливаем raw Components (если были сохранены при загрузке)
             RestoreRawItemComponentsIntoRoot(root, path);
+
+            // Нормализуем локации перед сохранением (убедиться, что Count присутствует в MonsterSpawns при необходимости)
+            TryNormalizeLocationSpawns(root);
 
             // Очистка пустых/null полей
             CleanJToken(root);
@@ -248,7 +259,6 @@ namespace JsonEditor
         // -------------------------
         // Нормализация диалогов (Options -> Responses) — единый формат Responses в JSON
         // -------------------------
-
         private static void TryNormalizeDialoguesJsonToResponses(JObject root)
         {
             if (root == null) return;
@@ -391,6 +401,72 @@ namespace JsonEditor
 
             if (res.Properties().Any()) return res;
             return null;
+        }
+
+        // -------------------------
+        // Нормализация локаций (обратная совместимость со старым форматом)
+        // -------------------------
+        /// <summary>
+        /// Если у локации есть NPCsHere (список int) и нет NPCSpawns — создаём NPCSpawns с Count = 1.
+        /// В существующих MonsterSpawns добавляем Count = 1, если поле отсутствует.
+        /// </summary>
+        private static void TryNormalizeLocationSpawns(JObject root)
+        {
+            if (root == null) return;
+
+            var locationsProp = root.Properties().FirstOrDefault(p => string.Equals(p.Name, "Locations", StringComparison.OrdinalIgnoreCase) && p.Value.Type == JTokenType.Array);
+            if (locationsProp == null) return;
+
+            var locationsArray = (JArray)locationsProp.Value;
+            foreach (var locToken in locationsArray.OfType<JObject>())
+            {
+                try
+                {
+                    // --- NPCsHere -> NPCSpawns ---
+                    var hasNpcSpawns = locToken.Properties().Any(p => string.Equals(p.Name, "NPCSpawns", StringComparison.OrdinalIgnoreCase));
+                    var npcHereProp = locToken.Properties().FirstOrDefault(p => string.Equals(p.Name, "NPCsHere", StringComparison.OrdinalIgnoreCase) && p.Value.Type == JTokenType.Array);
+
+                    if (!hasNpcSpawns && npcHereProp != null)
+                    {
+                        var arr = (JArray)npcHereProp.Value;
+                        var spawns = new JArray();
+                        foreach (var idToken in arr)
+                        {
+                            if (idToken == null) continue;
+                            if (!int.TryParse(idToken.ToString(), out int id)) continue;
+                            var spawnObj = new JObject
+                            {
+                                ["NPCID"] = id,
+                                ["Count"] = 1
+                            };
+                            spawns.Add(spawnObj);
+                        }
+                        if (spawns.Count > 0)
+                        {
+                            locToken["NPCSpawns"] = spawns;
+                        }
+                    }
+
+                    // --- MonsterSpawns: добавить Count=1 если отсутствует ---
+                    var mspProp = locToken.Properties().FirstOrDefault(p => string.Equals(p.Name, "MonsterSpawns", StringComparison.OrdinalIgnoreCase) && p.Value.Type == JTokenType.Array);
+                    if (mspProp != null)
+                    {
+                        var marr = (JArray)mspProp.Value;
+                        foreach (var spawn in marr.OfType<JObject>())
+                        {
+                            if (!spawn.Properties().Any(p => string.Equals(p.Name, "Count", StringComparison.OrdinalIgnoreCase)))
+                            {
+                                spawn["Count"] = 1;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // в нормализации локаций ошибки не должны ломать загрузку — игнорируем отдельные проблемы
+                    continue;
+                }
+            }
         }
 
         // -------------------------
