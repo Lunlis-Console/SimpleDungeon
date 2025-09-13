@@ -2,6 +2,7 @@
 using Engine.Entities;
 using Engine.Saving;
 using Engine.World;
+using Engine.Dialogue;
 
 namespace Engine.Factories
 {
@@ -12,6 +13,17 @@ namespace Engine.Factories
         public GameFactory(IWorldRepository worldRepository)
         {
             _worldRepository = worldRepository;
+
+            try
+            {
+                DialogueSystem.DialogueOption.RegisterDefaultActionHandlers();
+                DebugConsole.Log("Dialogue action handlers registered by GameFactory.");
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.Log("Failed to register dialogue action handlers in GameFactory constructor: " + ex.Message);
+            }
+
         }
 
         public Player CreateNewPlayer()

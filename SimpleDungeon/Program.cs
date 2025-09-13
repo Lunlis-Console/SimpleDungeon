@@ -1,6 +1,7 @@
 ﻿using Engine.Core;
 using System.Diagnostics;
 using Engine.UI;
+using Engine.Dialogue;
 
 namespace SimpleDungeon
 {
@@ -24,7 +25,6 @@ namespace SimpleDungeon
                 var repository = GameServices.WorldRepository;
 
                 DebugConsole.Log("GameServices initialized successfully");
-
                 // Запускаем главное меню
                 ScreenManager.PushScreen(new MainMenuScreen());
 

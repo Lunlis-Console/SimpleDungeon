@@ -901,6 +901,17 @@
                 }
               ],
               "ActionSummary": "GiveItem (1001,5)"
+            },
+            {
+              "Text": "Дай мне 500 золота.",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 2,
+                  "Parameter": "500"
+                }
+              ],
+              "ActionSummary": "GiveGold (500)"
             }
           ]
         },

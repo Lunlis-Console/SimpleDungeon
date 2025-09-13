@@ -60,6 +60,10 @@ namespace Engine.Dialogue
 
             public List<DialogueActionData> Actions { get; set; } = new List<DialogueActionData>();
 
+            // флаг, чтобы регистрация выполнялась только один раз
+            private static bool _defaultActionHandlersRegistered = false;
+
+
             public DialogueOption(string text, DialogueNode nextNode = null)
             {
                 Text = text ?? string.Empty;
@@ -157,17 +161,24 @@ namespace Engine.Dialogue
                             case "gold":
                                 {
                                     long amount = ParseLongParam(paramStr);
+                                    DebugConsole.Log($"GiveGold: attempt to add {amount} gold to player.");
                                     if (amount == 0)
                                     {
                                         DebugConsole.Log($"GiveGold: param '{paramStr}' parsed as 0 — skipping.");
                                         break;
                                     }
-                                    if (!TryAddGoldToPlayer(player, amount))
-                                        DebugConsole.Log($"GiveGold: failed to add gold {amount} to player.");
-                                    else
+                                    if (TryAddGoldToPlayer(player, amount))
+                                    {
                                         DebugConsole.Log($"GiveGold: added {amount} gold to player.");
+                                        MessageSystem.AddMessage($"Добавлено золота: {amount}");
+                                    }
+                                    else
+                                    {
+                                        DebugConsole.Log($"GiveGold: failed to add gold {amount} to player.");
+                                    }
                                 }
                                 break;
+
 
                             case "giveitem":
                             case "give_item":
@@ -555,33 +566,226 @@ namespace Engine.Dialogue
 
             private static bool TryAddGoldToPlayer(Player player, long amount)
             {
+                if (player == null)
+                {
+                    DebugConsole.Log("TryAddGoldToPlayer: player is null");
+                    return false;
+                }
+
                 try
                 {
-                    // Ищем свойство Gold
-                    var goldProp = player.GetType().GetProperty("Gold", BindingFlags.Public | BindingFlags.Instance);
-                    if (goldProp != null && goldProp.CanRead && goldProp.CanWrite)
+                    var pType = player.GetType();
+
+                    // 1) Ищем public свойство (Gold/Money/Coins/Balance)
+                    var propNames = new[] { "Gold", "Money", "Coins", "Balance", "Cash", "Amount" };
+                    foreach (var pname in propNames)
                     {
-                        var cur = Convert.ToInt64(goldProp.GetValue(player) ?? 0);
-                        goldProp.SetValue(player, cur + amount);
-                        return true;
+                        var prop = pType.GetProperty(pname, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                        if (prop != null && prop.CanRead && prop.CanWrite)
+                        {
+                            try
+                            {
+                                var cur = prop.GetValue(player);
+                                long curVal = 0;
+                                if (cur != null)
+                                {
+                                    if (cur is long) curVal = (long)cur;
+                                    else if (cur is int) curVal = (int)cur;
+                                    else if (!long.TryParse(cur.ToString(), out curVal)) curVal = 0;
+                                }
+                                var newVal = Convert.ChangeType(curVal + amount, prop.PropertyType);
+                                prop.SetValue(player, newVal);
+                                DebugConsole.Log($"TryAddGoldToPlayer: property '{pname}' found and updated from {curVal} to {curVal + amount}");
+                                return true;
+                            }
+                            catch (Exception ex)
+                            {
+                                DebugConsole.Log($"TryAddGoldToPlayer: failed to set property '{pname}': {ex.Message}");
+                                // продолжим искать
+                            }
+                        }
                     }
 
-                    // Ищем метод AddGold(long) или AddMoney(int/long)
-                    var addMethod = player.GetType().GetMethod("AddGold", BindingFlags.Public | BindingFlags.Instance)
-                                    ?? player.GetType().GetMethod("AddMoney", BindingFlags.Public | BindingFlags.Instance)
-                                    ?? player.GetType().GetMethod("GiveGold", BindingFlags.Public | BindingFlags.Instance);
-                    if (addMethod != null)
+                    // 2) Ищем публичные поля (включая приватные поля, часто _gold)
+                    var fieldNames = new[] { "Gold", "_gold", "money", "_money", "coins", "_coins", "balance", "_balance" };
+                    foreach (var fname in fieldNames)
                     {
-                        var pCount = addMethod.GetParameters().Length;
-                        if (pCount == 1) addMethod.Invoke(player, new object[] { Convert.ChangeType(amount, addMethod.GetParameters()[0].ParameterType) });
-                        else addMethod.Invoke(player, new object[] { amount, null });
-                        return true;
+                        var fld = pType.GetField(fname, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                        if (fld != null)
+                        {
+                            try
+                            {
+                                var cur = fld.GetValue(player);
+                                long curVal = 0;
+                                if (cur != null)
+                                {
+                                    if (cur is long) curVal = (long)cur;
+                                    else if (cur is int) curVal = (int)cur;
+                                    else if (!long.TryParse(cur.ToString(), out curVal)) curVal = 0;
+                                }
+
+                                object newVal = Convert.ChangeType(curVal + amount, fld.FieldType);
+                                fld.SetValue(player, newVal);
+                                DebugConsole.Log($"TryAddGoldToPlayer: field '{fname}' found and updated from {curVal} to {curVal + amount}");
+                                return true;
+                            }
+                            catch (Exception ex)
+                            {
+                                DebugConsole.Log($"TryAddGoldToPlayer: failed to set field '{fname}': {ex.Message}");
+                            }
+                        }
                     }
+
+                    // 3) Ищем методы: AddGold/AddMoney/GiveGold/ChangeMoney/AddCurrency/ModifyBalance
+                    var methodNames = new[] { "AddGold", "AddMoney", "GiveGold", "GiveMoney", "ChangeMoney", "AddCurrency", "ModifyBalance", "IncreaseGold", "ReceiveMoney" };
+                    foreach (var mname in methodNames)
+                    {
+                        var methods = pType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic)
+                            .Where(m => string.Equals(m.Name, mname, StringComparison.OrdinalIgnoreCase)).ToArray();
+                        foreach (var m in methods)
+                        {
+                            var ps = m.GetParameters();
+                            try
+                            {
+                                if (ps.Length == 1)
+                                {
+                                    var pt = ps[0].ParameterType;
+                                    if (pt == typeof(long) || pt == typeof(int) || pt == typeof(short) || pt == typeof(decimal) || pt == typeof(double))
+                                    {
+                                        m.Invoke(player, new object[] { Convert.ChangeType(amount, pt) });
+                                        DebugConsole.Log($"TryAddGoldToPlayer: invoked '{mname}(amount)'.");
+                                        return true;
+                                    }
+                                    // try object param
+                                    if (pt == typeof(object))
+                                    {
+                                        m.Invoke(player, new object[] { amount });
+                                        DebugConsole.Log($"TryAddGoldToPlayer: invoked '{mname}(object)'.");
+                                        return true;
+                                    }
+                                }
+                                else if (ps.Length == 2)
+                                {
+                                    // try signatures like (int amount, object something) or (object, int)
+                                    object arg0 = null, arg1 = null;
+                                    if (ps[0].ParameterType == typeof(string) && ps[1].ParameterType == typeof(long))
+                                    {
+                                        arg0 = "dialog"; arg1 = Convert.ChangeType(amount, ps[1].ParameterType);
+                                    }
+                                    else if ((ps[0].ParameterType == typeof(long) || ps[0].ParameterType == typeof(int)) && ps[1].ParameterType == typeof(string))
+                                    {
+                                        arg0 = Convert.ChangeType(amount, ps[0].ParameterType); arg1 = "dialog";
+                                    }
+                                    else
+                                    {
+                                        // если первый параметр подходит к amount
+                                        if (ps[0].ParameterType == typeof(long) || ps[0].ParameterType == typeof(int))
+                                        {
+                                            arg0 = Convert.ChangeType(amount, ps[0].ParameterType);
+                                            arg1 = Type.Missing;
+                                        }
+                                    }
+
+                                    try
+                                    {
+                                        if (arg0 != null)
+                                        {
+                                            m.Invoke(player, new object[] { arg0, arg1 });
+                                            DebugConsole.Log($"TryAddGoldToPlayer: invoked '{mname}' with 2 params.");
+                                            return true;
+                                        }
+                                    }
+                                    catch { /* try next */ }
+                                }
+                            }
+                            catch (TargetParameterCountException tpc)
+                            {
+                                DebugConsole.Log($"TryAddGoldToPlayer: method '{m.Name}' parameter mismatch: {tpc.Message}");
+                            }
+                            catch (Exception ex)
+                            {
+                                DebugConsole.Log($"TryAddGoldToPlayer: invoking '{m.Name}' failed: {ex.Message}");
+                            }
+                        }
+                    }
+
+                    // 4) Попробуем найти вложенные объекты (Wallet/Account/WalletComponent/Finance/Inventory) и вызвать у них методы/свойства
+                    var walletNames = new[] { "Wallet", "Account", "Finance", "Money", "WalletComponent", "Currency", "Economy" };
+                    foreach (var wn in walletNames)
+                    {
+                        var wprop = pType.GetProperty(wn, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                        if (wprop != null)
+                        {
+                            var walletObj = wprop.GetValue(player);
+                            if (walletObj != null)
+                            {
+                                // рекурсивно попробуем применить то же самое к walletObj (пробуем найти у него AddMoney)
+                                var wType = walletObj.GetType();
+                                var addM = wType.GetMethod("AddMoney", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase)
+                                            ?? wType.GetMethod("AddGold", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase)
+                                            ?? wType.GetMethod("ChangeBalance", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                                if (addM != null)
+                                {
+                                    var ps = addM.GetParameters();
+                                    try
+                                    {
+                                        if (ps.Length == 1)
+                                        {
+                                            addM.Invoke(walletObj, new object[] { Convert.ChangeType(amount, ps[0].ParameterType) });
+                                            DebugConsole.Log($"TryAddGoldToPlayer: invoked wallet.{addM.Name}()");
+                                            return true;
+                                        }
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        DebugConsole.Log($"TryAddGoldToPlayer: invoking wallet.{addM.Name} failed: {ex.Message}");
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // 5) Попытка: если в player есть Inventory с полем/свойством Gold/Money — записать туда
+                    try
+                    {
+                        var invProp = pType.GetProperty("Inventory", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                        if (invProp != null)
+                        {
+                            var invObj = invProp.GetValue(player);
+                            if (invObj != null)
+                            {
+                                var invType = invObj.GetType();
+                                var gprop = invType.GetProperty("Gold", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase)
+                                            ?? invType.GetProperty("Money", BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                                if (gprop != null && gprop.CanRead && gprop.CanWrite)
+                                {
+                                    var cur = gprop.GetValue(invObj);
+                                    long curVal = 0;
+                                    if (cur != null)
+                                    {
+                                        if (cur is long) curVal = (long)cur;
+                                        else if (cur is int) curVal = (int)cur;
+                                        else if (!long.TryParse(cur.ToString(), out curVal)) curVal = 0;
+                                    }
+                                    gprop.SetValue(invObj, Convert.ChangeType(curVal + amount, gprop.PropertyType));
+                                    DebugConsole.Log("TryAddGoldToPlayer: added to player.Inventory." + gprop.Name);
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        DebugConsole.Log("TryAddGoldToPlayer: inventory money set attempt failed: " + ex.Message);
+                    }
+
+                    DebugConsole.Log("TryAddGoldToPlayer: no suitable property/field/method found to add gold.");
                 }
                 catch (Exception ex)
                 {
                     DebugConsole.Log("TryAddGoldToPlayer failed: " + ex.Message);
                 }
+
                 return false;
             }
 
@@ -1135,6 +1339,199 @@ namespace Engine.Dialogue
                     return false;
                 }
             }
+
+            // вставьте этот public static метод в класс DialogueSystem (Engine/Dialogue/DialogueSystem.cs)
+            public static void RegisterDefaultActionHandlers()
+            {
+                if (_defaultActionHandlersRegistered) return;
+                _defaultActionHandlersRegistered = true;
+
+                // GiveGold
+                DialogueActions.RegisterHandler("GiveGold", (parameter, player, ui) =>
+                {
+                    try
+                    {
+                        var amount = ParseLongParam(parameter);
+                        if (amount == 0)
+                        {
+                            DebugConsole.Log($"GiveGold handler: param '{parameter}' parsed as 0 — skipping.");
+                            return;
+                        }
+                        if (player == null)
+                        {
+                            DebugConsole.Log("GiveGold handler: player is null");
+                            return;
+                        }
+
+                        if (TryAddGoldToPlayer(player, amount))
+                        {
+                            DebugConsole.Log($"GiveGold handler: added {amount} gold to player.");
+                            MessageSystem.AddMessage($"Добавлено золота: {amount}");
+                        }
+                        else
+                        {
+                            DebugConsole.Log($"GiveGold handler: failed to add {amount} gold to player.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        DebugConsole.Log("GiveGold handler error: " + ex.Message);
+                    }
+                });
+
+                // GiveItem
+                DialogueActions.RegisterHandler("GiveItem", (parameter, player, ui) =>
+                {
+                    try
+                    {
+                        if (string.IsNullOrWhiteSpace(parameter))
+                        {
+                            DebugConsole.Log("GiveItem handler: no parameter provided.");
+                            return;
+                        }
+                        if (player == null)
+                        {
+                            DebugConsole.Log("GiveItem handler: player is null");
+                            return;
+                        }
+
+                        // Разбираем параметр: поддерживаем те же правила, что и ранее в опции
+                        var kv = ParseParamString(parameter);
+                        string itemId = null;
+                        int qty = 1;
+                        if (kv.ContainsKey("itemid")) itemId = kv["itemid"];
+                        else if (kv.ContainsKey("id")) itemId = kv["id"];
+                        else
+                        {
+                            var parts = parameter.Split(new[] { ',', ';', ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+                            if (parts.Length > 0) itemId = parts[0].Trim();
+                            if (parts.Length > 1 && int.TryParse(parts[1].Trim(), out var q)) qty = q;
+                        }
+                        if (kv.ContainsKey("qty") && int.TryParse(kv["qty"], out var q2)) qty = q2;
+                        if (kv.ContainsKey("quantity") && int.TryParse(kv["quantity"], out var q3)) qty = q3;
+
+                        if (string.IsNullOrEmpty(itemId))
+                        {
+                            DebugConsole.Log($"GiveItem handler: parameter '{parameter}' does not contain item id.");
+                            return;
+                        }
+
+                        var invItem = TryCreateInventoryItem(itemId, qty);
+                        if (invItem == null)
+                        {
+                            DebugConsole.Log($"GiveItem handler: factory failed to create item '{itemId}'.");
+                            return;
+                        }
+
+                        if (TryAddInventoryItemToPlayer(player, invItem))
+                        {
+                            DebugConsole.Log($"GiveItem handler: added {itemId} x{qty} to player.");
+                            var itemName = GetInventoryItemName(invItem);
+                            MessageSystem.AddMessage($"Добавлено: {itemName} x{qty}");
+                        }
+                        else
+                        {
+                            DebugConsole.Log($"GiveItem handler: created item but failed to add to player inventory.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        DebugConsole.Log("GiveItem handler error: " + ex.Message);
+                    }
+                });
+
+                // StartTrade
+                DialogueActions.RegisterHandler("StartTrade", (parameter, player, ui) =>
+                {
+                    try
+                    {
+                        DebugConsole.Log("StartTrade handler invoked");
+                        ui?.OpenTrade();
+                        // не закрываем диалог — UI/ScreenManager управляет состоянием
+                    }
+                    catch (Exception ex)
+                    {
+                        DebugConsole.Log("StartTrade handler error: " + ex.Message);
+                    }
+                });
+
+                // StartQuest (использует TryFindQuestByIdOrName и TryAddQuestToPlayer)
+                DialogueActions.RegisterHandler("StartQuest", (parameter, player, ui) =>
+                {
+                    try
+                    {
+                        if (string.IsNullOrWhiteSpace(parameter))
+                        {
+                            DebugConsole.Log("StartQuest handler: no parameter provided.");
+                            return;
+                        }
+                        var questObj = TryFindQuestByIdOrName(parameter);
+                        if (questObj == null)
+                        {
+                            DebugConsole.Log($"StartQuest handler: quest '{parameter}' not found.");
+                            return;
+                        }
+                        if (TryAddQuestToPlayer(player, questObj))
+                        {
+                            DebugConsole.Log($"StartQuest handler: added quest '{parameter}' to player.");
+                            MessageSystem.AddMessage($"Получено задание: {parameter}");
+                        }
+                        else
+                        {
+                            DebugConsole.Log($"StartQuest handler: failed to add quest '{parameter}'.");
+                        }
+                        ui?.CloseDialogue();
+                    }
+                    catch (Exception ex)
+                    {
+                        DebugConsole.Log("StartQuest handler error: " + ex.Message);
+                    }
+                });
+
+                // SetFlag
+                DialogueActions.RegisterHandler("SetFlag", (parameter, player, ui) =>
+                {
+                    try
+                    {
+                        if (string.IsNullOrWhiteSpace(parameter))
+                        {
+                            DebugConsole.Log("SetFlag handler: no parameter provided.");
+                            return;
+                        }
+                        var kv = ParseParamString(parameter);
+                        string flagName = null;
+                        string flagVal = "true";
+                        if (kv.Count == 0)
+                        {
+                            flagName = parameter.Trim();
+                        }
+                        else
+                        {
+                            flagName = kv.Keys.FirstOrDefault();
+                            flagVal = kv[flagName];
+                        }
+                        if (string.IsNullOrWhiteSpace(flagName))
+                        {
+                            DebugConsole.Log("SetFlag handler: no valid flag name.");
+                            return;
+                        }
+                        if (TrySetGlobalFlag(flagName, flagVal))
+                        {
+                            DebugConsole.Log($"SetFlag handler: set {flagName}={flagVal}");
+                        }
+                        else
+                        {
+                            DebugConsole.Log($"SetFlag handler: failed to set {flagName}={flagVal}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        DebugConsole.Log("SetFlag handler error: " + ex.Message);
+                    }
+                });
+            }
+
+
         }
 
         // Централизованный обработчик действий
