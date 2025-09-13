@@ -35,13 +35,11 @@ namespace Engine.UI
 
         public override void Render()
         {
-            _renderer.BeginFrame();
             ClearScreen();
             RenderHeader("ИНВЕНТАРЬ");
             RenderInventoryItems();
             RenderItemInfo(); // Новая область для информации о предмете
             RenderFooter("W/S - выбор │ E - действие │ Q - назад");
-            _renderer.EndFrame();
         }
 
         private void RenderInventoryItems()

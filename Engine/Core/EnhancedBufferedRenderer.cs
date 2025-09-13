@@ -18,6 +18,8 @@ namespace Engine.Core
         private int _framesSinceFullRedraw = 0;
         private bool _firstRender = true;
 
+        public bool InFrame { get; private set; }
+
         public int Width => _width;
         public int Height => _height;
 
@@ -124,6 +126,8 @@ namespace Engine.Core
                 DebugConsole.Log($"BeginFrame error {ex.Message}");
                 throw;
             }
+
+            InFrame = true;
         }
 
         public void EndFrame()
@@ -135,6 +139,8 @@ namespace Engine.Core
                 Render();
                 // NOTE: копирование back->front теперь происходит внутри RenderFull()/RenderPartial() после успешного вывода
             }
+
+            InFrame = false;
         }
 
         /// <summary>

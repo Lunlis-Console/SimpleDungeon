@@ -36,15 +36,12 @@ namespace Engine.UI
                 // Отрисовывает весь экран в метода частичной отрисовки!!!
                 GameServices.BufferedRenderer.SetNeedsFullRedraw();
 
-                _renderer.BeginFrame();
                 ClearScreen();
 
                 RenderHeader("SIMPLE DUNGEON", 2, ConsoleColor.Magenta);
                 RenderMenuOptions();
                 RenderFooter("W/S - выбор │ E - выбрать │ ESC - выход", 0);
                 RenderVersionInfo();
-
-                _renderer.EndFrame();
 
                 //DebugConsole.Log("Main menu rendered successfully");
             }

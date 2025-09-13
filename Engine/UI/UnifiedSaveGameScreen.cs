@@ -22,7 +22,6 @@ namespace Engine.UI
         // Реализация абстрактного метода Render
         public override void Render()
         {
-            _renderer.BeginFrame();
             ClearScreen();
 
             RenderHeader("СОХРАНЕНИЕ ИГРЫ");
@@ -38,8 +37,6 @@ namespace Engine.UI
             }
 
             RenderFooter("W/S - выбор │ E - подтвердить │ Q - отмена │ Backspace - удалить");
-
-            _renderer.EndFrame();
         }
 
         // Реализация абстрактного метода HandleInput

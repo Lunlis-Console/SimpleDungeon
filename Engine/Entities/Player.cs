@@ -302,7 +302,7 @@ namespace Engine.Entities
 
             if (result)
             {
-                MessageSystem.AddMessage($"Надето: {item.Details.Name}.");
+                MessageSystem.AddMessage($"Надето: {item.Details.Name}");
             }
             else
             {

@@ -17,15 +17,12 @@ namespace Engine.UI
 
         public override void Render()
         {
-            _renderer.BeginFrame();
             ClearScreen();
 
             RenderHeader("МЕНЮ ИГРЫ");
             RenderMenuOptions();
             RenderPlayerInfo();
             RenderFooter("W/S - выбор │ E - выбрать │ Q - назад в игру");
-
-            _renderer.EndFrame();
         }
 
         private void RenderMenuOptions()

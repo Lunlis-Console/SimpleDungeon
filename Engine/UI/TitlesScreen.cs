@@ -17,15 +17,12 @@ namespace Engine.UI
 
         public override void Render()
         {
-            _renderer.BeginFrame();
             ClearScreen();
 
             RenderHeader("ТИТУЛЫ И ДОСТИЖЕНИЯ");
             RenderTitlesList();
             RenderSelectedTitleInfo();
             RenderFooter("W/S - выбор │ E - активировать │ Q - назад");
-
-            _renderer.EndFrame();
         }
 
         private void RenderTitlesList()

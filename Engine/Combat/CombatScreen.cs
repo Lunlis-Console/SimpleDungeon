@@ -21,7 +21,6 @@ namespace Engine.Combat
 
         public override void Render()
         {
-            _renderer.BeginFrame();
             ClearScreen();
 
             RenderHeader($"БОЙ: {SafeGetString(_engine.Monster, new[] { "Name", "name" }) ?? "Монстр"}  —  {SafeGetString(_engine.Player, new[] { "Name", "name" }) ?? "Игрок"}");
@@ -37,8 +36,6 @@ namespace Engine.Combat
                 // (если в вашей реализации флаг называется иначе, замените на соответствующее свойство)
                 _engine.IsEnemyActing
             );
-
-            _renderer.EndFrame();
         }
 
         private string SafeGetString(object obj, string[] names)

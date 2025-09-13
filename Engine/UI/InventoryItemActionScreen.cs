@@ -17,14 +17,11 @@ namespace Engine.UI
 
         public override void Render()
         {
-            _renderer.BeginFrame();
             ClearScreen();
 
             RenderHeader($"ОСМОТР : {_item.Name}");
             RenderItemDetails();
             RenderFooter("Q - назад");
-
-            _renderer.EndFrame();
         }
 
         private void RenderItemDetails()
@@ -147,7 +144,6 @@ namespace Engine.UI
 
         public override void Render()
         {
-            _renderer.BeginFrame();
             ClearScreen();
 
             RenderHeader($"ВЫБРОСИТЬ: {_item.Details.Name}");
@@ -159,8 +155,6 @@ namespace Engine.UI
             RenderVerticalDivider(dividerX);
 
             RenderFooter("A/D - изменить количество │ E - подтвердить │ Q - отмена");
-
-            _renderer.EndFrame();
         }
 
         private void RenderQuantitySelector(int dividerX)
@@ -411,14 +405,11 @@ namespace Engine.UI
 
         public override void Render()
         {
-            _renderer.BeginFrame();
             ClearScreen();
 
             RenderHeader($"ДЕЙСТВИЯ : {_itemName}");
             RenderItemInfoAndActions();
             RenderFooter("W/S - выбор │ E - выполнить │ Q - назад");
-
-            _renderer.EndFrame();
         }
 
         private void RenderItemInfoAndActions()
@@ -614,7 +605,7 @@ namespace Engine.UI
                         bool success = _player.EquipItem(inventoryItem);
                         if (success)
                         {
-                            MessageSystem.AddMessage($"Надето: {inventoryItem.Details.Name}");
+                            //MessageSystem.AddMessage($"Надето: {inventoryItem.Details.Name}");
                             RefreshParentInventory();
                             ScreenManager.PopScreen();
                         }

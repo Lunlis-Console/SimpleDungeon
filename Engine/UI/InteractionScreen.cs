@@ -22,15 +22,12 @@ namespace Engine.UI
 
         public override void Render()
         {
-            _renderer.BeginFrame();
             ClearScreen();
 
             RenderHeader("ВЗАИМОДЕЙСТВИЕ");
             RenderEntitiesList();
             RenderSelectedEntityInfo();
             RenderFooter("W/S - выбор │ E - взаимодействовать │ Q - назад");
-
-            _renderer.EndFrame();
         }
 
         private List<WorldEntity> GetInteractableEntities()
@@ -360,42 +357,59 @@ namespace Engine.UI
             int selectedIndex = 0;
             bool inMenu = true;
 
+            var renderer = GameServices.BufferedRenderer; // глобальный рендерер
             while (inMenu)
             {
-                // Рисуем меню
-                _renderer.BeginFrame();
-                ClearScreen();
-
-                RenderHeader(title);
-
-                for (int i = 0; i < actions.Count; i++)
-                {
-                    bool isSelected = i == selectedIndex;
-                    if (isSelected)
-                    {
-                        _renderer.Write(2, 4 + i, "► ");
-                        _renderer.Write(4, 4 + i, actions[i], ConsoleColor.Green);
-                    }
-                    else
-                    {
-                        _renderer.Write(4, 4 + i, actions[i]);
-                    }
-                }
-
-                RenderFooter("W/S - выбор │ E - выбрать │ Q - назад");
-                _renderer.EndFrame();
-
-                // Если консоль видима, нарисуем её поверх (чтобы было видно)
+                bool startedFrame = false;
                 try
                 {
-                    if (DebugConsole.Enabled && DebugConsole.IsVisible)
+                    // Откроем кадр, только если он ещё не открыт
+                    if (renderer != null && !renderer.InFrame)
                     {
-                        DebugConsole.GlobalDraw();
+                        renderer.BeginFrame();
+                        startedFrame = true;
+                    }
+
+                    // Рисуем меню (внутри активного фрейма)
+                    ClearScreen();
+                    RenderHeader(title);
+
+                    for (int i = 0; i < actions.Count; i++)
+                    {
+                        bool isSelected = i == selectedIndex;
+                        if (isSelected)
+                        {
+                            _renderer.Write(2, 4 + i, "► ");
+                            _renderer.Write(4, 4 + i, actions[i], ConsoleColor.Green);
+                        }
+                        else
+                        {
+                            _renderer.Write(4, 4 + i, actions[i]);
+                        }
+                    }
+
+                    RenderFooter("W/S - выбор │ E - выбрать │ Q - назад");
+
+                    // Если консоль видима, нарисуем её поверх (чтобы было видно)
+                    try
+                    {
+                        if (DebugConsole.Enabled && DebugConsole.IsVisible)
+                        {
+                            DebugConsole.GlobalDraw();
+                        }
+                    }
+                    catch { /* не критично */ }
+                }
+                finally
+                {
+                    // Завершаем кадр только если начали — это безопасно при централизованном рендеринге
+                    if (startedFrame)
+                    {
+                        try { renderer.EndFrame(); } catch { /* лог не обязателен */ }
                     }
                 }
-                catch { /* не критично */ }
 
-                // Ждём клавишу
+                // Ждём клавишу — обработка ввода происходит ВНЕ фрейма (важно для PushScreen)
                 var key = Console.ReadKey(true);
 
                 // 1) Глобальная горячая клавиша для консоли — обрабатываем прямо в меню
@@ -410,7 +424,6 @@ namespace Engine.UI
                 // 2) Если консоль видима — передаём ввод консоли вместо меню
                 if (DebugConsole.Enabled && DebugConsole.IsVisible)
                 {
-                    // Передаём клавишу в консоль (она сама обновит внутреннее состояние)
                     DebugConsole.ProcessInput(key);
                     // Обновим консольное отображение сразу
                     try { DebugConsole.GlobalDraw(); } catch { }
@@ -430,7 +443,8 @@ namespace Engine.UI
                         break;
                     case ConsoleKey.E:
                     case ConsoleKey.Enter:
-                        // вызов колбэка выбора
+                        // вызов колбэка выбора — теперь мы **вне** фрейма, поэтому PushScreen внутри колбэка
+                        // сможет корректно вызвать RenderCurrentScreen() немедленно (если нужно)
                         try { onActionSelected(actions[selectedIndex]); } catch { }
                         inMenu = false;
                         break;

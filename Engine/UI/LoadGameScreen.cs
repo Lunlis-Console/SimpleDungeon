@@ -16,14 +16,11 @@ namespace Engine.UI
 
         public override void Render()
         {
-            _renderer.BeginFrame();
             ClearScreen();
 
             RenderHeader("ЗАГРУЗИТЬ ИГРУ");
             RenderSavesList();
             RenderFooter("W/S - выбор │ E - загрузить │ D - удалить │ Q - назад");
-
-            _renderer.EndFrame();
         }
 
         private void RenderSavesList()

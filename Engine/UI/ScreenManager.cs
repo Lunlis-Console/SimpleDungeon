@@ -1,4 +1,5 @@
-﻿using Engine.UI;
+﻿using Engine.Core;
+using Engine.UI;
 
 public static class ScreenManager
 {
@@ -15,6 +16,35 @@ public static class ScreenManager
         _screenStack.Push(screen);
         DebugConsole.Log($"[screenmanager] PushScreen: {screen?.GetType().Name}");
         RequestFullRedraw();
+
+        // Попробуем немедленно показать экран, если рендерер сейчас НЕ в кадре.
+        // RenderCurrentScreen сам корректно работает с GameServices.BufferedRenderer.InFrame,
+        // но мы дополнительно здесь не вызываем RenderCurrentScreen, если InFrame==true,
+        // чтобы избежать потенциальной нежелательной реентрантности в середине кадра.
+        try
+        {
+            var renderer = GameServices.BufferedRenderer;
+            if (renderer == null)
+            {
+                DebugConsole.Log("[screenmanager] PushScreen: BufferedRenderer is null, deferring render");
+                return;
+            }
+
+            if (renderer.InFrame)
+            {
+                // Мы уже внутри кадра — текущий кадр завершится нормально и учтёт флажки _needsRedraw.
+                DebugConsole.Log("[screenmanager] PushScreen: renderer is currently InFrame — deferred immediate render");
+                return;
+            }
+
+            // Безопасно вызвать немедленный рендер — RenderCurrentScreen начнёт кадр и отрисует новый экран
+            RenderCurrentScreen();
+            DebugConsole.Log("[screenmanager] PushScreen: immediate render executed");
+        }
+        catch (Exception ex)
+        {
+            DebugConsole.Log("[screenmanager] PushScreen immediate render failed: " + ex.Message);
+        }
     }
 
     public static BaseScreen PopScreen()
@@ -38,25 +68,44 @@ public static class ScreenManager
     }
 
     // В методе, который вызывает Render у активного экрана (или внутри ScreenManager.Render)
+    // Пример: ScreenManager.RenderCurrentScreen() или аналогичный метод
     public static void RenderCurrentScreen()
     {
-        var cur = ScreenManager.CurrentScreen;
-        if (cur != null)
+        try
         {
+            var cur = CurrentScreen; // замените на ваше поле/свойство текущего экрана
+            if (cur == null) return;
+
+            var renderer = GameServices.BufferedRenderer;
+            if (renderer == null)
+            {
+                DebugConsole.Log("[ScreenManager] BufferedRenderer is null");
+                return;
+            }
+
+            bool startedFrame = false;
+            if (!renderer.InFrame)
+            {
+                renderer.BeginFrame();
+                startedFrame = true;
+            }
+
             try
             {
-                //DebugConsole.Log($"[screenmanager] about to Render {cur.GetType().Name}");
-                cur.Render();
+                cur.Render();         // НЕ должен внутри себя вызывать Begin/End
+                cur.RenderOverlay();  // отрисовываем оверлей в том же фрейме
             }
-            catch (Exception ex)
+            finally
             {
-                //DebugConsole.Log($"[screenmanager] Render of {cur.GetType().Name} threw {ex.GetType().Name}: {ex.Message}");
-                DebugConsole.Log(ex.StackTrace ?? "");
+                if (startedFrame)
+                {
+                    renderer.EndFrame();
+                }
             }
         }
-        else
+        catch (Exception ex)
         {
-            //DebugConsole.Log("[screenmanager] CurrentScreen is NULL in render loop");
+            DebugConsole.Log("[ScreenManager] RenderCurrentScreen failed: " + ex.Message);
         }
     }
 

@@ -98,28 +98,12 @@ namespace Engine.UI
 
         public override void Render()
         {
-            // Защита: если рендерера нет (маловероятно) — ничего не делаем
-            if (_renderer == null) return;
-
-            try
-            {
-                _renderer.BeginFrame();
-            }
-            catch { /* BeginFrame может выбрасывать, но BaseScreen обычно управляет этим */ }
-
-            // очищаем область экрана (BaseScreen предоставляет ClearScreen)
             try { ClearScreen(); } catch { /* если что — молча игнорируем */ }
 
             RenderHeader(_npc?.Name ?? "NPC");
             RenderDialogueText();
             RenderOptions();
             RenderFooter("W/S - выбор │ E - ответить │ Q - выйти");
-
-            try
-            {
-                _renderer.EndFrame();
-            }
-            catch { /* игнорируем возможные ошибки EndFrame */ }
         }
 
         private void RenderDialogueText()

@@ -102,6 +102,7 @@ namespace SimpleDungeon
                         DebugConsole.GlobalDraw();
                     }
 
+
                     // Небольшая задержка для снижения нагрузки
                     Thread.Sleep(16); // ~60 FPS
                 }

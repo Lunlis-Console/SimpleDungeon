@@ -3,7 +3,7 @@
     public static class MessageSystem
     {
         private static readonly Queue<MessageData> _messages = new Queue<MessageData>();
-        private const int MaxMessages = 3;
+        private const int MaxMessages = 5;
         private const int MessageLifetime = 5000; // 5 секунд
 
         public class MessageData

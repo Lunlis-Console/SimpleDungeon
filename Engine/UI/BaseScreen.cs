@@ -1,5 +1,7 @@
 ﻿using Engine.Core;
+using System.Linq;
 using System.Text;
+using static Engine.Core.MessageSystem;
 
 namespace Engine.UI
 {
@@ -135,6 +137,73 @@ namespace Engine.UI
             _renderer.Write(0, y, new string('═', width), ConsoleColor.Gray);
             RenderCenteredText(y + 1, title, color);
             _renderer.Write(0, y + 2, new string('═', width), ConsoleColor.Gray);
+        }
+
+        // Рендер наложения, которое показывается поверх любого экрана (сообщения системы сообщений и т.п.)
+        private int __lastMessageCountForDebug = -1;
+        // Поместите этот метод туда, где у вас сейчас рисуются сообщения (BaseScreen / ScreenManager).
+        public virtual void RenderOverlay()
+        {
+            var msgsEnum = MessageSystem.Messages;
+            if (msgsEnum == null) return;
+
+            // Приводим к списку для индексированного доступа
+            var msgs = msgsEnum as System.Collections.Generic.IList<MessageSystem.MessageData> ?? msgsEnum.ToList();
+            if (msgs.Count == 0) return;
+
+            // Параметры позиционирования — под хедером
+            int headerHeight = 3;        // подстрой под ваш Header
+            int topY = headerHeight + 1; // первая строка для сообщений (под хедером)
+            int paddingRight = 2;
+
+            int screenWidth = Console.WindowWidth;
+            int screenHeight = Console.WindowHeight;
+
+            int maxLines = Math.Max(0, screenHeight - topY - 2);
+            if (maxLines <= 0) return;
+
+            // Выбираем последние N сообщений (в порядке от старого к новому в исходном массиве)
+            int startIndex = Math.Max(0, msgs.Count - maxLines);
+            var lastMsgs = msgs.Skip(startIndex).ToList(); // порядок: [старое ... новое]
+
+            // Мы хотим рисовать новые сверху, старые снизу.
+            // Поэтому перебираем lastMsgs в обратном порядке (новое сначала),
+            // а рисуем вниз, начиная с topY.
+            int lineY = topY;
+            for (int i = lastMsgs.Count - 1; i >= 0; i--)
+            {
+                var m = lastMsgs[i]; // i = last -> самое новое, i = 0 -> самое старое
+                if (m == null || string.IsNullOrEmpty(m.Text)) continue;
+
+                string text = m.Text;
+                int maxTextWidth = screenWidth - paddingRight - 1;
+                if (maxTextWidth <= 0) break;
+                if (text.Length > maxTextWidth) text = text.Substring(0, maxTextWidth);
+
+                ConsoleColor color = GetColorByAlpha(m.Alpha);
+
+                int drawX = Math.Max(0, screenWidth - paddingRight - text.Length);
+
+                try
+                {
+                    _renderer.Write(drawX, lineY, text, color);
+                }
+                catch
+                {
+                    // безопасно пропускаем ошибки рендера
+                }
+
+                lineY++;
+                if (lineY >= screenHeight - 1) break;
+            }
+        }
+        private ConsoleColor GetColorByAlpha(double alpha)
+        {
+            if (alpha >= 0.90) return ConsoleColor.White;
+            if (alpha >= 0.65) return ConsoleColor.Gray;
+            if (alpha >= 0.35) return ConsoleColor.Gray;
+            if (alpha > 0.10) return ConsoleColor.DarkGray;
+            return ConsoleColor.DarkGray;
         }
 
         public virtual void Update()

@@ -22,7 +22,6 @@ namespace Engine.UI
 
         public override void Render()
         {
-            _renderer.BeginFrame();
             ClearScreen();
 
             RenderHeader($"ТОРГОВЛЯ С {_trader.Name.ToUpper()}");
@@ -31,8 +30,6 @@ namespace Engine.UI
             RenderTraderItems(); // Затем предметы торговца
             RenderSystemMessage();
             RenderFooter("W/S - Выбор │ TAB - Переключить │ E - Купить/продать │ Q - Выйти");
-
-            _renderer.EndFrame();
         }
 
         private void RenderGoldInfo()

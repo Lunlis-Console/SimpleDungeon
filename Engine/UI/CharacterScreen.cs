@@ -14,9 +14,6 @@ namespace Engine.UI
 
         public override void Render()
         {
-
-
-            _renderer.BeginFrame();
             ClearScreen();
 
             RenderHeader("ХАРАКТЕРИСТИКИ ПЕРСОНАЖА");
@@ -25,8 +22,6 @@ namespace Engine.UI
             RenderStats();
             RenderEquipment();
             RenderFooter("Q - назад │ T - титулы │ I - инвентарь");
-
-            _renderer.EndFrame();
         }
 
         private void RenderCharacterInfo()

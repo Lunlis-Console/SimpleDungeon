@@ -18,15 +18,12 @@ namespace Engine.UI
 
         public override void Render()
         {
-            _renderer.BeginFrame();
             ClearScreen();
 
             RenderHeader("ПОДТВЕРЖДЕНИЕ ВЫХОДА");
             RenderWarningMessage();
             RenderOptions();
             RenderFooter("W/S - выбор │ E - подтвердить │ Q - отмена");
-
-            _renderer.EndFrame();
         }
 
         private void RenderWarningMessage()

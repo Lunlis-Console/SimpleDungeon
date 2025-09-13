@@ -167,7 +167,6 @@ namespace Engine.UI
         public override void Render()
         {
             // Используем тот же стиль что и TitlesScreen
-            _renderer.BeginFrame();
             ClearScreen();
 
             RenderHeader("ОСМОТР МОНСТРА");
@@ -245,8 +244,6 @@ namespace Engine.UI
 
             // Footer / подсказка (в стиле TitlesScreen)
             RenderFooter("W/S - выбор │ E - подробности │ Tab - переключение │ Q/Esc - назад");
-
-            _renderer.EndFrame();
         }
 
         #region Helpers (reflection-safe + utils)

@@ -21,59 +21,11 @@ namespace Engine.UI
 
         public override void Render()
         {
-            _renderer.BeginFrame();
             ClearScreen();
-        
             RenderLocationInfo();
             RenderCreatures();
             RenderGroundItems();
-
-            RenderMessages();
-
             RenderNavigation();
-
-            _renderer.EndFrame();
-        }
-
-        private void RenderMessages()
-        {
-            int maxMessages = 3;
-            int messageAreaHeight = 3;
-            int startY = Height - 3 - messageAreaHeight; // Начинаем над футером
-
-            // Очищаем область сообщений
-            _renderer.FillArea(0, startY, Width, messageAreaHeight, ' ', ConsoleColor.White, ConsoleColor.Black);
-
-            // Берем самые новые сообщения (последние добавленные)
-            var messagesToShow = MessageSystem.Messages.Take(maxMessages).ToArray();
-
-            // Рендерим снизу вверх - новые сообщения появляются внизу, старые поднимаются
-            for (int i = 0; i < messagesToShow.Length; i++)
-            {
-                var messageData = messagesToShow[i];
-
-                // Новые сообщения внизу, старые поднимаются вверх
-                int y = startY + (maxMessages - 1 - i);
-
-                if (y >= startY && y < Height - 3)
-                {
-                    ConsoleColor color = CalculateMessageColor(messageData.Alpha);
-
-                    string displayText = messageData.Text;
-                    if (displayText.Length > Width - 4)
-                    {
-                        displayText = displayText.Substring(0, Width - 7) + "...";
-                    }
-
-                    _renderer.Write(2, y, $"• {displayText}", color);
-                }
-            }
-        }
-        private ConsoleColor CalculateMessageColor(float alpha)
-        {
-            if (alpha > 0.7f) return ConsoleColor.Gray;
-            if (alpha > 0.4f) return ConsoleColor.DarkGray;
-            return ConsoleColor.DarkGray; // Почти невидимый
         }
 
         private void RenderLocationInfo()

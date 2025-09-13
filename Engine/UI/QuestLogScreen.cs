@@ -17,7 +17,6 @@ namespace Engine.UI
 
         public override void Render()
         {
-            _renderer.BeginFrame();
             ClearScreen();
 
             RenderHeader("ЖУРНАЛ ЗАДАНИЙ");
@@ -25,8 +24,6 @@ namespace Engine.UI
             RenderQuestsList();
             RenderSelectedQuestInfo();
             RenderFooter("W/S - выбор │ A/D - переключить тип │ E - детали │ Q - назад");
-
-            _renderer.EndFrame();
         }
 
         private void RenderQuestTypesToggle()
