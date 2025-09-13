@@ -554,25 +554,6 @@ namespace Engine.Entities
             AdjustHPAfterEquipmentChange();
         }
 
-        public void LookAround()
-        {
-            Console.WriteLine("Вы осматриваетесь вокруг...");
-            CurrentLocation.CleanDeadMonster();
-        }
-        public void TalkTo(string npcName)
-        {
-            NPC npcToTalk = CurrentLocation.NPCsHere.FirstOrDefault(n =>
-                n.Name.ToLower().Contains(npcName.ToLower()));
-
-            if(npcToTalk != null)
-            {
-                npcToTalk.Talk(this);
-            }
-            else
-            {
-                MessageSystem.AddMessage("СИСТЕМА: Здесь нет такого человека.");
-            }
-        }
         public bool CheckSkill(int difficulty, string attribute, int bonus = 0)
         {
             int attributeValue = attribute.ToLower() switch

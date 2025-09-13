@@ -41,45 +41,6 @@ namespace Engine.Combat
             _renderer.EndFrame();
         }
 
-        // ... остальной код без изменений ...
-        private string BuildBarString(int width, int value, int maxValue)
-        {
-            if (width < 4) width = 4;
-            int inner = width - 2;
-            int filled = (int)Math.Round((double)inner * value / Math.Max(1, maxValue));
-            filled = Math.Clamp(filled, 0, inner);
-            string fill = new string('█', filled);
-            string empty = new string('░', inner - filled);
-            return "[" + fill + empty + "]";
-        }
-
-        private int SafeGetInt(object obj, string[] names)
-        {
-            if (obj == null) return 0;
-            var t = obj.GetType();
-            foreach (var name in names)
-            {
-                var p = t.GetProperty(name, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.IgnoreCase);
-                if (p != null)
-                {
-                    var v = p.GetValue(obj);
-                    if (v is int ii) return ii;
-                    if (v is long ll) return (int)ll;
-                    if (v != null) { try { return Convert.ToInt32(v); } catch { } }
-                }
-                var f = t.GetField(name, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.IgnoreCase);
-                if (f != null)
-                {
-                    var v = f.GetValue(obj);
-                    if (v is int ii) return ii;
-                    if (v is long ll) return (int)ll;
-                    if (v != null) { try { return Convert.ToInt32(v); } catch { } }
-                }
-            }
-            // fallback methods omitted for brevity (leave as in your original)
-            return 0;
-        }
-
         private string SafeGetString(object obj, string[] names)
         {
             if (obj == null) return null;

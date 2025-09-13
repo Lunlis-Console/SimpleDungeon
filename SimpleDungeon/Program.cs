@@ -22,8 +22,6 @@ namespace SimpleDungeon
             {
                 DebugConsole.Log("Initializing GameServices...");
 
-                var repository = GameServices.WorldRepository;
-
                 DebugConsole.Log("GameServices initialized successfully");
                 // Запускаем главное меню
                 ScreenManager.PushScreen(new MainMenuScreen());
@@ -114,10 +112,6 @@ namespace SimpleDungeon
                     Thread.Sleep(100);
                 }
             }
-        }
-        public static void ExitGame()
-        {
-            _running = false;
         }
     }
 }

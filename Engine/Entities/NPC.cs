@@ -336,9 +336,5 @@ namespace Engine.Entities
             Console.WriteLine("Нажмите любую клавишу чтобы продолжить...");
             Console.ReadKey(true);
         }
-        protected virtual void OnExamine(Player player)
-        {
-            Examine(player); // Вызываем приватный метод
-        }
     }
 }

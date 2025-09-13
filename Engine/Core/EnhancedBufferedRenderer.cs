@@ -397,27 +397,5 @@ namespace Engine.Core
             }
         }
 
-        // Диагностический помощник: дамп строки (удалите/закомментируйте в релизе)
-        public void DumpRowBuffers(int row, string path)
-        {
-            try
-            {
-                using (var sw = new StreamWriter(path, append: true, encoding: Encoding.UTF8))
-                {
-                    sw.WriteLine($"--- ROW {row} DUMP ---");
-                    for (int x = 0; x < _width; x++)
-                    {
-                        var b = _backBuffer[x, row];
-                        var f = _frontBuffer[x, row];
-                        sw.WriteLine($"{x}: back='{b.Character}' fg={b.Foreground} bg={b.Background} | front='{f.Character}' fg={f.Foreground} bg={f.Background}");
-                    }
-                    sw.WriteLine();
-                }
-            }
-            catch (Exception ex)
-            {
-                DebugConsole.Log($"DumpRowBuffers error: {ex.Message}");
-            }
-        }
     }
 }

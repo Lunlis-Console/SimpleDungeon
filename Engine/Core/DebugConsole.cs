@@ -79,23 +79,6 @@ public static class DebugConsole
         }
     }
 
-    // Очистка файла логов
-    public static void ClearLogFile()
-    {
-        try
-        {
-            if (File.Exists(_logFilePath))
-            {
-                File.WriteAllText(_logFilePath, string.Empty);
-                Log("Файл логов очищен");
-            }
-        }
-        catch (Exception ex)
-        {
-            Log($"Ошибка очистки файла логов: {ex.Message}");
-        }
-    }
-
     // Включить/выключить консоль полностью
     public static void SetEnabled(bool enabled)
     {
@@ -626,29 +609,6 @@ public static class DebugConsole
         }
     }
 
-    public static void HandleKey(ConsoleKey key, char keyChar = '\0')
-    {
-        
-    }
-
-    // Метод для глобального доступа из любого меню
-    public static void GlobalUpdate()
-    {
-        if (!_enabled) return;
-
-        // Убрать проверку F3 здесь, так как она теперь обрабатывается в ProcessKeyInput
-        if (_isVisible)
-        {
-            Update();
-
-            // После обновления консоли устанавливаем флаг перерисовки
-            if (_needsRedraw)
-            {
-                ScreenManager.RequestPartialRedraw();
-            }
-        }
-    }
-    // Метод для глобальной отрисовки из любого меню
     public static void GlobalDraw()
     {
         if (_isVisible && _enabled)
