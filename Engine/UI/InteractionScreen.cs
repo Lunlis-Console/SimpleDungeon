@@ -182,7 +182,27 @@ namespace Engine.UI
 
         public override void HandleInput(ConsoleKeyInfo keyInfo)
         {
-            if (_interactableEntities.Count == 0) return;
+            // Если нет сущностей — разрешаем выйти по Esc/Q/Enter (Enter — для удобства),
+            // но возвращаемся, чтобы не выполнять навигацию по пустому списку.
+            if (_interactableEntities == null || _interactableEntities.Count == 0)
+            {
+                switch (keyInfo.Key)
+                {
+                    case ConsoleKey.Escape:
+                    case ConsoleKey.Q:
+                    case ConsoleKey.Enter:
+                        // Закрыть экран взаимодействия — возврат в мир
+                        ScreenManager.PopScreen();
+                        // Обновим экран
+                        ScreenManager.RequestPartialRedraw();
+                        try { if (DebugConsole.Enabled && DebugConsole.IsVisible) DebugConsole.GlobalDraw(); } catch { }
+                        break;
+                    default:
+                        // игнорируем остальные клавиши
+                        break;
+                }
+                return;
+            }
 
             switch (keyInfo.Key)
             {
