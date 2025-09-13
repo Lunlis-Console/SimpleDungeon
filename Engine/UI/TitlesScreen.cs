@@ -108,6 +108,8 @@ namespace Engine.UI
 
         public override void HandleInput(ConsoleKeyInfo keyInfo)
         {
+            HandleCommonInput(keyInfo);
+
             var titles = _player.UnlockedTitles;
             //if (titles.Count == 0) return;
 

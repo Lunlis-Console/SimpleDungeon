@@ -1,4 +1,6 @@
-﻿namespace Engine.UI
+﻿
+
+namespace Engine.UI
 {
     public class MenuSystem
     {

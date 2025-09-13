@@ -1,10 +1,13 @@
 ﻿using Engine.Core;
 using Engine.Tools;
+using Engine.Audio;
 
 namespace Engine.UI
 {
     public class MainMenuScreen : BaseScreen
     {
+        
+
         private int _selectedIndex;
         private readonly string[] _menuItems =
         {
@@ -24,6 +27,8 @@ namespace Engine.UI
 
             // Принудительно запрашиваем перерисовку
             ScreenManager.RequestFullRedraw();
+
+            MusicSystem.PlayTheme(MusicTheme.Main);
         }
 
         public override void Render()
@@ -87,6 +92,8 @@ namespace Engine.UI
         }
         public override void HandleInput(ConsoleKeyInfo keyInfo)
         {
+            HandleCommonInput(keyInfo);
+
             switch (keyInfo.Key)
             {
                 case ConsoleKey.W:
@@ -176,7 +183,7 @@ namespace Engine.UI
 
         private void ShowSettingsMenu()
         {
-            MessageSystem.AddMessage("Система настроек в разработке!");
+            ScreenManager.PushScreen(new SettingsScreen());
         }
         private void ExportGameData()
         {

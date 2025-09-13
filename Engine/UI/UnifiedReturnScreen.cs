@@ -63,6 +63,8 @@
 
         public override void HandleInput(ConsoleKeyInfo keyInfo)
         {
+            HandleCommonInput(keyInfo);
+
             switch (keyInfo.Key)
             {
                 case ConsoleKey.W:

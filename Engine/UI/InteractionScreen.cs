@@ -179,6 +179,8 @@ namespace Engine.UI
 
         public override void HandleInput(ConsoleKeyInfo keyInfo)
         {
+            
+
             // Если нет сущностей — разрешаем выйти по Esc/Q/Enter (Enter — для удобства),
             // но возвращаемся, чтобы не выполнять навигацию по пустому списку.
             if (_interactableEntities == null || _interactableEntities.Count == 0)
@@ -200,6 +202,7 @@ namespace Engine.UI
                 }
                 return;
             }
+
 
             switch (keyInfo.Key)
             {
@@ -223,6 +226,8 @@ namespace Engine.UI
                     ScreenManager.PopScreen();
                     break;
             }
+
+
         }
 
         private void InteractWithSelectedEntity()

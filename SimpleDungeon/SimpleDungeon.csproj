@@ -16,7 +16,20 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="NAudio" Version="2.2.1" />
 	  <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="Assets\Music\**\*.*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Content Include="Assets\Sounds\**\*.*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
 	</ItemGroup>
 
 	<Target Name="BackupGameData" AfterTargets="Build">

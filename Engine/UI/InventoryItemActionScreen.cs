@@ -433,62 +433,6 @@ namespace Engine.UI
                 y++;
             }
 
-            //// ПРАВАЯ ЧАСТЬ - ИНФОРМАЦИЯ О ПРЕДМЕТЕ
-            //y = 4;
-            //int rightX = dividerX + 2;
-
-            //// Заголовок ПРЕДМЕТ
-            //_renderer.Write(rightX, y, "=== ПРЕДМЕТ ===", ConsoleColor.DarkCyan);
-            //y += 1;
-
-            //// Название предмета
-            //_renderer.Write(rightX, y, _itemName, ConsoleColor.White);
-            //y++;
-
-            //// Статус экипировки
-            //if (_isAlreadyEquipped)
-            //{
-            //    _renderer.Write(rightX, y, "Статус: Экипировано", ConsoleColor.Green);
-            //    y++;
-            //}
-
-            //// Тип предмета
-            //string itemType = GetItemTypeText();
-            //_renderer.Write(rightX, y, $"Тип: {itemType}", ConsoleColor.Cyan);
-            //y++;
-
-            //// Количество (для предметов инвентаря)
-            //if (_selectedItem is InventoryItem inventoryItem)
-            //{
-            //    _renderer.Write(rightX, y, $"Количество: {inventoryItem.Quantity}");
-            //    y++;
-            //}
-
-            //// Цена
-            //int price = GetItemPrice();
-            //if (price > 0)
-            //{
-            //    _renderer.Write(rightX, y, $"Цена: {price} золота", ConsoleColor.Yellow);
-            //    y++;
-            //}
-
-            //// Разделитель перед описанием
-            //y++;
-            //_renderer.Write(rightX, y, "=== ОПИСАНИЕ ===", ConsoleColor.DarkGray);
-            //y += 2;
-
-            //// Описание предмета
-            //var descriptionLines = WrapText(_itemDescription, Console.WindowWidth - rightX - 2);
-            //foreach (var line in descriptionLines)
-            //{
-            //    if (y >= Console.WindowHeight - 4) break;
-
-            //    _renderer.Write(rightX, y, line, ConsoleColor.Gray);
-            //    y++;
-            //}
-
-            //// Вертикальный разделитель между секциями
-            //RenderVerticalDivider(dividerX);
         }
 
         private void RenderVerticalDivider(int x)
@@ -538,6 +482,8 @@ namespace Engine.UI
 
         public override void HandleInput(ConsoleKeyInfo keyInfo)
         {
+            HandleCommonInput(keyInfo);
+
             switch (keyInfo.Key)
             {
                 case ConsoleKey.W:

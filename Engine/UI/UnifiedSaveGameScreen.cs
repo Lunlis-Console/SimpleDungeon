@@ -164,6 +164,8 @@ namespace Engine.UI
 
         private void HandleNameInput(ConsoleKeyInfo keyInfo)
         {
+            HandleCommonInput(keyInfo);
+
             switch (keyInfo.Key)
             {
                 case ConsoleKey.Enter:

@@ -51,6 +51,8 @@ namespace Engine.UI
 
         public override void HandleInput(ConsoleKeyInfo keyInfo)
         {
+            HandleCommonInput(keyInfo);
+
             if (_saves.Count == 0) return;
 
             switch (keyInfo.Key)

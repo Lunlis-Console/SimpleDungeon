@@ -187,6 +187,8 @@ namespace Engine.UI
 
         public override void HandleInput(ConsoleKeyInfo keyInfo)
         {
+            HandleCommonInput(keyInfo);
+
             var options = _currentNode?.Options ?? new List<DialogueSystem.DialogueOption>();
             var availableOptions = options.Where(o => o.IsAvailable).ToList();
 

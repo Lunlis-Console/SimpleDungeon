@@ -153,6 +153,8 @@ namespace Engine.UI
 
         public override void HandleInput(ConsoleKeyInfo keyInfo)
         {
+            HandleCommonInput(keyInfo);
+
             var quests = _showActiveQuests ?
                 _player.QuestLog.ActiveQuests :
                 _player.QuestLog.CompletedQuests;

@@ -155,6 +155,8 @@ namespace Engine.UI
 
         public override void HandleInput(ConsoleKeyInfo keyInfo)
         {
+            HandleCommonInput(keyInfo);
+
             _systemMessage = ""; // Сбрасываем сообщение при новом вводе
 
             switch (keyInfo.Key)

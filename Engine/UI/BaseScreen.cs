@@ -1,4 +1,5 @@
-﻿using Engine.Core;
+﻿using Engine.Audio;
+using Engine.Core;
 using System.Linq;
 using System.Text;
 using static Engine.Core.MessageSystem;
@@ -80,6 +81,32 @@ namespace Engine.UI
         public abstract void Render();
 
         public abstract void HandleInput(ConsoleKeyInfo keyInfo);
+
+        protected virtual bool HandleCommonInput(ConsoleKeyInfo keyInfo)
+        {
+            switch (keyInfo.Key)
+            {
+                case ConsoleKey.W:
+                case ConsoleKey.UpArrow:
+                case ConsoleKey.S:
+                case ConsoleKey.DownArrow:
+                    // звук перемещения
+                    SoundSystem.Play("Assets/Sounds/menu_move.wav", 0.5f);
+                    return true;
+
+                case ConsoleKey.Enter:
+                case ConsoleKey.E:
+                    // звук выбора
+                    SoundSystem.Play("Assets/Sounds/menu_select.wav", 0.7f);
+                    return true;
+
+                case ConsoleKey.Escape:
+                    // можно тоже добавить звук отмены, если хочешь:
+                    // SoundSystem.Play("Assets/Sounds/menu_back.wav", 0.5f);
+                    return true;
+            }
+            return false;
+        }
 
         protected List<string> WrapText(string text, int maxWidth)
         {
