@@ -3,6 +3,7 @@ using Engine.Combat;
 using Engine.Data;
 using Engine.Entities;
 using Engine.Factories;
+using Engine.Quests;
 using Engine.Saving;
 using Engine.World;
 using System.Text;
@@ -19,6 +20,7 @@ namespace Engine.Core
         private static IGameFactory _gameFactory;
         private static EnhancedBufferedRenderer _bufferedRenderer;
         private static CombatRenderer _combatRenderer;
+        private static QuestManager _questManager;
         public static Player CurrentPlayer { get; set; }
 
         public static EnhancedBufferedRenderer BufferedRenderer
@@ -160,6 +162,30 @@ namespace Engine.Core
         {
             get => _gameFactory ??= new GameFactory(WorldRepository);
             set => _gameFactory = value;
+        }
+
+        public static QuestManager QuestManager
+        {
+            get
+            {
+                if (_questManager == null && CurrentPlayer != null)
+                {
+                    _questManager = new QuestManager(WorldRepository, CurrentPlayer.QuestLog);
+                    // Загружаем квесты из game_data.json
+                    var gameData = WorldRepository.GetGameData();
+                    if (gameData?.Quests != null)
+                    {
+                        foreach (var quest in gameData.Quests)
+                        {
+                            _questManager.GetAllQuests().Add(quest);
+                            CurrentPlayer.QuestLog.AddAvailableQuest(quest);
+                        }
+                        DebugConsole.Log($"Загружено {gameData.Quests.Count} квестов из game_data.json");
+                    }
+                }
+                return _questManager;
+            }
+            set => _questManager = value;
         }
 
 

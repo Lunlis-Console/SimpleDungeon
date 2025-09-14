@@ -28,7 +28,7 @@ namespace Engine.World
         private Dictionary<int, Item> _items;
         private Dictionary<int, Monster> _monsters;
         private Dictionary<int, Location> _locations;
-        private Dictionary<int, Quest> _quests;
+        private Dictionary<int, Engine.Quests.EnhancedQuest> _quests;
         private Dictionary<int, NPC> _npcs;
         private Dictionary<int, Title> _titles;
 
@@ -274,7 +274,7 @@ namespace Engine.World
             _items = new Dictionary<int, Item>();
             _monsters = new Dictionary<int, Monster>();
             _locations = new Dictionary<int, Location>();
-            _quests = new Dictionary<int, Quest>();
+            _quests = new Dictionary<int, Engine.Quests.EnhancedQuest>();
             _npcs = new Dictionary<int, NPC>();
             _titles = new Dictionary<int, Title>();
 
@@ -313,7 +313,7 @@ namespace Engine.World
                 _quests = _gameData.Quests
                     .GroupBy(m => m.ID)
                     .Select(g => g.First())
-                    .ToDictionary(m => m.ID, m => CreateQuestFromData(m));
+                    .ToDictionary(m => m.ID, m => m);
             }
 
             DebugConsole.Log($"Загружено: {_npcs.Count} NPC, {_quests.Count} квестов");
@@ -522,11 +522,7 @@ namespace Engine.World
             {
                 foreach (var questId in npcData.QuestsToGive)
                 {
-                    var quest = QuestByID(questId);
-                    if (quest != null)
-                    {
-                        npc.QuestsToGive.Add(quest);
-                    }
+                    npc.QuestsToGive.Add(questId);
                 }
             }
 
@@ -634,84 +630,6 @@ namespace Engine.World
         }
 
 
-        private Quest CreateQuestFromData(QuestData questData)
-        {
-            if (questData == null) return null;
-
-            NPC questGiver = null;
-            if (questData.QuestGiverID.HasValue)
-            {
-                questGiver = NPCByID(questData.QuestGiverID.Value);
-            }
-
-            Quest quest;
-
-            if (string.Equals(questData.QuestType, "Collectible", StringComparison.OrdinalIgnoreCase))
-            {
-                quest = new CollectibleQuest(
-                    questData.ID,
-                    questData.Name,
-                    questData.Description,
-                    questData.RewardEXP,
-                    questData.RewardGold,
-                    questGiver,
-                    new List<QuestItem>(),
-                    this
-                );
-
-                var collectibleQuest = (CollectibleQuest)quest;
-                if (questData.SpawnLocations != null)
-                {
-                    foreach (var spawnData in questData.SpawnLocations)
-                    {
-                        collectibleQuest.SpawnLocations.Add(new CollectibleSpawn(
-                            spawnData.LocationID,
-                            spawnData.ItemID,
-                            spawnData.Quantity
-                        ));
-                    }
-                }
-            }
-            else
-            {
-                quest = new Quest(
-                    questData.ID,
-                    questData.Name,
-                    questData.Description,
-                    questData.RewardEXP,
-                    questData.RewardGold,
-                    questGiver
-                );
-            }
-
-            // Добавление квестовых предметов
-            if (questData.QuestItems != null)
-            {
-                foreach (var questItemData in questData.QuestItems)
-                {
-                    var item = ItemByID(questItemData.ItemID);
-                    if (item != null)
-                    {
-                        quest.QuestItems.Add(new QuestItem(item, questItemData.Quantity));
-                    }
-                }
-            }
-
-            // Добавление наград
-            if (questData.RewardItems != null)
-            {
-                foreach (var rewardItemData in questData.RewardItems)
-                {
-                    var item = ItemByID(rewardItemData.ItemID);
-                    if (item != null)
-                    {
-                        quest.RewardItems.Add(new InventoryItem(item, rewardItemData.Quantity));
-                    }
-                }
-            }
-
-            return quest;
-        }
 
         private Title CreateTitleFromData(TitleData titleData)
         {
@@ -838,14 +756,14 @@ namespace Engine.World
         public Item ItemByID(int id) => _items != null && _items.ContainsKey(id) ? _items[id] : null;
         public Monster MonsterByID(int id) => _monsters != null && _monsters.ContainsKey(id) ? _monsters[id] : null;
         public Location LocationByID(int id) => _locations != null && _locations.ContainsKey(id) ? _locations[id] : null;
-        public Quest QuestByID(int id) => _quests != null && _quests.ContainsKey(id) ? _quests[id] : null;
+        public Engine.Quests.EnhancedQuest QuestByID(int id) => _quests != null && _quests.ContainsKey(id) ? _quests[id] : null;
         public NPC NPCByID(int id) => _npcs != null && _npcs.ContainsKey(id) ? _npcs[id] : null;
         public Title TitleByID(int id) => _titles != null && _titles.ContainsKey(id) ? _titles[id] : null;
 
         public List<Item> GetAllItems() => _items != null ? _items.Values.ToList() : new List<Item>();
         public List<Monster> GetAllMonsters() => _monsters != null ? _monsters.Values.ToList() : new List<Monster>();
         public List<Location> GetAllLocations() => _locations != null ? _locations.Values.ToList() : new List<Location>();
-        public List<Quest> GetAllQuests() => _quests != null ? _quests.Values.ToList() : new List<Quest>();
+        public List<Engine.Quests.EnhancedQuest> GetAllQuests() => _quests != null ? _quests.Values.ToList() : new List<Engine.Quests.EnhancedQuest>();
         public List<NPC> GetAllNPCs() => _npcs != null ? _npcs.Values.ToList() : new List<NPC>();
         public List<Title> GetAllTitles() => _titles != null ? _titles.Values.ToList() : new List<Title>();
 

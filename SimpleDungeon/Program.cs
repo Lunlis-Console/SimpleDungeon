@@ -16,7 +16,7 @@ namespace SimpleDungeon
 
             
             Console.Title = "Simple Dungeon";
-            Console.CursorVisible = false;
+            // Console.CursorVisible = false;
 
             try
             {
@@ -39,7 +39,7 @@ namespace SimpleDungeon
             {
                 DebugConsole.Log($"Fatal error: {ex.Message}");
                 DebugConsole.Log($"Stack trace: {ex.StackTrace}");
-                Console.ReadKey();
+                // Console.ReadKey();
             }
             finally
             {

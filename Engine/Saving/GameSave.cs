@@ -193,7 +193,7 @@ namespace Engine.Saving
             // Загружаем квесты
             foreach (int questID in save.ActiveQuests)
             {
-                Quest quest = worldRepository.QuestByID(questID);
+                var quest = worldRepository.QuestByID(questID);
                 if (quest != null)
                 {
                     player.QuestLog.ActiveQuests.Add(quest);
@@ -202,7 +202,7 @@ namespace Engine.Saving
 
             foreach (int questID in save.CompletedQuests)
             {
-                Quest quest = worldRepository.QuestByID(questID);
+                var quest = worldRepository.QuestByID(questID);
                 if (quest != null)
                 {
                     player.QuestLog.CompletedQuests.Add(quest);

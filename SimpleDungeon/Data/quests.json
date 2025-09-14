@@ -1,0 +1,93 @@
+{
+  "quests": [
+    {
+      "id": 1,
+      "name": "Первое задание",
+      "description": "Убей 3 крыс в подвале",
+      "detailedDescription": "Старый торговец просит тебя очистить подвал от крыс. Убей 3 крыс и вернись за наградой.",
+      "questGiverId": 1,
+      "conditions": [
+        {
+          "id": 1,
+          "description": "Убить крыс",
+          "requiredAmount": 3,
+          "currentProgress": 0,
+          "monsterID": 1
+        }
+      ],
+      "rewards": {
+        "experience": 100,
+        "gold": 50,
+        "items": [
+          {
+            "itemId": 1,
+            "quantity": 1
+          }
+        ]
+      },
+      "prerequisites": [],
+      "dialogueNodes": {
+        "offer": "quest_1_offer",
+        "inProgress": "quest_1_progress",
+        "readyToComplete": "quest_1_complete",
+        "completed": "quest_1_done"
+      }
+    },
+    {
+      "id": 2,
+      "name": "Сбор трав",
+      "description": "Собери 5 лечебных трав",
+      "detailedDescription": "Аптекарь нуждается в лечебных травах. Собери 5 штук и принеси ему.",
+      "questGiverId": 2,
+      "conditions": [
+        {
+          "id": 2,
+          "description": "Собрать лечебные травы",
+          "requiredAmount": 5,
+          "currentProgress": 0,
+          "itemID": 2
+        }
+      ],
+      "rewards": {
+        "experience": 75,
+        "gold": 30,
+        "items": []
+      },
+      "prerequisites": [1],
+      "dialogueNodes": {
+        "offer": "quest_2_offer",
+        "inProgress": "quest_2_progress",
+        "readyToComplete": "quest_2_complete",
+        "completed": "quest_2_done"
+      }
+    },
+    {
+      "id": 3,
+      "name": "Исследование пещеры",
+      "description": "Посети пещеру дракона",
+      "detailedDescription": "Мудрец просит тебя исследовать пещеру дракона. Просто дойди до неё и вернись.",
+      "questGiverId": 3,
+      "conditions": [
+        {
+          "id": 3,
+          "description": "Посетить пещеру дракона",
+          "requiredAmount": 1,
+          "currentProgress": 0,
+          "locationID": 5
+        }
+      ],
+      "rewards": {
+        "experience": 200,
+        "gold": 100,
+        "items": []
+      },
+      "prerequisites": [],
+      "dialogueNodes": {
+        "offer": "quest_3_offer",
+        "inProgress": "quest_3_progress",
+        "readyToComplete": "quest_3_complete",
+        "completed": "quest_3_done"
+      }
+    }
+  ]
+}

@@ -12,7 +12,7 @@ namespace Engine.Entities
         public int ID { get; set; }
         public string Name { get; set; }
         public string Greeting { get; set; }
-        public List<Quest> QuestsToGive { get; set; }
+        public List<int> QuestsToGive { get; set; }
         public virtual List<InventoryItem> ItemsForSale { get; set; }
         public virtual int Gold { get; set; }
         public virtual int BuyPriceModifier => 100; // 100% по умолчанию
@@ -27,7 +27,7 @@ namespace Engine.Entities
             ID = id;
             Name = name;
             Greeting = greeting;
-            QuestsToGive = new List<Quest>();
+            QuestsToGive = new List<int>();
             _worldRepository = worldRepository;
         }
 
@@ -111,16 +111,15 @@ namespace Engine.Entities
         }
         private bool HasAvailableQuests(Player player)
         {
-            return QuestsToGive?.Any(q =>
-                !player.QuestLog.ActiveQuests.Contains(q) &&
-                !player.QuestLog.CompletedQuests.Contains(q)) ?? false;
+            return QuestsToGive?.Any(questID =>
+                !player.QuestLog.ActiveQuests.Any(q => q.ID == questID) &&
+                !player.QuestLog.CompletedQuests.Any(q => q.ID == questID)) ?? false;
         }
 
         private bool HasCompletableQuests(Player player)
         {
-            return QuestsToGive?.Any(q =>
-                player.QuestLog.ActiveQuests.Contains(q) &&
-                q.CheckCompletion(player)) ?? false;
+            return QuestsToGive?.Any(questID =>
+                player.QuestLog.ActiveQuests.Any(q => q.ID == questID && q.State == QuestState.ReadyToComplete)) ?? false;
         }
 
         protected virtual void HaveConversation(Player player)
@@ -137,138 +136,16 @@ namespace Engine.Entities
         }
 
 
-        protected virtual void ShowQuestProgress(Player player, Quest quest)
+        public void AddQuest(int questID)
         {
-            Console.Clear();
-            Console.WriteLine($"======{quest.Name}======");
-            Console.WriteLine($"{quest.Description}");
-
-            // Добавляем информацию о квестодателе
-            if (quest.QuestGiver != null)
-            {
-                Console.WriteLine($"\nКвестодатель: {quest.QuestGiver.Name}");
-            }
-
-            Console.WriteLine("\nПрогресс:");
-            foreach (var questItem in quest.QuestItems)
-            {
-                var playerItem = player.Inventory.Items.Find(ii => ii.Details.ID == questItem.Details.ID);
-                int currentQuantity = playerItem?.Quantity ?? 0;
-                string status = currentQuantity >= questItem.Quantity ? "✓" : $"{currentQuantity}/{questItem.Quantity}";
-
-                Console.WriteLine($"• {questItem.Details.Name}: {status}");
-            }
-
-            Console.WriteLine($"\nНаграда: {quest.RewardEXP} опыта, {quest.RewardGold} золота");
-
-            if (quest.RewardItems.Count > 0)
-            {
-                Console.WriteLine("Предметы:");
-                foreach (var item in quest.RewardItems)
-                {
-                    Console.WriteLine($"• {item.Details.Name} x{item.Quantity}");
-                }
-            }
-
-            Console.WriteLine("\nНажмите любую клавишу чтобы вернуться...");
-            Console.ReadKey();
-        }
-
-        protected virtual void OfferQuest(Player player, Quest quest)
-        {
-            DebugConsole.Log($"Offering quest: {quest.Name}");
-
-            // Проверяем, не взят ли уже этот квест у другого NPC
-            if (player.QuestLog.ActiveQuests.Any(q => q.ID == quest.ID) ||
-                player.QuestLog.CompletedQuests.Any(q => q.ID == quest.ID))
-            {
-                DebugConsole.Log($"Quest already taken or completed!");
-                Console.WriteLine($"{Name}: Извини, но я слышал, ты уже взял это задание у кого-то другого.");
-                Console.WriteLine("\nНажмите любую клавишу чтобы продолжить...");
-                Console.ReadKey();
-                return;
-            }
-
-            var menuOptions = new List<MenuOption>
-    {
-        new MenuOption("Принять квест", () =>
-        {
-            player.QuestLog.AddQuest(quest);
-            Console.WriteLine($"Квест '{quest.Name}' принят!");
-        }),
-        new MenuOption("Отказаться", () =>
-        {
-            Console.WriteLine("Может быть в другой раз...");
-        })
-    };
-
-            // Показываем описание квеста и меню выбора
-            var selectedOption = MenuSystem.SelectFromList(
-                menuOptions,
-                opt => opt.DisplayText,
-                $"======{quest.Name}======\n{quest.Description}\n\nЗадание:\n{GetQuestObjectives(quest)}\n\nНаграда: {quest.RewardEXP} опыта, {quest.RewardGold} золота\n{GetQuestRewards(quest)}",
-                "Клавиши 'W' 'S' для выбора, 'E' для подтверждения"
-            );
-
-            selectedOption?.Action();
-            Console.WriteLine("\nНажмите любую клавишу чтобы продолжить...");
-            Console.ReadKey();
-        }
-        // Вспомогательные методы для форматирования
-        private string GetQuestObjectives(Quest quest)
-        {
-            return string.Join("\n", quest.QuestItems.Select(item => $"• {item.Details.Name}: {item.Quantity} шт."));
-        }
-
-        private string GetQuestRewards(Quest quest)
-        {
-            if (quest.RewardItems.Count == 0) return "";
-            return "Предметы:\n" + string.Join("\n", quest.RewardItems.Select(item => $"• {item.Details.Name} x{item.Quantity}"));
-        }
-
-        protected virtual void CompleteQuest(Player player, Quest quest)
-        {
-            Console.Clear();
-            Console.WriteLine($"Поздравляю! Ты выполнил квест '{quest.Name}'!");
-            Console.WriteLine("\nНаграда:");
-            Console.WriteLine($"• {quest.RewardEXP} опыта");
-            Console.WriteLine($"• {quest.RewardGold} золота");
-
-            foreach (var item in quest.RewardItems)
-            {
-                Console.WriteLine($"• {item.Details.Name} x{item.Quantity}");
-            }
-
-            // Используем MenuSystem для подтверждения
-            bool acceptReward = MenuSystem.ConfirmAction("Получить награду?");
-
-            if (acceptReward)
-            {
-                player.QuestLog.CompleteQuest(quest, player);
-                Console.WriteLine("Награда получена!");
-                player.CheckLevelUp();
-            }
-
-            Console.WriteLine("\nНажмите любую клавишу чтобы продолжить...");
-            Console.ReadKey();
-        }
-
-        public void AddQuest(Quest quest)
-        {
-            if (quest == null)
-            {
-                MessageSystem.AddMessage("Ошибка: попытка добавить null квест");
-                return;
-            }
-
             if (QuestsToGive == null)
             {
-                QuestsToGive = new List<Quest>();
+                QuestsToGive = new List<int>();
             }
 
-            if (!QuestsToGive.Contains(quest))
+            if (!QuestsToGive.Contains(questID))
             {
-                QuestsToGive.Add(quest);
+                QuestsToGive.Add(questID);
             }
         }
 
@@ -320,12 +197,15 @@ namespace Engine.Entities
                 Console.WriteLine();
                 Console.WriteLine("Возможные задания:");
 
-                foreach (var quest in QuestsToGive)
+                foreach (var questID in QuestsToGive)
                 {
+                    var quest = player.QuestLog.GetQuest(questID);
+                    if (quest == null) continue;
+
                     string status = "❓"; // Доступен
-                    if (player.QuestLog.ActiveQuests.Contains(quest))
-                        status = quest.CheckCompletion(player) ? "✅" : "⏳";
-                    else if (player.QuestLog.CompletedQuests.Contains(quest))
+                    if (player.QuestLog.ActiveQuests.Any(q => q.ID == questID))
+                        status = quest.State == QuestState.ReadyToComplete ? "✅" : "⏳";
+                    else if (player.QuestLog.CompletedQuests.Any(q => q.ID == questID))
                         status = "✔️";
 
                     Console.WriteLine($" {status} {quest.Name}");

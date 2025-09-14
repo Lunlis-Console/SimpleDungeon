@@ -19,7 +19,7 @@ namespace Engine.Data
         public List<LocationData> Locations { get; set; } = new List<LocationData>();
 
         [JsonPropertyName("Quests")]
-        public List<QuestData> Quests { get; set; } = new List<QuestData>();
+        public List<Engine.Quests.EnhancedQuest> Quests { get; set; } = new List<Engine.Quests.EnhancedQuest>();
 
         [JsonPropertyName("NPCs")]
         public List<NPCData> NPCs { get; set; } = new List<NPCData>();
@@ -104,25 +104,6 @@ namespace Engine.Data
         public int Count { get; set; } = 1; // по умолчанию 1
     }
 
-    public class QuestData
-    {
-        public int ID { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-        public int RewardEXP { get; set; }
-        public int RewardGold { get; set; }
-        public int? QuestGiverID { get; set; }
-        public List<QuestItemData> QuestItems { get; set; } = new List<QuestItemData>();
-        public List<InventoryItemData> RewardItems { get; set; } = new List<InventoryItemData>();
-        public string QuestType { get; set; } = string.Empty;
-        public List<CollectibleSpawnData> SpawnLocations { get; set; } = new List<CollectibleSpawnData>();
-    }
-
-    public class QuestItemData
-    {
-        public int ItemID { get; set; }
-        public int Quantity { get; set; }
-    }
 
     public class NPCData
     {

@@ -48,11 +48,11 @@ namespace Engine.Dialogue
 
     public class DialogueAction
     {
-        // e.g. "StartTrade", "GiveGold", "StartQuest", "GiveItem", "SetFlag"
+        // e.g. "StartTrade", "GiveGold", "StartQuest", "GiveItem", "SetFlag", "CompleteQuest"
         [JsonProperty("type", NullValueHandling = NullValueHandling.Ignore)]
         public string Type { get; set; }
 
-        // string parameter; can be "50" for gold or "itemId:3" etc.
+        // string parameter; can be "50" for gold or "itemId:3" or "questId:1" etc.
         [JsonProperty("param", NullValueHandling = NullValueHandling.Ignore)]
         public string Param { get; set; }
     }

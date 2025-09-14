@@ -342,32 +342,36 @@ namespace Engine.UI
             var menuOptions = new List<MenuOption>();
 
             // Доступные квесты
-            var availableQuests = npc.QuestsToGive?
-                .Where(q => !player.QuestLog.ActiveQuests.Contains(q) &&
-                           !player.QuestLog.CompletedQuests.Contains(q))
-                .ToList() ?? new List<Quest>();
-
-            foreach (var quest in availableQuests)
+            if (npc.QuestsToGive != null)
             {
-                menuOptions.Add(new MenuOption($"Принять: {quest.Name}", () =>
+                foreach (var questID in npc.QuestsToGive)
                 {
-                    player.QuestLog.AddQuest(quest);
-                    MessageSystem.AddMessage($"Квест принят: {quest.Name}");
-                }));
+                    var quest = player.QuestLog.GetQuest(questID);
+                    if (quest == null) continue;
+
+                    if (!player.QuestLog.ActiveQuests.Any(q => q.ID == questID) &&
+                        !player.QuestLog.CompletedQuests.Any(q => q.ID == questID))
+                    {
+                        menuOptions.Add(new MenuOption($"Принять: {quest.Name}", () =>
+                        {
+                            player.StartQuest(questID);
+                            MessageSystem.AddMessage($"Квест принят: {quest.Name}");
+                        }));
+                    }
+                }
             }
 
             // Квесты для сдачи
-            var completableQuests = player.QuestLog.ActiveQuests?
-                .Where(q => q.CheckCompletion(player))
-                .ToList() ?? new List<Quest>();
-
-            foreach (var quest in completableQuests)
+            foreach (var quest in player.QuestLog.ActiveQuests)
             {
-                menuOptions.Add(new MenuOption($"Сдать: {quest.Name} ✓", () =>
+                if (quest.State == QuestState.ReadyToComplete)
                 {
-                    player.QuestLog.CompleteQuest(quest, player);
-                    MessageSystem.AddMessage($"Квест завершен: {quest.Name}");
-                }));
+                    menuOptions.Add(new MenuOption($"Сдать: {quest.Name} ✓", () =>
+                    {
+                        player.CompleteQuest(quest.ID);
+                        MessageSystem.AddMessage($"Квест завершен: {quest.Name}");
+                    }));
+                }
             }
 
             menuOptions.Add(new MenuOption("Назад", () => { }));

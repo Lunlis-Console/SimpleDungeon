@@ -261,6 +261,14 @@ namespace JsonEditor
         private void AddToList(string listName)
         {
             if (!_lists.TryGetValue(listName, out var info)) return;
+            
+            // Специальная обработка для квестов
+            if (listName.ToLower() == "quests")
+            {
+                AddEnhancedQuest();
+                return;
+            }
+            
             var elemType = info.elementType;
             object newElem = null;
             try
@@ -494,7 +502,7 @@ namespace JsonEditor
                     break;
 
                 case "quests":
-                    EditQuest(selectedItem as QuestData);
+                    EditEnhancedQuest(selectedItem as Engine.Quests.EnhancedQuest);
                     break;
 
                 case "dialogues":
@@ -571,17 +579,33 @@ namespace JsonEditor
             }
         }
 
-        private void EditQuest(QuestData quest)
+        private void EditEnhancedQuest(Engine.Quests.EnhancedQuest quest)
         {
             if (quest == null) return;
 
-            using (var form = new EditQuestForm(_gameData, quest))
+            using (var form = new EditEnhancedQuestForm(_gameData, quest))
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
                     var editedQuest = form.GetQuest();
                     CopyProperties(editedQuest, quest);
                     RefreshCurrentGrid();
+                }
+            }
+        }
+
+        private void AddEnhancedQuest()
+        {
+            var newQuest = new Engine.Quests.EnhancedQuest();
+            
+            using (var form = new EditEnhancedQuestForm(_gameData, newQuest))
+            {
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    var quest = form.GetQuest();
+                    _gameData.Quests.Add(quest);
+                    RefreshCurrentGrid();
+                    _statusLabel.Text = "Добавлен новый квест";
                 }
             }
         }

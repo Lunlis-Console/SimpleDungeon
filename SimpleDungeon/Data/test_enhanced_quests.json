@@ -1,0 +1,38 @@
+{
+  "Items": [],
+  "Monsters": [],
+  "Locations": [],
+  "Quests": [
+    {
+      "id": 1,
+      "name": "Тестовый квест",
+      "description": "Простой тестовый квест",
+      "detailedDescription": "Это тестовый квест для проверки новой системы",
+      "questGiverId": 1,
+      "conditions": [
+        {
+          "id": 1,
+          "description": "Собрать 5 яблок",
+          "requiredAmount": 5,
+          "currentProgress": 0,
+          "itemID": 1
+        }
+      ],
+      "rewards": {
+        "experience": 100,
+        "gold": 50,
+        "items": []
+      },
+      "prerequisites": [],
+      "dialogueNodes": {
+        "offer": "quest_1_offer",
+        "inProgress": "quest_1_progress",
+        "readyToComplete": "quest_1_complete",
+        "completed": "quest_1_done"
+      }
+    }
+  ],
+  "NPCs": [],
+  "Titles": [],
+  "Dialogues": []
+}

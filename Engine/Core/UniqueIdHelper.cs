@@ -97,42 +97,23 @@ namespace Engine.World
             {
                 foreach (var quest in data.Quests)
                 {
-                    // Проверка предметов для выполнения квеста
-                    if (quest.RewardItems != null)
-                    {
-                        var seen = new HashSet<int>();
-                        var toRemove = new List<InventoryItemData>();
-
-                        foreach (var item in quest.RewardItems)
-                        {
-                            if (!seen.Add(item.ItemID))
-                            {
-                                DebugConsole.Log($"[AutoFixInternalDuplicates] Удалён дубль ItemID={item.ItemID} в ItemsToComplete квеста {quest.ID} \"{quest.Name}\"");
-                                toRemove.Add(item);
-                            }
-                        }
-
-                        foreach (var r in toRemove)
-                            quest.RewardItems.Remove(r);
-                    }
-
                     // Проверка наград
-                    if (quest.RewardItems != null)
+                    if (quest.Rewards?.Items != null)
                     {
                         var seen = new HashSet<int>();
                         var toRemove = new List<InventoryItemData>();
 
-                        foreach (var reward in quest.RewardItems)
+                        foreach (var reward in quest.Rewards.Items)
                         {
                             if (!seen.Add(reward.ItemID))
                             {
-                                DebugConsole.Log($"[AutoFixInternalDuplicates] Удалён дубль ItemID={reward.ItemID} в RewardItems квеста {quest.ID} \"{quest.Name}\"");
+                                DebugConsole.Log($"[AutoFixInternalDuplicates] Удалён дубль ItemID={reward.ItemID} в Rewards.Items квеста {quest.ID} \"{quest.Name}\"");
                                 toRemove.Add(reward);
                             }
                         }
 
                         foreach (var r in toRemove)
-                            quest.RewardItems.Remove(r);
+                            quest.Rewards.Items.Remove(r);
                     }
                 }
             }
@@ -161,15 +142,15 @@ namespace Engine.World
                     }
                 }
 
-                if (quest.RewardItems != null)
+                if (quest.Rewards?.Items != null)
                 {
-                    var dupRewards = quest.RewardItems
+                    var dupRewards = quest.Rewards.Items
                         .GroupBy(r => r.ItemID)
                         .Where(g => g.Count() > 1);
 
                     foreach (var dup in dupRewards)
                     {
-                        string msg = $"Quest {quest.ID} \"{quest.Name}\" содержит дубликаты ItemID={dup.Key} в RewardItems (count={dup.Count()})";
+                        string msg = $"Quest {quest.ID} \"{quest.Name}\" содержит дубликаты ItemID={dup.Key} в Rewards.Items (count={dup.Count()})";
                         errors.Add(msg);
                         DebugConsole.Log("[ValidateUniqueIds] " + msg);
                     }

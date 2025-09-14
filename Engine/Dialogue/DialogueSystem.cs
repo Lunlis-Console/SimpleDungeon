@@ -1226,16 +1226,13 @@ namespace Engine.Dialogue
                 if (player == null || questObj == null) return false;
                 try
                 {
-                    var qlogProp = player.GetType().GetProperty("QuestLog", BindingFlags.Public | BindingFlags.Instance);
-                    var qlog = qlogProp?.GetValue(player);
-                    if (qlog != null)
+                    // Получаем ID квеста из объекта
+                    var idProperty = questObj.GetType().GetProperty("ID");
+                    if (idProperty != null)
                     {
-                        var addMethod = qlog.GetType().GetMethod("AddQuest", BindingFlags.Public | BindingFlags.Instance);
-                        if (addMethod != null)
-                        {
-                            addMethod.Invoke(qlog, new object[] { questObj });
-                            return true;
-                        }
+                        var questID = (int)idProperty.GetValue(questObj);
+                        player.StartQuest(questID);
+                        return true;
                     }
                 }
                 catch (Exception ex)
@@ -1602,7 +1599,7 @@ namespace Engine.Dialogue
                                 var quest = JsonWorldRepository.Instance?.QuestByID(qid);
                                 if (quest != null)
                                 {
-                                    player.AddQuest(quest);
+                                    player.StartQuest(quest.ID);
                                     DebugConsole.Log($"DialogueAction: started quest id={qid}");
                                 }
                             }
@@ -1614,7 +1611,7 @@ namespace Engine.Dialogue
                                             || q.ID.ToString() == parameter);
                                 if (quest != null)
                                 {
-                                    player.AddQuest(quest);
+                                    player.StartQuest(quest.ID);
                                     DebugConsole.Log($"DialogueAction: started quest '{parameter}'");
                                 }
                             }

@@ -149,58 +149,7 @@ namespace Engine.Tools
                 }
 
                 // Экспорт квестов
-                foreach (var quest in worldRepository.GetAllQuests())
-                {
-                    var questData = new QuestData
-                    {
-                        ID = quest.ID,
-                        Name = quest.Name,
-                        Description = quest.Description,
-                        RewardEXP = quest.RewardEXP,
-                        RewardGold = quest.RewardGold,
-                        QuestGiverID = quest.QuestGiver?.ID
-                    };
-
-                    foreach (var questItem in quest.QuestItems)
-                    {
-                        questData.QuestItems.Add(new QuestItemData
-                        {
-                            ItemID = questItem.Details.ID,
-                            Quantity = questItem.Quantity
-                        });
-                    }
-
-                    foreach (var rewardItem in quest.RewardItems)
-                    {
-                        questData.RewardItems.Add(new InventoryItemData
-                        {
-                            ItemID = rewardItem.Details.ID,
-                            Quantity = rewardItem.Quantity
-                        });
-                    }
-
-                    if (quest is CollectibleQuest collectibleQuest)
-                    {
-                        questData.QuestType = "Collectible";
-                        foreach (var spawn in collectibleQuest.SpawnLocations)
-                        {
-                            questData.SpawnLocations.Add(new CollectibleSpawnData
-                            {
-                                LocationID = spawn.LocationID,
-                                ItemID = spawn.ItemID,
-                                Quantity = spawn.Quantity
-                            });
-                        }
-                    }
-                    else
-                    {
-                        questData.QuestType = "Standard";
-                    }
-
-                    gameData.Quests.Add(questData);
-
-                    CheckForDuplicates(gameData.Quests, "Quests");
-                }
+                gameData.Quests = worldRepository.GetAllQuests();
 
                 // Экспорт NPC
                 foreach (var npc in worldRepository.GetAllNPCs())
@@ -212,9 +161,9 @@ namespace Engine.Tools
                         Greeting = npc.Greeting
                     };
 
-                    foreach (var quest in npc.QuestsToGive)
+                    foreach (var questID in npc.QuestsToGive)
                     {
-                        npcData.QuestsToGive.Add(quest.ID);
+                        npcData.QuestsToGive.Add(questID);
                     }
 
                     if (npc.Trader is Merchant merchant)

@@ -133,14 +133,8 @@ namespace Engine.Entities
             // Спавним монстров в новой локации
             newLocation.SpawnMonsters(Level);
 
-            // Проверяем квесты на предметы
-            foreach (var quest in QuestLog.ActiveQuests.OfType<CollectibleQuest>())
-            {
-                if (!quest.IsItemsSpawned)
-                {
-                    quest.SpawnCollectibles();
-                }
-            }
+            // Обновляем прогресс квестов при смене локации
+            QuestLog?.UpdateQuestProgress();
 
             // Очищаем старые сообщения
             MessageSystem.ClearMessages();
@@ -153,14 +147,10 @@ namespace Engine.Entities
         }
 
 
-        // При завершении квеста убираем предметы
-        public void CompleteQuest(Quest quest)
+        // При завершении квеста
+        public void CompleteQuest(int questID)
         {
-            if (quest is CollectibleQuest collectibleQuest)
-            {
-                collectibleQuest.DespawnCollectibles();
-            }
-            // ... остальная логика завершения квеста
+            QuestLog?.CompleteQuest(questID);
         }
         public void MoveNorth()
         {
@@ -338,37 +328,9 @@ namespace Engine.Entities
             Inventory.AddItem(item, quantity);
         }
 
-        public void AddQuest(Quest quest)
+        public void StartQuest(int questID)
         {
-            if (quest == null) return;
-
-            // Попытаемся вызвать метод в QuestLog (AddQuest / StartQuest / AcceptQuest), если он есть
-            try
-            {
-                var t = QuestLog?.GetType();
-                if (t != null)
-                {
-                    var mi = t.GetMethod("AddQuest") ?? t.GetMethod("StartQuest") ?? t.GetMethod("AcceptQuest");
-                    if (mi != null)
-                    {
-                        mi.Invoke(QuestLog, new object[] { quest });
-                        return;
-                    }
-
-                    // если нет методов — попробуем добавить в коллекцию ActiveQuests напрямую
-                    var prop = t.GetProperty("ActiveQuests") ?? t.GetProperty("Quests");
-                    if (prop != null)
-                    {
-                        var coll = prop.GetValue(QuestLog) as System.Collections.IList;
-                        coll?.Add(quest);
-                        return;
-                    }
-                }
-            }
-            catch { }
-
-            // Если не получилось, попробуем логировать и ничего не делать
-            DebugConsole.Log("AddQuest: unable to add quest via QuestLog reflection. Please integrate with your QuestLog API.");
+            QuestLog?.StartQuest(questID);
         }
 
 
@@ -661,45 +623,16 @@ namespace Engine.Entities
 
         // Подстройте имя коллекции: ActiveQuests, CurrentQuests, Quests и т.п.
         // Универсальная проверка: ищет в QuestLog активные квесты через reflection (поддерживает разные реализации QuestLog)
-        public bool HasQuest(string questId)
+        public bool HasQuest(int questID)
         {
-            if (string.IsNullOrWhiteSpace(questId)) return false;
             if (QuestLog == null) return false;
+            return QuestLog.ActiveQuests.Any(q => q.ID == questID);
+        }
 
-            try
-            {
-                // пытаемся получить коллекцию активных квестов из QuestLog
-                var prop = QuestLog.GetType().GetProperty("ActiveQuests") ?? QuestLog.GetType().GetProperty("Quests");
-                if (prop != null)
-                {
-                    var coll = prop.GetValue(QuestLog) as System.Collections.IEnumerable;
-                    if (coll != null)
-                    {
-                        foreach (var q in coll)
-                        {
-                            var idProp = q.GetType().GetProperty("ID") ?? q.GetType().GetProperty("Id");
-                            var nameProp = q.GetType().GetProperty("Name");
-                            if (idProp != null)
-                            {
-                                var idVal = idProp.GetValue(q)?.ToString();
-                                if (idVal == questId) return true;
-                            }
-                            if (nameProp != null)
-                            {
-                                var nameVal = nameProp.GetValue(q) as string;
-                                if (!string.IsNullOrWhiteSpace(nameVal) && string.Equals(nameVal, questId, StringComparison.OrdinalIgnoreCase))
-                                    return true;
-                            }
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                // если что-то пошло не так — считаем, что квеста нет
-            }
-
-            return false;
+        public bool HasQuest(string questName)
+        {
+            if (QuestLog == null) return false;
+            return QuestLog.ActiveQuests.Any(q => q.Name.Equals(questName, StringComparison.OrdinalIgnoreCase));
         }
 
 
