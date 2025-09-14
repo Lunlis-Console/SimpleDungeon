@@ -23,7 +23,7 @@ namespace Engine.UI
             RenderQuestTypesToggle();
             RenderQuestsList();
             RenderSelectedQuestInfo();
-            RenderFooter("W/S - выбор │ A/D - переключить тип │ E - детали │ Q - назад");
+            RenderFooter("W/S - выбор │ Tab - переключить тип │ E - детали │ Q - назад");
         }
 
         private void RenderQuestTypesToggle()
@@ -171,14 +171,8 @@ namespace Engine.UI
                     _selectedIndex = Math.Min(quests.Count - 1, _selectedIndex + 1);
                     break;
 
-                case ConsoleKey.A:
-                case ConsoleKey.LeftArrow:
-                    ToggleQuestType(false);
-                    break;
-
-                case ConsoleKey.D:
-                case ConsoleKey.RightArrow:
-                    ToggleQuestType(true);
+                case ConsoleKey.Tab:
+                    ToggleQuestType();
                     break;
 
                 case ConsoleKey.E:
@@ -194,9 +188,9 @@ namespace Engine.UI
             }
         }
 
-        private void ToggleQuestType(bool showActive)
+        private void ToggleQuestType()
         {
-            _showActiveQuests = showActive;
+            _showActiveQuests = !_showActiveQuests;
             _selectedIndex = 0;
         }
 
