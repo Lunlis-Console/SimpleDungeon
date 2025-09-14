@@ -1,4 +1,5 @@
-﻿using Engine.Entities;
+﻿using Engine.Data;
+using Engine.Entities;
 using Engine.Quests;
 using Engine.Titles;
 
@@ -21,6 +22,9 @@ namespace Engine.World
         List<Engine.Quests.EnhancedQuest> GetAllQuests();
         List<NPC> GetAllNPCs();
         List<Title> GetAllTitles();
+
+        // Новый метод для получения игровых данных
+        GameData GetGameData();
 
         // Метод для инициализации (можно будет убрать позже)
         void Initialize();

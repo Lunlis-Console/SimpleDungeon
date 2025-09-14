@@ -49,7 +49,7 @@ namespace JsonEditor
         private Button btnOk;
         private Button btnCancel;
 
-        private BindingList<QuestCondition> _conditionsBinding;
+        private BindingList<QuestConditionData> _conditionsBinding;
         private BindingList<QuestRewardItem> _rewardItemsBinding;
         private BindingList<int> _prerequisitesBinding;
 
@@ -343,7 +343,7 @@ namespace JsonEditor
             }
 
             // Инициализация условий
-            _conditionsBinding = new BindingList<QuestCondition>(_quest.Conditions ?? new List<QuestCondition>());
+            _conditionsBinding = new BindingList<QuestConditionData>(_quest.Conditions ?? new List<QuestConditionData>());
             lstConditions.DataSource = _conditionsBinding;
             lstConditions.DisplayMember = "Description";
 
@@ -372,22 +372,29 @@ namespace JsonEditor
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
-                    _conditionsBinding.Add(form.QuestCondition);
+                    // Преобразуем QuestCondition в QuestConditionData
+                    var conditionData = ConvertToData(form.QuestCondition);
+                    _conditionsBinding.Add(conditionData);
                 }
             }
         }
 
         private void BtnEditCondition_Click(object sender, EventArgs e)
         {
-            if (lstConditions.SelectedItem is QuestCondition selectedCondition)
+            if (lstConditions.SelectedItem is QuestConditionData selectedCondition)
             {
-                using (var form = new EditQuestConditionForm(_gameData, selectedCondition))
+                // Преобразуем QuestConditionData в QuestCondition для редактирования
+                var condition = selectedCondition.ToQuestCondition();
+
+                using (var form = new EditQuestConditionForm(_gameData, condition))
                 {
                     if (form.ShowDialog(this) == DialogResult.OK)
                     {
+                        // Преобразуем обратно в QuestConditionData
+                        var updatedData = ConvertToData(form.QuestCondition);
                         int index = _conditionsBinding.IndexOf(selectedCondition);
                         _conditionsBinding.RemoveAt(index);
-                        _conditionsBinding.Insert(index, form.QuestCondition);
+                        _conditionsBinding.Insert(index, updatedData);
                     }
                 }
             }
@@ -399,7 +406,7 @@ namespace JsonEditor
 
         private void BtnRemoveCondition_Click(object sender, EventArgs e)
         {
-            if (lstConditions.SelectedItem is QuestCondition selectedCondition)
+            if (lstConditions.SelectedItem is QuestConditionData selectedCondition)
             {
                 if (MessageBox.Show("Удалить это условие?", "Подтверждение",
                     MessageBoxButtons.YesNo) == DialogResult.Yes)
@@ -500,7 +507,7 @@ namespace JsonEditor
             // Награды
             if (_quest.Rewards == null)
                 _quest.Rewards = new QuestRewards();
-            
+
             _quest.Rewards.Gold = (int)nudRewardGold.Value;
             _quest.Rewards.Experience = (int)nudRewardEXP.Value;
             _quest.Rewards.Items = _rewardItemsBinding.ToList();
@@ -514,7 +521,7 @@ namespace JsonEditor
             // Узлы диалогов
             if (_quest.DialogueNodes == null)
                 _quest.DialogueNodes = new QuestDialogueNodes();
-            
+
             _quest.DialogueNodes.OfferNodeID = txtOfferNode.Text.Trim();
             _quest.DialogueNodes.InProgressNodeID = txtInProgressNode.Text.Trim();
             _quest.DialogueNodes.ReadyToCompleteNodeID = txtReadyToCompleteNode.Text.Trim();
@@ -522,6 +529,19 @@ namespace JsonEditor
 
             this.DialogResult = DialogResult.OK;
             this.Close();
+        }
+
+        private QuestConditionData ConvertToData(QuestCondition condition)
+        {
+            return condition switch
+            {
+                CollectItemsCondition collect => new QuestConditionData(collect),
+                KillMonstersCondition kill => new QuestConditionData(kill),
+                VisitLocationCondition visit => new QuestConditionData(visit),
+                TalkToNPCCondition talk => new QuestConditionData(talk),
+                ReachLevelCondition level => new QuestConditionData(level),
+                _ => throw new ArgumentException($"Unknown condition type: {condition.GetType().Name}")
+            };
         }
 
         public EnhancedQuest GetQuest() => _quest;

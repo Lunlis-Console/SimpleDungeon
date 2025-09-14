@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using Engine.Data;
+using Engine.Quests;
+using System.Collections.Generic;
 using System.Linq;
-using Engine.Data;
 
 public static class GameDataValidator
 {
@@ -8,6 +9,7 @@ public static class GameDataValidator
     {
         var errors = new List<string>();
         var itemIds = new HashSet<int>(data.Items?.Select(i => i.ID) ?? Enumerable.Empty<int>());
+
         if (data.Items != null)
         {
             var dup = data.Items.GroupBy(i => i.ID).Where(g => g.Count() > 1).Select(g => g.Key);
@@ -18,9 +20,30 @@ public static class GameDataValidator
         {
             foreach (var q in data.Quests)
             {
-                foreach (var qi in q.QuestItems ?? Enumerable.Empty<QuestItemData>())
+                // Проверяем условия квеста, которые могут требовать предметы
+                foreach (var condition in q.Conditions ?? Enumerable.Empty<QuestConditionData>())
                 {
-                    if (!itemIds.Contains(qi.ItemID)) errors.Add($"Quest {q.ID} references missing Item {qi.ItemID}");
+                    // Проверяем тип условия и соответствующий TargetID
+                    if (condition.Type == "CollectItems")
+                    {
+                        if (!itemIds.Contains(condition.TargetID))
+                            errors.Add($"Quest {q.ID} condition references missing Item {condition.TargetID}");
+                    }
+
+                    // Добавьте проверки для других типов условий, если нужно
+                    if (condition.Type == "KillMonsters")
+                    {
+                        // Проверка существования монстра (если есть данные о монстрах)
+                        // if (!monsterIds.Contains(condition.TargetID))
+                        //     errors.Add($"Quest {q.ID} condition references missing Monster {condition.TargetID}");
+                    }
+                }
+
+                // Также проверяем награды
+                foreach (var rewardItem in q.Rewards?.Items ?? Enumerable.Empty<QuestRewardItem>())
+                {
+                    if (!itemIds.Contains(rewardItem.ItemID))
+                        errors.Add($"Quest {q.ID} reward references missing Item {rewardItem.ItemID}");
                 }
             }
         }
@@ -31,12 +54,11 @@ public static class GameDataValidator
             {
                 foreach (var nid in loc.NPCsHere ?? Enumerable.Empty<int>())
                 {
-                    if (!data.NPCs.Any(n => n.ID == nid)) errors.Add($"Location {loc.ID} references missing NPC {nid}");
+                    if (!data.NPCs.Any(n => n.ID == nid))
+                        errors.Add($"Location {loc.ID} references missing NPC {nid}");
                 }
             }
         }
-
-        // другие проверки: monster templates, title requirements и т.д.
 
         return errors;
     }

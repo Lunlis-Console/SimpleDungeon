@@ -588,28 +588,43 @@ namespace JsonEditor
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
                     var editedQuest = form.GetQuest();
+
+                    // Копируем свойства из возвращенного квеста в исходный
                     CopyProperties(editedQuest, quest);
-                    RefreshCurrentGrid();
+
+                    // Обновляем только отображение
+                    if (_lists.TryGetValue("Quests", out var questsInfo))
+                    {
+                        questsInfo.grid.Refresh();
+                    }
+
+                    _statusLabel.Text = "Квест обновлен";
                 }
             }
         }
-
         private void AddEnhancedQuest()
         {
             var newQuest = new Engine.Quests.EnhancedQuest();
-            
+
             using (var form = new EditEnhancedQuestForm(_gameData, newQuest))
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
                     var quest = form.GetQuest();
                     _gameData.Quests.Add(quest);
-                    RefreshCurrentGrid();
+
+                    // Полностью перезагружаем DataSource
+                    if (_lists.TryGetValue("Quests", out var questsInfo))
+                    {
+                        questsInfo.grid.DataSource = null;
+                        questsInfo.grid.DataSource = _gameData.Quests;
+                        questsInfo.grid.Refresh();
+                    }
+
                     _statusLabel.Text = "Добавлен новый квест";
                 }
             }
         }
-
         private void EditDialogue(DialogueData dialogue)
         {
             if (dialogue == null) return;

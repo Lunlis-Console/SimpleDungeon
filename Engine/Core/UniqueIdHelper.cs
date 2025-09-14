@@ -1,4 +1,5 @@
 ﻿using Engine.Data;
+using Engine.Quests;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -101,19 +102,19 @@ namespace Engine.World
                     if (quest.Rewards?.Items != null)
                     {
                         var seen = new HashSet<int>();
-                        var toRemove = new List<InventoryItemData>();
+                        var toRemove = new List<QuestRewardItem>(); // Изменён тип
 
                         foreach (var reward in quest.Rewards.Items)
                         {
                             if (!seen.Add(reward.ItemID))
                             {
                                 DebugConsole.Log($"[AutoFixInternalDuplicates] Удалён дубль ItemID={reward.ItemID} в Rewards.Items квеста {quest.ID} \"{quest.Name}\"");
-                                toRemove.Add(reward);
+                                toRemove.Add(reward); // Теперь типы совпадают
                             }
                         }
 
                         foreach (var r in toRemove)
-                            quest.Rewards.Items.Remove(r);
+                            quest.Rewards.Items.Remove(r); // Теперь типы совпадают
                     }
                 }
             }
@@ -128,20 +129,23 @@ namespace Engine.World
 
             foreach (var quest in data.Quests)
             {
-                if (quest.RewardItems != null)
+                // Проверяем условия квеста на предмет дубликатов ItemID (только CollectItemsCondition)
+                if (quest.Conditions != null)
                 {
-                    var dupItems = quest.RewardItems
-                        .GroupBy(i => i.ItemID)
+                    var itemConditions = quest.Conditions.OfType<CollectItemsCondition>();
+                    var dupItems = itemConditions
+                        .GroupBy(c => c.ItemID)
                         .Where(g => g.Count() > 1);
 
                     foreach (var dup in dupItems)
                     {
-                        string msg = $"Quest {quest.ID} \"{quest.Name}\" содержит дубликаты ItemID={dup.Key} в ItemsToComplete (count={dup.Count()})";
+                        string msg = $"Quest {quest.ID} \"{quest.Name}\" содержит дубликаты ItemID={dup.Key} в условиях (count={dup.Count()})";
                         errors.Add(msg);
                         DebugConsole.Log("[ValidateUniqueIds] " + msg);
                     }
                 }
 
+                // Проверяем награды на предмет дубликатов ItemID
                 if (quest.Rewards?.Items != null)
                 {
                     var dupRewards = quest.Rewards.Items
@@ -157,8 +161,6 @@ namespace Engine.World
                 }
             }
         }
-
-
         private static void ValidateLocationSpawns(GameData data, List<string> errors)
         {
             if (data.Locations == null) return;

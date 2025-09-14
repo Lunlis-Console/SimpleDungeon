@@ -1,14 +1,15 @@
 ﻿// SerializerHelper.cs
 // Замените существующий файл этим кодом.
 // Требует Newtonsoft.Json (пакет Newtonsoft.Json)
-using System;
-using System.IO;
-using System.Linq;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+using Engine.Data;
+using Engine.Quests;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Engine.Data;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace JsonEditor
 {
@@ -38,7 +39,12 @@ namespace JsonEditor
                 MissingMemberHandling = MissingMemberHandling.Ignore,
                 NullValueHandling = NullValueHandling.Include,
                 Formatting = Formatting.Indented,
-                DateParseHandling = DateParseHandling.None
+                DateParseHandling = DateParseHandling.None,
+                Converters = new List<JsonConverter>
+                {
+                    new QuestConditionConverter() // ← ДОБАВЬТЕ ЭТУ СТРОЧКУ
+                }
+
             };
         }
 
@@ -47,7 +53,11 @@ namespace JsonEditor
             return new JsonSerializerSettings
             {
                 NullValueHandling = NullValueHandling.Ignore,
-                Formatting = Formatting.Indented
+                Formatting = Formatting.Indented,
+                Converters = new List<JsonConverter>
+                {
+                    new QuestConditionConverter() // ← ДОБАВЬТЕ ЭТУ СТРОЧКУ
+                }
             };
         }
 

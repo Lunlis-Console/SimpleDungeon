@@ -530,6 +530,30 @@
         "Wisdom": 100,
         "Charisma": 100
       }
+    },
+    {
+      "ID": 2007,
+      "Name": "Волк",
+      "Level": 1,
+      "CurrentHP": 50,
+      "MaximumHP": 50,
+      "RewardEXP": 25,
+      "RewardGold": 0,
+      "Attributes": {
+        "Strength": 10,
+        "Constitution": 10,
+        "Dexterity": 10,
+        "Intelligence": 10,
+        "Wisdom": 10,
+        "Charisma": 10
+      },
+      "LootTable": [
+        {
+          "ItemID": 1001,
+          "DropPercentage": 25,
+          "IsUnique": false
+        }
+      ]
     }
   ],
   "Locations": [
@@ -576,6 +600,17 @@
       "ID": 3002,
       "Name": "Северная Поляна",
       "Description": "Поляна к северу от деревни, тут обитают крысы.",
+      "MonsterSpawns": [
+        {
+          "MonsterTemplateID": 2007,
+          "Level": 0,
+          "SpawnWeight": 0,
+          "Count": 5
+        }
+      ],
+      "MonsterTemplates": [
+        2007
+      ],
       "ScaleMonstersToPlayerLevel": true,
       "LocationToSouth": 3001
     },
@@ -675,95 +710,30 @@
   ],
   "Quests": [
     {
-      "ID": 5001,
-      "Name": "Охота на крыс",
-      "Description": "Избавь деревню от надоедливых крыс. Принеси 5 кусков крысиного мяса.",
-      "RewardEXP": 50,
-      "RewardGold": 25,
-      "QuestGiverID": 4002,
-      "QuestItems": [
+      "id": 5001,
+      "name": "Разведка",
+      "description": "Староста Федот попросил вас осмотреть Северную Поляну",
+      "questGiverId": 4002,
+      "conditions": [
         {
-          "ItemID": 1001,
-          "Quantity": 5
+          "id": 0,
+          "description": "Посетить Северную Поляну",
+          "requiredAmount": 1,
+          "targetId": 0,
+          "currentProgress": 0,
+          "isCompleted": false
         }
       ],
-      "RewardItems": [
-        {
-          "ItemID": 1002,
-          "Quantity": 5
-        }
-      ],
-      "QuestType": "Standard"
-    },
-    {
-      "ID": 5002,
-      "Name": "Шелк паука",
-      "Description": "Собери 3 паучьих шелка для местного ремесленника.",
-      "RewardEXP": 75,
-      "RewardGold": 100,
-      "QuestGiverID": 4003,
-      "QuestItems": [
-        {
-          "ItemID": 1501,
-          "Quantity": 3
-        }
-      ],
-      "RewardItems": [
-        {
-          "ItemID": 1002,
-          "Quantity": 10
-        }
-      ],
-      "QuestType": "Standard"
-    },
-    {
-      "ID": 5003,
-      "Name": "Потерянные ящики",
-      "Description": "Торговец потерял 4 ящика с товарами. Помоги найти их!",
-      "RewardEXP": 100,
-      "RewardGold": 200,
-      "QuestGiverID": 4001,
-      "QuestItems": [
-        {
-          "ItemID": 1601,
-          "Quantity": 1
-        },
-        {
-          "ItemID": 1602,
-          "Quantity": 1
-        },
-        {
-          "ItemID": 1603,
-          "Quantity": 1
-        },
-        {
-          "ItemID": 1604,
-          "Quantity": 1
-        }
-      ],
-      "QuestType": "Collectible",
-      "SpawnLocations": [
-        {
-          "LocationID": 3002,
-          "ItemID": 1601,
-          "Quantity": 1
-        },
-        {
-          "LocationID": 3003,
-          "ItemID": 1602,
-          "Quantity": 1
-        },
-        {
-          "LocationID": 3004,
-          "ItemID": 1603,
-          "Quantity": 1
-        },
-        {
-          "LocationID": 3005,
-          "ItemID": 1604,
-          "Quantity": 1
-        }
-      ]
+      "rewards": {
+        "experience": 25,
+        "gold": 25
+      },
+      "dialogueNodes": {
+        "offer": "quest_5001_offer",
+        "inProgress": "quest_5001_inprogress",
+        "readyToComplete": "quest_5001_readytocomplete",
+        "completed": "quest_5001_completed"
+      }
     }
   ],
   "NPCs": [
@@ -826,7 +796,7 @@
       "Merchant": {
         "Gold": 0
       },
-      "GreetingDialogueId": "7002"
+      "GreetingDialogueId": "7001"
     },
     {
       "ID": 4003,
@@ -850,8 +820,7 @@
       "Greeting": "Приветики",
       "Merchant": {
         "Gold": 0
-      },
-      "GreetingDialogueId": "7001"
+      }
     }
   ],
   "Titles": [
@@ -895,108 +864,125 @@
   ],
   "Dialogues": [
     {
-      "Id": "7001",
-      "Name": "Разговор с разрабом",
-      "Nodes": [
+      "id": "7001",
+      "name": "Диалог Старосты Федота",
+      "nodes": [
         {
-          "Id": "n1",
-          "Text": "Привет",
-          "Choices": [
+          "id": "quest_5001_offer",
+          "text": "Приветствую, путник. Вид у тебя здравый, а взгляд – решительный. Не подведи и меня, старосту деревни. Дело у меня к тебе есть, щекотливое. В последнее время с Северной Поляны доносятся странные звуки, а двое дровосеков, что туда на прошлой неделе ходили, еще не вернулись. Народ шепчется, нечисть ли лесная объявилась или, того хуже, разбойники логово устраивают. Сходи-ка, развей мои опасения. Разведай обстановку на поляне, посмотри, что там стряслось, и вернись с вестями. Справишься?",
+          "choices": [
             {
-              "Text": "Привет, а ты кто?",
-              "NextNodeId": "n2",
-              "Action": 0
-            }
-          ]
-        },
-        {
-          "Id": "n2",
-          "Text": "Я разработчик",
-          "Choices": [
-            {
-              "Text": "О, ну я пойду тогда",
-              "NextNodeId": "n3",
-              "Action": 0
-            },
-            {
-              "Text": "Покажи мне свои товары...",
-              "Action": 0,
-              "Actions": [
+              "text": "Я помогу.",
+              "nextNodeId": "quest_5001_offer_2",
+              "actions": [
                 {
-                  "Type": 6
+                  "type": 3,
+                  "parameter": "5001"
                 }
               ],
-              "ActionSummary": "StartTrade"
+              "actionSummary": "StartQuest (5001)"
             },
             {
-              "Text": "Дай мне 5 шт крысиного мяса...",
-              "Action": 0,
-              "Actions": [
+              "text": "Мне нужно подумать.",
+              "actions": [
                 {
-                  "Type": 1,
-                  "Parameter": "1001,5"
+                  "type": 7
                 }
               ],
-              "ActionSummary": "GiveItem (1001,5)"
+              "actionSummary": "EndDialogue"
+            }
+          ]
+        },
+        {
+          "id": "quest_5001_inprogress",
+          "text": "А, это снова ты. Что-то новое узнал? Или просто мимо проходил? Не задерживайся зря, дело-то важное. Пока мы тут сидим сложа руки, на Северной Поляне кто-то хозяйничает!",
+          "choices": [
+            {
+              "text": "Я еще работаю над этим.",
+              "actions": [
+                {
+                  "type": 7
+                }
+              ],
+              "actionSummary": "EndDialogue"
             },
             {
-              "Text": "Дай мне 500 золота.",
-              "Action": 0,
-              "Actions": [
+              "text": "Что мне нужно сделать?",
+              "nextNodeId": "quest_5001_inprogress_2",
+              "actions": [],
+              "actionSummary": ""
+            }
+          ]
+        },
+        {
+          "id": "quest_5001_inprogress_2",
+          "text": "Забыл уже? Сходи на Северную Поляну, что на север от старой мельницы. Осмотри все как следует и возвращайся ко мне с докладом. Будь осторожен, не подставляйся зря.",
+          "choices": [
+            {
+              "text": "Понял.",
+              "actions": [
                 {
-                  "Type": 2,
-                  "Parameter": "500"
+                  "type": 7
                 }
               ],
-              "ActionSummary": "GiveGold (500)"
+              "actionSummary": "EndDialogue"
             }
           ]
         },
         {
-          "Id": "n3",
-          "Text": "Ясно, ну иди тогда",
-          "Choices": [
+          "id": "quest_5001_readytocomplete",
+          "text": "Вижу в глазах твоих – новости есть! Ну, не томи, рассказывай! Что творится на той поляне? Удалось выяснить, куда подевались мои дровосеки?",
+          "choices": [
             {
-              "Text": "(закончить диалог)",
-              "Action": 0
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "Id": "7002",
-      "Name": "Волки к западу от деревни.",
-      "Nodes": [
-        {
-          "Id": "n1",
-          "Text": "Ты как раз вовремя, путник! На деревню обрушилась беда, а мои старики ни на что не годятся.",
-          "Choices": [
+              "text": "Да, я готов рассказать.",
+              "nextNodeId": "quest_5001_completed",
+              "actions": [
+                {
+                  "type": 4,
+                  "parameter": "5001"
+                }
+              ],
+              "actionSummary": "CompleteQuest (5001)"
+            },
             {
-              "Text": "Успокойся и расскажи по порядку. Что случилось?",
-              "NextNodeId": "n2",
-              "Action": 0
-            }
-          ]
-        },
-        {
-          "Id": "n2",
-          "Text": "Волки из Чёрного леса... Они стали смелее. Уже третью овцу за неделю утащили, а вчера чуть дитя не загрызли! Мы не можем ждать, пока граф пришлёт своих стражников. Поможешь нам? Мы скопим немного монет.",
-          "Choices": [
-            {
-              "Text": "Волки не ведут себя так просто так. Ладно, я разберусь. Где их чаще всего видели?",
-              "NextNodeId": "n3",
-              "Action": 0
+              "text": "Я вернусь позже.",
+              "actions": [
+                {
+                  "type": 7
+                }
+              ],
+              "actionSummary": "EndDialogue"
             }
           ]
         },
         {
-          "Id": "n3",
-          "Text": "Спасибо тебе, друг! Иди к западной опушке, там нашли следы. И будь осторожен... Говорят, в той чаще водятся не только волки.",
-          "Choices": [
+          "id": "quest_5001_completed",
+          "text": "Так вот оно что! Значит, не разбойники, а гнездо вурдалаков! Это и к лучшему, теперь мы знаем врага в лицо. А за дровосеков не переживай, я уже отправил за ними группу охотников, они справятся. Спасибо тебе, друг. Твоя помощь для всей деревни дорогого стоит. Держи, это тебе за труды. И если надумаешь остаться – всегда найдем, куда применить твою смекалку да крепкую руку.",
+          "choices": [
             {
-              "Text": "(Принять задание)",
-              "Action": 0
+              "text": "Спасибо за награду.",
+              "actions": [
+                {
+                  "type": 4,
+                  "parameter": "5001"
+                }
+              ],
+              "actionSummary": "CompleteQuest (5001)"
+            }
+          ]
+        },
+        {
+          "id": "quest_5001_offer_2",
+          "text": "Отлично! Буду ждать от тебя вестей.",
+          "choices": [
+            {
+              "text": "Я пошел.",
+              "actions": [
+                {
+                  "type": 7
+                }
+              ],
+              "actionSummary": "EndDialogue"
             }
           ]
         }

@@ -1,8 +1,9 @@
+using Engine.Data;
+using Engine.Quests;
 using System;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using Engine.Data;
 
 namespace JsonEditor
 {
@@ -78,9 +79,9 @@ namespace JsonEditor
 
         private class QuestComboItem
         {
-            public QuestData QuestData { get; }
+            public EnhancedQuest QuestData { get; }
 
-            public QuestComboItem(QuestData questData)
+            public QuestComboItem(EnhancedQuest questData)
             {
                 QuestData = questData;
             }

@@ -1,11 +1,13 @@
 using Engine.Entities;
 using Engine.World;
+using Newtonsoft.Json;
 
 namespace Engine.Quests
 {
     /// <summary>
     /// Базовый класс для всех условий квеста
     /// </summary>
+    [JsonConverter(typeof(QuestConditionConverter))]
     public abstract class QuestCondition
     {
         public int ID { get; set; }
@@ -13,6 +15,8 @@ namespace Engine.Quests
         public int RequiredAmount { get; set; }
         public int CurrentProgress { get; set; }
         public bool IsCompleted => CurrentProgress >= RequiredAmount;
+
+        public QuestCondition() { }
 
         protected QuestCondition(int id, string description, int requiredAmount)
         {
@@ -33,6 +37,8 @@ namespace Engine.Quests
     public class CollectItemsCondition : QuestCondition
     {
         public int ItemID { get; set; }
+
+        public CollectItemsCondition() : base() { }
 
         public CollectItemsCondition(int id, string description, int itemID, int requiredAmount)
             : base(id, description, requiredAmount)
@@ -67,6 +73,8 @@ namespace Engine.Quests
     {
         public int MonsterID { get; set; }
 
+        public KillMonstersCondition() : base() { }
+
         public KillMonstersCondition(int id, string description, int monsterID, int requiredAmount)
             : base(id, description, requiredAmount)
         {
@@ -100,6 +108,8 @@ namespace Engine.Quests
     {
         public int LocationID { get; set; }
 
+        public VisitLocationCondition() : base() { }
+
         public VisitLocationCondition(int id, string description, int locationID)
             : base(id, description, 1)
         {
@@ -131,6 +141,8 @@ namespace Engine.Quests
     public class TalkToNPCCondition : QuestCondition
     {
         public int NPCID { get; set; }
+
+        public TalkToNPCCondition() : base() { }
 
         public TalkToNPCCondition(int id, string description, int npcID)
             : base(id, description, 1)
@@ -165,6 +177,8 @@ namespace Engine.Quests
     {
         public int RequiredLevel { get; set; }
 
+        public ReachLevelCondition() : base() { }
+
         public ReachLevelCondition(int id, string description, int requiredLevel)
             : base(id, description, requiredLevel)
         {
@@ -187,6 +201,11 @@ namespace Engine.Quests
         public override string GetProgressText()
         {
             return $"{Description}: {CurrentProgress}/{RequiredAmount}";
+        }
+
+        public override string ToString()
+        {
+            return GetProgressText();
         }
     }
 }

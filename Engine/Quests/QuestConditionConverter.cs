@@ -41,6 +41,8 @@ namespace Engine.Quests
 
         public override QuestCondition ReadJson(JsonReader reader, Type objectType, QuestCondition existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
+            DebugConsole.Log("QuestConditionConverter called!");
+
             var jObject = JObject.Load(reader);
 
             var id = jObject["id"]?.Value<int>() ?? 0;
@@ -48,45 +50,57 @@ namespace Engine.Quests
             var requiredAmount = jObject["requiredAmount"]?.Value<int>() ?? 1;
             var currentProgress = jObject["currentProgress"]?.Value<int>() ?? 0;
 
+            QuestCondition condition = null;
+
             // Определяем тип условия по наличию специфичных полей
             if (jObject["itemID"] != null)
             {
                 var itemID = jObject["itemID"].Value<int>();
-                var condition = new CollectItemsCondition(id, description, itemID, requiredAmount);
-                condition.CurrentProgress = currentProgress;
-                return condition;
+                condition = new CollectItemsCondition(); // ← Используем конструктор по умолчанию
+                ((CollectItemsCondition)condition).ItemID = itemID;
             }
             else if (jObject["monsterID"] != null)
             {
                 var monsterID = jObject["monsterID"].Value<int>();
-                var condition = new KillMonstersCondition(id, description, monsterID, requiredAmount);
-                condition.CurrentProgress = currentProgress;
-                return condition;
+                condition = new KillMonstersCondition(); // ← Используем конструктор по умолчанию
+                ((KillMonstersCondition)condition).MonsterID = monsterID;
             }
             else if (jObject["locationID"] != null)
             {
                 var locationID = jObject["locationID"].Value<int>();
-                var condition = new VisitLocationCondition(id, description, locationID);
-                condition.CurrentProgress = currentProgress;
-                return condition;
+                condition = new VisitLocationCondition(); // ← Используем конструктор по умолчанию
+                ((VisitLocationCondition)condition).LocationID = locationID;
             }
             else if (jObject["npcID"] != null)
             {
                 var npcID = jObject["npcID"].Value<int>();
-                var condition = new TalkToNPCCondition(id, description, npcID);
-                condition.CurrentProgress = currentProgress;
-                return condition;
+                condition = new TalkToNPCCondition(); // ← Используем конструктор по умолчанию
+                ((TalkToNPCCondition)condition).NPCID = npcID;
             }
             else if (jObject["requiredLevel"] != null)
             {
                 var requiredLevel = jObject["requiredLevel"].Value<int>();
-                var condition = new ReachLevelCondition(id, description, requiredLevel);
+                condition = new ReachLevelCondition(); // ← Используем конструктор по умолчанию
+                ((ReachLevelCondition)condition).RequiredLevel = requiredLevel;
+            }
+
+            if (condition != null)
+            {
+                // Устанавливаем общие свойства
+                condition.ID = id;
+                condition.Description = description;
+                condition.RequiredAmount = requiredAmount;
                 condition.CurrentProgress = currentProgress;
                 return condition;
             }
 
             // По умолчанию создаем условие сбора предметов
-            return new CollectItemsCondition(id, description, 0, requiredAmount);
+            var defaultCondition = new CollectItemsCondition();
+            defaultCondition.ID = id;
+            defaultCondition.Description = description;
+            defaultCondition.RequiredAmount = requiredAmount;
+            defaultCondition.CurrentProgress = currentProgress;
+            return defaultCondition;
         }
     }
 }

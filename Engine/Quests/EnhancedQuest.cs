@@ -1,13 +1,18 @@
 using Engine.Core;
+using Engine.Data;
 using Engine.Entities;
 using Engine.World;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Engine.Quests
 {
     /// <summary>
     /// Расширенная модель квеста с поддержкой различных условий и состояний
     /// </summary>
+    [Serializable]
     public class EnhancedQuest
     {
         [JsonProperty("id")]
@@ -26,8 +31,7 @@ namespace Engine.Quests
         public int QuestGiverID { get; set; }
 
         [JsonProperty("conditions")]
-        [JsonConverter(typeof(QuestConditionConverter))]
-        public List<QuestCondition> Conditions { get; set; } = new List<QuestCondition>();
+        public List<QuestConditionData> Conditions { get; set; } = new List<QuestConditionData>();
 
         [JsonProperty("rewards")]
         public QuestRewards Rewards { get; set; } = new QuestRewards();
@@ -39,17 +43,20 @@ namespace Engine.Quests
         public QuestDialogueNodes DialogueNodes { get; set; } = new QuestDialogueNodes();
 
         // Runtime properties (не сериализуются)
-        [JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public QuestState State { get; set; } = QuestState.NotStarted;
 
-        [JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public NPC QuestGiver { get; set; }
 
-        [JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public Action<Player> OnQuestComplete { get; set; }
 
-        [JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public Action<Player> OnQuestStart { get; set; }
+
+        [Newtonsoft.Json.JsonIgnore]
+        private List<QuestCondition> _runtimeConditions = new List<QuestCondition>();
 
         public EnhancedQuest()
         {
@@ -61,6 +68,21 @@ namespace Engine.Quests
             Name = name;
             Description = description;
             QuestGiverID = questGiverID;
+        }
+
+        /// <summary>
+        /// Инициализирует runtime условия из DTO данных
+        /// </summary>
+        public void InitializeConditions()
+        {
+            if (Conditions == null)
+            {
+                _runtimeConditions = new List<QuestCondition>();
+            }
+            else
+            {
+                _runtimeConditions = Conditions.Select(c => c.ToQuestCondition()).ToList();
+            }
         }
 
         /// <summary>
@@ -98,7 +120,7 @@ namespace Engine.Quests
         {
             bool allCompleted = true;
 
-            foreach (var condition in Conditions)
+            foreach (var condition in _runtimeConditions)
             {
                 condition.UpdateProgress(player, context);
                 if (!condition.IsCompleted)
@@ -107,6 +129,9 @@ namespace Engine.Quests
                 }
             }
 
+            // Обновляем DTO данные
+            UpdateConditionData();
+
             // Обновляем состояние квеста
             if (allCompleted && State == QuestState.InProgress)
             {
@@ -114,6 +139,58 @@ namespace Engine.Quests
             }
 
             return allCompleted;
+        }
+
+        /// <summary>
+        /// Обновляет DTO данные из runtime условий
+        /// </summary>
+        private void UpdateConditionData()
+        {
+            if (_runtimeConditions == null)
+            {
+                Conditions = new List<QuestConditionData>();
+            }
+            else
+            {
+                Conditions = _runtimeConditions.Select(c =>
+                {
+                    return c switch
+                    {
+                        CollectItemsCondition collect => new QuestConditionData(collect),
+                        KillMonstersCondition kill => new QuestConditionData(kill),
+                        VisitLocationCondition visit => new QuestConditionData(visit),
+                        TalkToNPCCondition talk => new QuestConditionData(talk),
+                        ReachLevelCondition level => new QuestConditionData(level),
+                        _ => throw new ArgumentException($"Unknown condition type: {c.GetType().Name}")
+                    };
+                }).ToList();
+            }
+        }
+
+        /// <summary>
+        /// Принудительно обновляет прогресс определенного условия
+        /// </summary>
+        public void UpdateConditionProgress(int conditionId, int progress)
+        {
+            var condition = _runtimeConditions.FirstOrDefault(c => c.ID == conditionId);
+            if (condition != null)
+            {
+                condition.CurrentProgress = Math.Min(progress, condition.RequiredAmount);
+                UpdateConditionData();
+            }
+        }
+
+        /// <summary>
+        /// Добавляет прогресс определенному условию
+        /// </summary>
+        public void AddConditionProgress(int conditionId, int amount = 1)
+        {
+            var condition = _runtimeConditions.FirstOrDefault(c => c.ID == conditionId);
+            if (condition != null)
+            {
+                condition.CurrentProgress = Math.Min(condition.CurrentProgress + amount, condition.RequiredAmount);
+                UpdateConditionData();
+            }
         }
 
         /// <summary>
@@ -142,7 +219,7 @@ namespace Engine.Quests
             if (State == QuestState.Completed)
                 return "Завершен";
 
-            var progressTexts = Conditions.Select(c => c.GetProgressText()).ToList();
+            var progressTexts = _runtimeConditions.Select(c => c.GetProgressText()).ToList();
             return string.Join("\n", progressTexts);
         }
 
@@ -154,15 +231,31 @@ namespace Engine.Quests
             if (State == QuestState.NotStarted) return 0;
             if (State == QuestState.Completed) return 100;
 
-            if (Conditions.Count == 0) return 0;
+            if (_runtimeConditions.Count == 0) return 0;
 
             int totalProgress = 0;
-            foreach (var condition in Conditions)
+            foreach (var condition in _runtimeConditions)
             {
                 totalProgress += (int)((double)condition.CurrentProgress / condition.RequiredAmount * 100);
             }
 
-            return totalProgress / Conditions.Count;
+            return totalProgress / _runtimeConditions.Count;
+        }
+
+        /// <summary>
+        /// Получает runtime условие по ID
+        /// </summary>
+        public QuestCondition GetRuntimeCondition(int conditionId)
+        {
+            return _runtimeConditions.FirstOrDefault(c => c.ID == conditionId);
+        }
+
+        /// <summary>
+        /// Получает все runtime условия
+        /// </summary>
+        public List<QuestCondition> GetRuntimeConditions()
+        {
+            return _runtimeConditions.ToList();
         }
     }
 
@@ -204,7 +297,7 @@ namespace Engine.Quests
         [JsonProperty("quantity")]
         public int Quantity { get; set; }
 
-        [JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public Item ItemDetails { get; set; }
     }
 

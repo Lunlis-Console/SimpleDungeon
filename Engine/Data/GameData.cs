@@ -1,9 +1,10 @@
 ﻿// GameData.cs
 using Engine.Core;
 using Engine.Entities;
+using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
 using System.ComponentModel;
+using System.Text.Json.Serialization;
 
 namespace Engine.Data
 {
@@ -244,4 +245,5 @@ namespace Engine.Data
         public int ItemID { get; set; }
         public int Quantity { get; set; }
     }
+
 }

@@ -115,16 +115,17 @@ namespace Engine.UI
             y++;
 
             // Условия квеста
-            if (selectedQuest.Conditions.Count > 0)
+            var runtimeConditions = selectedQuest.GetRuntimeConditions();
+            if (runtimeConditions.Count > 0)
             {
                 _renderer.Write(rightColumn, y, "УСЛОВИЯ:", ConsoleColor.Cyan);
                 y++;
 
-                foreach (var condition in selectedQuest.Conditions)
+                foreach (var condition in runtimeConditions)
                 {
                     string progressText = condition.GetProgressText();
                     ConsoleColor color = condition.IsCompleted ? ConsoleColor.Green : ConsoleColor.White;
-                    
+
                     _renderer.Write(rightColumn, y, $"• {progressText}", color);
                     y++;
                 }

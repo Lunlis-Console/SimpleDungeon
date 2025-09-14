@@ -63,6 +63,8 @@ namespace Engine.Dialogue
             // флаг, чтобы регистрация выполнялась только один раз
             private static bool _defaultActionHandlersRegistered = false;
 
+            private static GameData _gameData;
+
 
             public DialogueOption(string text, DialogueNode nextNode = null)
             {
@@ -1183,9 +1185,60 @@ namespace Engine.Dialogue
             private static object TryFindQuestByIdOrName(string qparam)
             {
                 if (string.IsNullOrWhiteSpace(qparam)) return null;
+
+                DebugConsole.Log($"TryFindQuestByIdOrName: searching for '{qparam}'");
+
+                // Сначала проверим в _gameData.Quests (если доступно)
                 try
                 {
-                    // Попробуем найти статические репозитории/фабрики квестов
+                    if (_gameData?.Quests != null)
+                    {
+                        DebugConsole.Log($"Checking _gameData.Quests ({_gameData.Quests.Count} quests)");
+
+                        // Поиск по ID
+                        if (int.TryParse(qparam, out int questId))
+                        {
+                            var questById = _gameData.Quests.FirstOrDefault(q => q.ID == questId);
+                            if (questById != null)
+                            {
+                                DebugConsole.Log($"Found in _gameData by ID: {questById.Name} (ID: {questById.ID})");
+                                return questById;
+                            }
+                            DebugConsole.Log($"Quest with ID {questId} not found in _gameData");
+                        }
+
+                        // Поиск по имени
+                        var questByName = _gameData.Quests.FirstOrDefault(q =>
+                            q.Name != null && q.Name.Equals(qparam, StringComparison.OrdinalIgnoreCase));
+
+                        if (questByName != null)
+                        {
+                            DebugConsole.Log($"Found in _gameData by name: {questByName.Name} (ID: {questByName.ID})");
+                            return questByName;
+                        }
+                        DebugConsole.Log($"Quest with name '{qparam}' not found in _gameData");
+
+                        // Вывод всех квестов для отладки
+                        DebugConsole.Log("Available quests in _gameData:");
+                        foreach (var quest in _gameData.Quests)
+                        {
+                            DebugConsole.Log($"- ID: {quest.ID}, Name: '{quest.Name}'");
+                        }
+                    }
+                    else
+                    {
+                        DebugConsole.Log("_gameData.Quests is null or empty");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    DebugConsole.Log($"Error searching in _gameData: {ex.Message}");
+                }
+
+                // Затем пробуем найти через рефлексию (ваш существующий код)
+                try
+                {
+                    DebugConsole.Log("Trying reflection search...");
                     var asms = AppDomain.CurrentDomain.GetAssemblies();
                     foreach (var asm in asms)
                     {
@@ -1204,23 +1257,35 @@ namespace Engine.Dialogue
                                 if (int.TryParse(qparam, out var qid))
                                 {
                                     var q = getById.Invoke(null, new object[] { qid });
-                                    if (q != null) return q;
+                                    if (q != null)
+                                    {
+                                        DebugConsole.Log($"Found via reflection by ID: {q}");
+                                        return q;
+                                    }
                                 }
                                 var qName = qparam;
                                 var q2 = getById.Invoke(null, new object[] { qName });
-                                if (q2 != null) return q2;
+                                if (q2 != null)
+                                {
+                                    DebugConsole.Log($"Found via reflection by name: {q2}");
+                                    return q2;
+                                }
                             }
-                            catch { }
+                            catch (Exception ex)
+                            {
+                                DebugConsole.Log($"Reflection search error: {ex.Message}");
+                            }
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    DebugConsole.Log("TryFindQuestByIdOrName failed: " + ex.Message);
+                    DebugConsole.Log("TryFindQuestByIdOrName reflection failed: " + ex.Message);
                 }
+
+                DebugConsole.Log($"Quest '{qparam}' not found anywhere");
                 return null;
             }
-
             private static bool TryAddQuestToPlayer(Player player, object questObj)
             {
                 if (player == null || questObj == null) return false;

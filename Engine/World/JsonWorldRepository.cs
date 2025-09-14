@@ -771,5 +771,13 @@ namespace Engine.World
         {
             // Уже инициализировано в конструкторе / LoadFromJson
         }
+
+        public GameData GetGameData()
+        {
+            return _gameData;
+        }
+
+        // В класс JsonWorldRepository добавьте:
+
     }
 }
