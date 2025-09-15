@@ -866,6 +866,7 @@
     {
       "Id": "7001",
       "Name": "Диалог Старосты Федота",
+      "Start": "quest_5001_offer",
       "Nodes": [
         {
           "Id": "quest_5001_offer",

@@ -4,6 +4,7 @@ using Engine.Quests;
 using Engine.Trading;
 using Engine.UI;
 using Engine.World;
+using System.Linq;
 
 namespace Engine.Entities
 {
@@ -70,15 +71,26 @@ namespace Engine.Entities
                 // Это соответствует конструктору DialogueScreen(NPC npc, Player player, ITrader traderForDialogue = null)
                 var dialogueScreen = new DialogueScreen(this, player, this.Trader);
 
-                // Устанавливаем текущий узел диалога — GreetingDialogue (чтобы показать нужный текст).
-                // SetCurrentNode безопасен — он проверяет null внутри себя.
-                try
+                // Динамически выбираем правильный узел диалога в зависимости от состояния квестов
+                var appropriateNode = GetAppropriateDialogueNode(player);
+                if (appropriateNode != null)
                 {
-                    dialogueScreen.SetCurrentNode(GreetingDialogue);
+                    try
+                    {
+                        dialogueScreen.SetCurrentNode(appropriateNode);
+                        DebugConsole.Log($"Set dialogue node for NPC {ID}: {appropriateNode.Text?.Substring(0, Math.Min(50, appropriateNode.Text?.Length ?? 0))}...");
+                    }
+                    catch (Exception ex)
+                    {
+                        DebugConsole.Log($"NPC.Talk: SetCurrentNode failed: {ex.Message}");
+                        // Fallback к оригинальному узлу
+                        dialogueScreen.SetCurrentNode(GreetingDialogue);
+                    }
                 }
-                catch (Exception ex)
+                else
                 {
-                    DebugConsole.Log($"NPC.Talk: SetCurrentNode failed: {ex.Message}");
+                    // Fallback к оригинальному узлу
+                    dialogueScreen.SetCurrentNode(GreetingDialogue);
                 }
 
                 ScreenManager.PushScreen(dialogueScreen);
@@ -88,6 +100,174 @@ namespace Engine.Entities
                 // Fallback к старой системе
                 HaveConversation(player);
             }
+        }
+
+        /// <summary>
+        /// Получает подходящий узел диалога в зависимости от состояния квестов
+        /// </summary>
+        private DialogueSystem.DialogueNode GetAppropriateDialogueNode(Player player)
+        {
+            try
+            {
+                DebugConsole.Log($"CurrentPlayer is null: {GameServices.CurrentPlayer == null}");
+                DebugConsole.Log($"QuestManager is null: {GameServices.QuestManager == null}");
+                
+                var questDialogueManager = GameServices.QuestManager?.GetQuestDialogueManager();
+                if (questDialogueManager == null)
+                {
+                    DebugConsole.Log("QuestDialogueManager is null, using original dialogue node");
+                    return GreetingDialogue;
+                }
+
+                // Получаем все узлы диалога из GreetingDialogue
+                var allNodes = GetAllDialogueNodes(GreetingDialogue);
+                var nodeMap = allNodes.ToDictionary(n => GetNodeId(n), n => n);
+
+                DebugConsole.Log($"Found {nodeMap.Count} dialogue nodes for NPC {ID}");
+
+                // Используем QuestDialogueManager для определения правильного узла
+                var dialogueDocument = ConvertToDialogueDocument();
+                var appropriateNodeId = questDialogueManager.GetDialogueNodeForNPC(ID, dialogueDocument);
+
+                DebugConsole.Log($"QuestDialogueManager selected node ID: '{appropriateNodeId}'");
+
+                if (!string.IsNullOrEmpty(appropriateNodeId) && nodeMap.ContainsKey(appropriateNodeId))
+                {
+                    var selectedNode = nodeMap[appropriateNodeId];
+                    DebugConsole.Log($"Found appropriate node: {appropriateNodeId}");
+                    return selectedNode;
+                }
+                else
+                {
+                    DebugConsole.Log($"Node '{appropriateNodeId}' not found in dialogue, using original");
+                    return GreetingDialogue;
+                }
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.Log($"GetAppropriateDialogueNode failed: {ex.Message}");
+                return GreetingDialogue;
+            }
+        }
+
+        /// <summary>
+        /// Получает все узлы диалога рекурсивно
+        /// </summary>
+        private List<DialogueSystem.DialogueNode> GetAllDialogueNodes(DialogueSystem.DialogueNode startNode)
+        {
+            var nodes = new List<DialogueSystem.DialogueNode>();
+            var visited = new HashSet<DialogueSystem.DialogueNode>();
+
+            void CollectNodes(DialogueSystem.DialogueNode node)
+            {
+                if (node == null || visited.Contains(node)) return;
+                
+                visited.Add(node);
+                nodes.Add(node);
+
+                if (node.Options != null)
+                {
+                    foreach (var option in node.Options)
+                    {
+                        if (option?.NextNode != null)
+                        {
+                            CollectNodes(option.NextNode);
+                        }
+                    }
+                }
+            }
+
+            CollectNodes(startNode);
+            return nodes;
+        }
+
+        /// <summary>
+        /// Получает ID узла диалога
+        /// </summary>
+        private string GetNodeId(DialogueSystem.DialogueNode node)
+        {
+            if (node == null)
+            {
+                DebugConsole.Log("GetNodeId: node is null");
+                return "null_node";
+            }
+
+            // Теперь у узла есть поле Id, просто возвращаем его
+            if (string.IsNullOrEmpty(node.Id))
+            {
+                DebugConsole.Log($"GetNodeId: node has no ID, text: '{node.Text?.Substring(0, Math.Min(50, node.Text?.Length ?? 0))}...'");
+                return "unknown";
+            }
+
+            return node.Id;
+        }
+
+        /// <summary>
+        /// Конвертирует диалог NPC в DialogueDocument для QuestDialogueManager
+        /// </summary>
+        private DialogueDocument ConvertToDialogueDocument()
+        {
+            var document = new DialogueDocument
+            {
+                Id = "7001", // ID диалога Старосты Федота
+                Name = "Диалог Старосты Федота",
+                Start = "quest_5001_offer",
+                Nodes = new List<DialogueNode>()
+            };
+
+            // Добавляем узлы из GreetingDialogue
+            var allNodes = GetAllDialogueNodes(GreetingDialogue);
+            DebugConsole.Log($"ConvertToDialogueDocument: Found {allNodes.Count} nodes from GreetingDialogue");
+            
+            foreach (var node in allNodes)
+            {
+                if (node == null) continue;
+
+                var nodeId = GetNodeId(node);
+                DebugConsole.Log($"ConvertToDialogueDocument: Adding node with ID '{nodeId}' and text '{node.Text?.Substring(0, Math.Min(30, node.Text?.Length ?? 0))}...'");
+
+                var dialogueNode = new DialogueNode
+                {
+                    Id = nodeId,
+                    Text = node.Text,
+                    Responses = new List<Response>()
+                };
+
+                if (node.Options != null)
+                {
+                    foreach (var option in node.Options)
+                    {
+                        if (option == null) continue;
+
+                        var response = new Response
+                        {
+                            Text = option.Text,
+                            Target = GetNodeId(option.NextNode),
+                            Actions = new List<DialogueAction>()
+                        };
+
+                        if (option.Actions != null)
+                        {
+                            foreach (var action in option.Actions)
+                            {
+                                if (action == null) continue;
+
+                                response.Actions.Add(new DialogueAction
+                                {
+                                    Type = action.Type.ToString(),
+                                    Param = action.Parameter
+                                });
+                            }
+                        }
+
+                        dialogueNode.Responses.Add(response);
+                    }
+                }
+
+                document.Nodes.Add(dialogueNode);
+            }
+
+            return document;
         }
 
         public List<string> GetAvailableActions(Player player)

@@ -359,10 +359,10 @@ namespace JsonEditor
             // Загрузка узлов диалогов
             if (_quest.DialogueNodes != null)
             {
-                txtOfferNode.Text = _quest.DialogueNodes.OfferNodeID ?? "";
-                txtInProgressNode.Text = _quest.DialogueNodes.InProgressNodeID ?? "";
-                txtReadyToCompleteNode.Text = _quest.DialogueNodes.ReadyToCompleteNodeID ?? "";
-                txtCompletedNode.Text = _quest.DialogueNodes.CompletedNodeID ?? "";
+                txtOfferNode.Text = _quest.DialogueNodes.Offer ?? "";
+                txtInProgressNode.Text = _quest.DialogueNodes.InProgress ?? "";
+                txtReadyToCompleteNode.Text = _quest.DialogueNodes.ReadyToComplete ?? "";
+                txtCompletedNode.Text = _quest.DialogueNodes.Completed ?? "";
             }
         }
 
@@ -522,10 +522,10 @@ namespace JsonEditor
             if (_quest.DialogueNodes == null)
                 _quest.DialogueNodes = new QuestDialogueNodes();
 
-            _quest.DialogueNodes.OfferNodeID = txtOfferNode.Text.Trim();
-            _quest.DialogueNodes.InProgressNodeID = txtInProgressNode.Text.Trim();
-            _quest.DialogueNodes.ReadyToCompleteNodeID = txtReadyToCompleteNode.Text.Trim();
-            _quest.DialogueNodes.CompletedNodeID = txtCompletedNode.Text.Trim();
+            _quest.DialogueNodes.Offer = txtOfferNode.Text.Trim();
+            _quest.DialogueNodes.InProgress = txtInProgressNode.Text.Trim();
+            _quest.DialogueNodes.ReadyToComplete = txtReadyToCompleteNode.Text.Trim();
+            _quest.DialogueNodes.Completed = txtCompletedNode.Text.Trim();
 
             this.DialogResult = DialogResult.OK;
             this.Close();

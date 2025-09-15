@@ -147,6 +147,7 @@ namespace Engine.UI
             {
                 var player = GameServices.GameFactory.CreateNewPlayer();
 
+                GameServices.CurrentPlayer = player;
                 DebugConsole.CurrentPlayer = player;
 
                 player.CurrentLocation = GameServices.WorldRepository.LocationByID(Constants.LOCATION_ID_VILLAGE);

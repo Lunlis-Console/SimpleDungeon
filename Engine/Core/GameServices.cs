@@ -175,12 +175,16 @@ namespace Engine.Core
                     var gameData = WorldRepository.GetGameData();
                     if (gameData?.Quests != null)
                     {
+                        // Добавляем квесты в QuestManager для правильной инициализации
+                        _questManager.SetAllQuests(gameData.Quests);
+                        
+                        DebugConsole.Log($"Загружено {gameData.Quests.Count} квестов из game_data.json");
+                        
+                        // Отладочные сообщения для проверки DialogueNodes
                         foreach (var quest in gameData.Quests)
                         {
-                            _questManager.GetAllQuests().Add(quest);
-                            CurrentPlayer.QuestLog.AddAvailableQuest(quest);
+                            DebugConsole.Log($"Quest {quest.ID} DialogueNodes: {quest.DialogueNodes?.ToString() ?? "null"}");
                         }
-                        DebugConsole.Log($"Загружено {gameData.Quests.Count} квестов из game_data.json");
                     }
                 }
                 return _questManager;

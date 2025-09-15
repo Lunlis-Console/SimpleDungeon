@@ -1,4 +1,5 @@
 using Engine.Core;
+using Engine.Dialogue;
 using Engine.Entities;
 using Engine.World;
 using Newtonsoft.Json;
@@ -104,19 +105,26 @@ namespace Engine.Quests
         }
 
         /// <summary>
-        /// Получает квест по ID
+        /// Устанавливает список всех квестов (для инициализации из GameServices)
         /// </summary>
-        public EnhancedQuest GetQuest(int questID)
+        public void SetAllQuests(List<EnhancedQuest> quests)
         {
-            return _allQuests.FirstOrDefault(q => q.ID == questID);
+            _allQuests = quests ?? new List<EnhancedQuest>();
+            InitializeQuests();
         }
 
         /// <summary>
-        /// Получает все квесты
+        /// Получает менеджер диалогов квестов
         /// </summary>
-        public List<EnhancedQuest> GetAllQuests()
+        public QuestDialogueManager GetQuestDialogueManager()
         {
-            return _allQuests.ToList();
+            DebugConsole.Log($"QuestManager.GetQuestDialogueManager: _questLog is null: {_questLog == null}");
+            if (_questLog == null)
+            {
+                DebugConsole.Log("QuestManager.GetQuestDialogueManager: _questLog is null, returning null");
+                return null;
+            }
+            return new QuestDialogueManager(_questLog);
         }
 
         /// <summary>

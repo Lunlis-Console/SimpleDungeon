@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace Engine.Quests
 {
@@ -42,6 +43,12 @@ namespace Engine.Quests
         [JsonProperty("dialogueNodes")]
         public QuestDialogueNodes DialogueNodes { get; set; } = new QuestDialogueNodes();
 
+        public EnhancedQuest()
+        {
+            DebugConsole.Log("EnhancedQuest constructor called");
+            DialogueNodes = new QuestDialogueNodes();
+        }
+
         // Runtime properties (не сериализуются)
         [Newtonsoft.Json.JsonIgnore]
         public QuestState State { get; set; } = QuestState.NotStarted;
@@ -58,9 +65,6 @@ namespace Engine.Quests
         [Newtonsoft.Json.JsonIgnore]
         private List<QuestCondition> _runtimeConditions = new List<QuestCondition>();
 
-        public EnhancedQuest()
-        {
-        }
 
         public EnhancedQuest(int id, string name, string description, int questGiverID)
         {
@@ -306,16 +310,26 @@ namespace Engine.Quests
     /// </summary>
     public class QuestDialogueNodes
     {
-        [JsonProperty("offer")]
-        public string OfferNodeID { get; set; }
+        [JsonPropertyName("offer")]
+        public string Offer { get; set; }
 
-        [JsonProperty("inProgress")]
-        public string InProgressNodeID { get; set; }
+        [JsonPropertyName("inProgress")]
+        public string InProgress { get; set; }
 
-        [JsonProperty("readyToComplete")]
-        public string ReadyToCompleteNodeID { get; set; }
+        [JsonPropertyName("readyToComplete")]
+        public string ReadyToComplete { get; set; }
 
-        [JsonProperty("completed")]
-        public string CompletedNodeID { get; set; }
+        [JsonPropertyName("completed")]
+        public string Completed { get; set; }
+
+        public QuestDialogueNodes()
+        {
+            DebugConsole.Log("QuestDialogueNodes constructor called");
+        }
+
+        public override string ToString()
+        {
+            return $"Offer='{Offer}', InProgress='{InProgress}', ReadyToComplete='{ReadyToComplete}', Completed='{Completed}'";
+        }
     }
 }

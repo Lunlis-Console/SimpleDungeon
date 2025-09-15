@@ -35,7 +35,7 @@ namespace Engine.Audio
             }
             catch (Exception ex)
             {
-                DebugConsole.Log("[SoundSystem] Ошибка воспроизведения: " + ex.Message);
+                //DebugConsole.Log("[SoundSystem] Ошибка воспроизведения: " + ex.Message);
             }
         }
     }

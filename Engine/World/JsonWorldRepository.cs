@@ -581,7 +581,7 @@ namespace Engine.World
             var map = new Dictionary<string, DialogueSystem.DialogueNode>();
             foreach (var nodeData in data.Nodes)
             {
-                var node = new DialogueSystem.DialogueNode(nodeData.Text ?? string.Empty);
+                var node = new DialogueSystem.DialogueNode(nodeData.Id, nodeData.Text ?? string.Empty);
                 map[nodeData.Id] = node;
             }
 
@@ -624,9 +624,135 @@ namespace Engine.World
 
                     node.Options.Add(option);
                 }
-            }            // 3) возвращаем root (первая нода в списке считается корневой)
-            var rootId = data.Nodes.Count > 0 ? data.Nodes[0].Id : null;
-            return rootId != null && map.ContainsKey(rootId) ? map[rootId] : null;
+            }
+
+            // 3) Определяем стартовый узел с учетом состояния квестов
+            var startNodeId = DetermineStartNodeId(data);
+            return startNodeId != null && map.ContainsKey(startNodeId) ? map[startNodeId] : null;
+        }
+
+        /// <summary>
+        /// Определяет стартовый узел диалога с учетом состояния квестов
+        /// </summary>
+        private string DetermineStartNodeId(Engine.Data.DialogueData data)
+        {
+            DebugConsole.Log($"DetermineStartNodeId called for dialogue {data.Id}");
+            
+            // Если есть явно указанный стартовый узел, используем его
+            if (!string.IsNullOrEmpty(data.Start))
+            {
+                DebugConsole.Log($"Dialogue has explicit start node: {data.Start}");
+                return data.Start;
+            }
+
+            // Ищем квесты, связанные с этим диалогом
+            var questDialogueManager = GameServices.QuestManager?.GetQuestDialogueManager();
+            if (questDialogueManager != null)
+            {
+                DebugConsole.Log("QuestDialogueManager found");
+                
+                // Пытаемся найти NPC, который использует этот диалог
+                var npc = _npcs?.Values.FirstOrDefault(n => n.GreetingDialogue != null && 
+                    GetDialogueIdFromNode(n.GreetingDialogue) == data.Id);
+                
+                if (npc != null)
+                {
+                    DebugConsole.Log($"Found NPC {npc.ID} ({npc.Name}) using dialogue {data.Id}");
+                    
+                    // Используем QuestDialogueManager для определения правильного узла
+                    var dialogueDocument = ConvertToDialogueDocument(data);
+                    var appropriateNodeId = questDialogueManager.GetDialogueNodeForNPC(npc.ID, dialogueDocument);
+                    
+                    DebugConsole.Log($"QuestDialogueManager selected node: '{appropriateNodeId}'");
+                    
+                    if (!string.IsNullOrEmpty(appropriateNodeId) && appropriateNodeId != data.Start)
+                    {
+                        DebugConsole.Log($"Using quest-based node '{appropriateNodeId}' instead of '{data.Start}'");
+                        return appropriateNodeId;
+                    }
+                }
+                else
+                {
+                    DebugConsole.Log($"No NPC found using dialogue {data.Id}");
+                }
+            }
+            else
+            {
+                DebugConsole.Log("QuestDialogueManager is null");
+            }
+
+            // Fallback: возвращаем первый узел в списке
+            var fallbackNodeId = data.Nodes.Count > 0 ? data.Nodes[0].Id : null;
+            DebugConsole.Log($"Using fallback node: '{fallbackNodeId}'");
+            return fallbackNodeId;
+        }
+
+        /// <summary>
+        /// Получает ID диалога из узла (вспомогательный метод)
+        /// </summary>
+        private string GetDialogueIdFromNode(DialogueSystem.DialogueNode node)
+        {
+            // Ищем NPC, который использует этот узел как GreetingDialogue
+            var npc = _npcs?.Values.FirstOrDefault(n => n.GreetingDialogue == node);
+            if (npc != null)
+            {
+                // Возвращаем ID диалога на основе NPC
+                var npcData = _gameData?.NPCs?.FirstOrDefault(n => n.ID == npc.ID);
+                return npcData?.GreetingDialogueId;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Конвертирует DialogueData в DialogueDocument для QuestDialogueManager
+        /// </summary>
+        private DialogueDocument ConvertToDialogueDocument(Engine.Data.DialogueData data)
+        {
+            var document = new DialogueDocument
+            {
+                Id = data.Id,
+                Name = data.Name,
+                Start = data.Start,
+                Nodes = new List<DialogueNode>()
+            };
+
+            foreach (var nodeData in data.Nodes)
+            {
+                var node = new DialogueNode
+                {
+                    Id = nodeData.Id,
+                    Text = nodeData.Text,
+                    Responses = new List<Response>()
+                };
+
+                foreach (var choice in nodeData.Choices)
+                {
+                    var response = new Response
+                    {
+                        Text = choice.Text,
+                        Target = choice.NextNodeId,
+                        Actions = new List<DialogueAction>()
+                    };
+
+                    if (choice.Actions != null)
+                    {
+                        foreach (var action in choice.Actions)
+                        {
+                            response.Actions.Add(new DialogueAction
+                            {
+                                Type = action.Type.ToString(),
+                                Param = action.Parameter
+                            });
+                        }
+                    }
+
+                    node.Responses.Add(response);
+                }
+
+                document.Nodes.Add(node);
+            }
+
+            return document;
         }
 
 

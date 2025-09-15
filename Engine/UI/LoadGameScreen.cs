@@ -88,6 +88,10 @@ namespace Engine.UI
             try
             {
                 var player = SaveManager.LoadGame(_saves[_selectedIndex], GameServices.WorldRepository);
+                
+                GameServices.CurrentPlayer = player;
+                DebugConsole.CurrentPlayer = player;
+                
                 // Здесь нужно обновить игрока и вернуться в игру
                 MessageSystem.AddMessage($"Игра загружена: {_saves[_selectedIndex]}");
                 ScreenManager.ReturnToMainScreen();

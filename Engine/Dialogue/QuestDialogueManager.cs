@@ -22,53 +22,97 @@ namespace Engine.Dialogue
         /// </summary>
         public string GetDialogueNodeForNPC(int npcID, DialogueDocument dialogue)
         {
+            DebugConsole.Log($"GetDialogueNodeForNPC called for NPC {npcID}");
+            
             // Проверяем доступные квесты
             var availableQuests = _questLog.GetAvailableQuestsForNPC(npcID);
+            DebugConsole.Log($"Available quests for NPC {npcID}: {availableQuests.Count}");
             if (availableQuests.Any())
             {
                 var quest = availableQuests.First();
-                if (!string.IsNullOrEmpty(quest.DialogueNodes.OfferNodeID))
+                DebugConsole.Log($"First available quest: {quest.Name} (ID: {quest.ID})");
+                if (!string.IsNullOrEmpty(quest.DialogueNodes.Offer))
                 {
-                    return quest.DialogueNodes.OfferNodeID;
+                    DebugConsole.Log($"Returning offer node: {quest.DialogueNodes.Offer}");
+                    return quest.DialogueNodes.Offer;
                 }
             }
 
             // Проверяем активные квесты
             var activeQuests = _questLog.GetActiveQuestsForNPC(npcID);
+            DebugConsole.Log($"Active quests for NPC {npcID}: {activeQuests.Count}");
             if (activeQuests.Any())
             {
                 var quest = activeQuests.First();
+                DebugConsole.Log($"First active quest: {quest.Name} (ID: {quest.ID}, State: {quest.State})");
                 
                 // Если квест готов к завершению
                 if (quest.State == QuestState.ReadyToComplete)
                 {
-                    if (!string.IsNullOrEmpty(quest.DialogueNodes.ReadyToCompleteNodeID))
+                    DebugConsole.Log($"Quest {quest.ID} is ReadyToComplete, looking for node: {quest.DialogueNodes.ReadyToComplete}");
+                    if (!string.IsNullOrEmpty(quest.DialogueNodes.ReadyToComplete))
                     {
-                        return quest.DialogueNodes.ReadyToCompleteNodeID;
+                        // Проверяем, есть ли этот узел в диалоге
+                        var nodeExists = dialogue.Nodes?.Any(n => n.Id == quest.DialogueNodes.ReadyToComplete) ?? false;
+                        DebugConsole.Log($"Node {quest.DialogueNodes.ReadyToComplete} exists in dialogue: {nodeExists}");
+                        
+                        if (nodeExists)
+                        {
+                            DebugConsole.Log($"Returning ready to complete node: {quest.DialogueNodes.ReadyToComplete}");
+                            return quest.DialogueNodes.ReadyToComplete;
+                        }
+                        else
+                        {
+                            DebugConsole.Log($"Node {quest.DialogueNodes.ReadyToComplete} not found in dialogue, available nodes: {string.Join(", ", dialogue.Nodes?.Select(n => n.Id) ?? new string[0])}");
+                        }
+                    }
+                    else
+                    {
+                        DebugConsole.Log($"Quest {quest.ID} ReadyToComplete is null or empty");
                     }
                 }
                 // Если квест в процессе
                 else if (quest.State == QuestState.InProgress)
                 {
-                    if (!string.IsNullOrEmpty(quest.DialogueNodes.InProgressNodeID))
+                    DebugConsole.Log($"Quest {quest.ID} is InProgress, looking for node: {quest.DialogueNodes.InProgress}");
+                    if (!string.IsNullOrEmpty(quest.DialogueNodes.InProgress))
                     {
-                        return quest.DialogueNodes.InProgressNodeID;
+                        // Проверяем, есть ли этот узел в диалоге
+                        var nodeExists = dialogue.Nodes?.Any(n => n.Id == quest.DialogueNodes.InProgress) ?? false;
+                        DebugConsole.Log($"Node {quest.DialogueNodes.InProgress} exists in dialogue: {nodeExists}");
+                        
+                        if (nodeExists)
+                        {
+                            DebugConsole.Log($"Returning in progress node: {quest.DialogueNodes.InProgress}");
+                            return quest.DialogueNodes.InProgress;
+                        }
+                        else
+                        {
+                            DebugConsole.Log($"Node {quest.DialogueNodes.InProgress} not found in dialogue, available nodes: {string.Join(", ", dialogue.Nodes?.Select(n => n.Id) ?? new string[0])}");
+                        }
+                    }
+                    else
+                    {
+                        DebugConsole.Log($"Quest {quest.ID} InProgress is null or empty");
                     }
                 }
             }
 
             // Проверяем завершенные квесты
             var completedQuests = _questLog.GetCompletedQuestsForNPC(npcID);
+            DebugConsole.Log($"Completed quests for NPC {npcID}: {completedQuests.Count}");
             if (completedQuests.Any())
             {
                 var quest = completedQuests.First();
-                if (!string.IsNullOrEmpty(quest.DialogueNodes.CompletedNodeID))
+                if (!string.IsNullOrEmpty(quest.DialogueNodes.Completed))
                 {
-                    return quest.DialogueNodes.CompletedNodeID;
+                    DebugConsole.Log($"Returning completed node: {quest.DialogueNodes.Completed}");
+                    return quest.DialogueNodes.Completed;
                 }
             }
 
             // Возвращаем стандартный стартовый узел
+            DebugConsole.Log($"Returning default start node: {dialogue.Start}");
             return dialogue.Start;
         }
 
@@ -139,7 +183,7 @@ namespace Engine.Dialogue
 
             foreach (var quest in availableQuests)
             {
-                if (!string.IsNullOrEmpty(quest.DialogueNodes.OfferNodeID))
+                if (!string.IsNullOrEmpty(quest.DialogueNodes.Offer))
                 {
                     AddQuestOfferNode(dialogue, quest);
                 }
@@ -148,12 +192,12 @@ namespace Engine.Dialogue
             foreach (var quest in activeQuests)
             {
                 if (quest.State == QuestState.ReadyToComplete && 
-                    !string.IsNullOrEmpty(quest.DialogueNodes.ReadyToCompleteNodeID))
+                    !string.IsNullOrEmpty(quest.DialogueNodes.ReadyToComplete))
                 {
                     AddQuestCompleteNode(dialogue, quest);
                 }
                 else if (quest.State == QuestState.InProgress && 
-                         !string.IsNullOrEmpty(quest.DialogueNodes.InProgressNodeID))
+                         !string.IsNullOrEmpty(quest.DialogueNodes.InProgress))
                 {
                     AddQuestInProgressNode(dialogue, quest);
                 }
@@ -161,7 +205,7 @@ namespace Engine.Dialogue
 
             foreach (var quest in completedQuests)
             {
-                if (!string.IsNullOrEmpty(quest.DialogueNodes.CompletedNodeID))
+                if (!string.IsNullOrEmpty(quest.DialogueNodes.Completed))
                 {
                     AddQuestCompletedNode(dialogue, quest);
                 }
@@ -172,7 +216,7 @@ namespace Engine.Dialogue
         {
             var offerNode = new DialogueNode
             {
-                Id = quest.DialogueNodes.OfferNodeID,
+                Id = quest.DialogueNodes.Offer,
                 Text = $"У меня есть для тебя задание: {quest.Name}\n\n{quest.Description}",
                 Responses = new List<Response>
                 {
@@ -200,7 +244,7 @@ namespace Engine.Dialogue
         {
             var inProgressNode = new DialogueNode
             {
-                Id = quest.DialogueNodes.InProgressNodeID,
+                Id = quest.DialogueNodes.InProgress,
                 Text = $"Как дела с заданием '{quest.Name}'?\n\n{quest.GetProgressText()}",
                 Responses = new List<Response>
                 {
@@ -219,7 +263,7 @@ namespace Engine.Dialogue
         {
             var completeNode = new DialogueNode
             {
-                Id = quest.DialogueNodes.ReadyToCompleteNodeID,
+                Id = quest.DialogueNodes.ReadyToComplete,
                 Text = $"Отлично! Ты выполнил задание '{quest.Name}'!\n\nВот твоя награда:",
                 Responses = new List<Response>
                 {
@@ -242,7 +286,7 @@ namespace Engine.Dialogue
         {
             var completedNode = new DialogueNode
             {
-                Id = quest.DialogueNodes.CompletedNodeID,
+                Id = quest.DialogueNodes.Completed,
                 Text = $"Спасибо за выполнение задания '{quest.Name}'! Ты отлично справился.",
                 Responses = new List<Response>
                 {

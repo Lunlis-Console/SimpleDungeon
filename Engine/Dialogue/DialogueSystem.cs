@@ -33,12 +33,21 @@ namespace Engine.Dialogue
     {
         public class DialogueNode
         {
+            public string Id { get; set; }
             public string Text { get; set; }
             public List<DialogueOption> Options { get; set; }
             public Action OnEnter { get; set; }
 
             public DialogueNode(string text, Action onEnter = null)
             {
+                Text = text;
+                Options = new List<DialogueOption>();
+                OnEnter = onEnter;
+            }
+
+            public DialogueNode(string id, string text, Action onEnter = null)
+            {
+                Id = id;
                 Text = text;
                 Options = new List<DialogueOption>();
                 OnEnter = onEnter;
@@ -62,8 +71,6 @@ namespace Engine.Dialogue
 
             // флаг, чтобы регистрация выполнялась только один раз
             private static bool _defaultActionHandlersRegistered = false;
-
-            private static GameData _gameData;
 
 
             public DialogueOption(string text, DialogueNode nextNode = null)
@@ -1188,99 +1195,52 @@ namespace Engine.Dialogue
 
                 DebugConsole.Log($"TryFindQuestByIdOrName: searching for '{qparam}'");
 
-                // Сначала проверим в _gameData.Quests (если доступно)
+                // Используем JsonWorldRepository.Instance для поиска квестов
                 try
                 {
-                    if (_gameData?.Quests != null)
+                    var worldRepo = JsonWorldRepository.Instance;
+                    if (worldRepo != null)
                     {
-                        DebugConsole.Log($"Checking _gameData.Quests ({_gameData.Quests.Count} quests)");
+                        DebugConsole.Log($"Checking JsonWorldRepository ({worldRepo.GetAllQuests().Count} quests)");
 
                         // Поиск по ID
                         if (int.TryParse(qparam, out int questId))
                         {
-                            var questById = _gameData.Quests.FirstOrDefault(q => q.ID == questId);
+                            var questById = worldRepo.QuestByID(questId);
                             if (questById != null)
                             {
-                                DebugConsole.Log($"Found in _gameData by ID: {questById.Name} (ID: {questById.ID})");
+                                DebugConsole.Log($"Found in JsonWorldRepository by ID: {questById.Name} (ID: {questById.ID})");
                                 return questById;
                             }
-                            DebugConsole.Log($"Quest with ID {questId} not found in _gameData");
+                            DebugConsole.Log($"Quest with ID {questId} not found in JsonWorldRepository");
                         }
 
                         // Поиск по имени
-                        var questByName = _gameData.Quests.FirstOrDefault(q =>
-                            q.Name != null && q.Name.Equals(qparam, StringComparison.OrdinalIgnoreCase));
+                        var questByName = worldRepo.GetAllQuests()
+                            .FirstOrDefault(q => q.Name != null && q.Name.Equals(qparam, StringComparison.OrdinalIgnoreCase));
 
                         if (questByName != null)
                         {
-                            DebugConsole.Log($"Found in _gameData by name: {questByName.Name} (ID: {questByName.ID})");
+                            DebugConsole.Log($"Found in JsonWorldRepository by name: {questByName.Name} (ID: {questByName.ID})");
                             return questByName;
                         }
-                        DebugConsole.Log($"Quest with name '{qparam}' not found in _gameData");
+                        DebugConsole.Log($"Quest with name '{qparam}' not found in JsonWorldRepository");
 
                         // Вывод всех квестов для отладки
-                        DebugConsole.Log("Available quests in _gameData:");
-                        foreach (var quest in _gameData.Quests)
+                        DebugConsole.Log("Available quests in JsonWorldRepository:");
+                        foreach (var quest in worldRepo.GetAllQuests())
                         {
                             DebugConsole.Log($"- ID: {quest.ID}, Name: '{quest.Name}'");
                         }
                     }
                     else
                     {
-                        DebugConsole.Log("_gameData.Quests is null or empty");
+                        DebugConsole.Log("JsonWorldRepository.Instance is null");
                     }
                 }
                 catch (Exception ex)
                 {
-                    DebugConsole.Log($"Error searching in _gameData: {ex.Message}");
-                }
-
-                // Затем пробуем найти через рефлексию (ваш существующий код)
-                try
-                {
-                    DebugConsole.Log("Trying reflection search...");
-                    var asms = AppDomain.CurrentDomain.GetAssemblies();
-                    foreach (var asm in asms)
-                    {
-                        var repoType = asm.GetTypes().FirstOrDefault(t => t.Name.IndexOf("QuestRepository", StringComparison.OrdinalIgnoreCase) >= 0
-                                                                      || t.Name.IndexOf("QuestDatabase", StringComparison.OrdinalIgnoreCase) >= 0
-                                                                      || t.Name.IndexOf("QuestManager", StringComparison.OrdinalIgnoreCase) >= 0);
-                        if (repoType == null) continue;
-
-                        var getById = repoType.GetMethod("GetById", BindingFlags.Public | BindingFlags.Static)
-                                     ?? repoType.GetMethod("GetQuestById", BindingFlags.Public | BindingFlags.Static)
-                                     ?? repoType.GetMethod("Find", BindingFlags.Public | BindingFlags.Static);
-                        if (getById != null)
-                        {
-                            try
-                            {
-                                if (int.TryParse(qparam, out var qid))
-                                {
-                                    var q = getById.Invoke(null, new object[] { qid });
-                                    if (q != null)
-                                    {
-                                        DebugConsole.Log($"Found via reflection by ID: {q}");
-                                        return q;
-                                    }
-                                }
-                                var qName = qparam;
-                                var q2 = getById.Invoke(null, new object[] { qName });
-                                if (q2 != null)
-                                {
-                                    DebugConsole.Log($"Found via reflection by name: {q2}");
-                                    return q2;
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                DebugConsole.Log($"Reflection search error: {ex.Message}");
-                            }
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    DebugConsole.Log("TryFindQuestByIdOrName reflection failed: " + ex.Message);
+                    DebugConsole.Log($"Error searching in JsonWorldRepository: {ex.Message}");
                 }
 
                 DebugConsole.Log($"Quest '{qparam}' not found anywhere");
@@ -1296,8 +1256,23 @@ namespace Engine.Dialogue
                     if (idProperty != null)
                     {
                         var questID = (int)idProperty.GetValue(questObj);
-                        player.StartQuest(questID);
-                        return true;
+                        
+                        // Сначала добавляем квест в AvailableQuests, если его там нет
+                        var worldRepo = JsonWorldRepository.Instance;
+                        if (worldRepo != null)
+                        {
+                            var quest = worldRepo.QuestByID(questID);
+                            if (quest != null)
+                            {
+                                // Добавляем квест в доступные квесты
+                                player.QuestLog.AddAvailableQuest(quest);
+                                DebugConsole.Log($"Added quest {questID} to AvailableQuests");
+                                
+                                // Теперь запускаем квест
+                                player.StartQuest(questID);
+                                return true;
+                            }
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -1664,6 +1639,8 @@ namespace Engine.Dialogue
                                 var quest = JsonWorldRepository.Instance?.QuestByID(qid);
                                 if (quest != null)
                                 {
+                                    // Добавляем квест в доступные квесты перед запуском
+                                    player.QuestLog.AddAvailableQuest(quest);
                                     player.StartQuest(quest.ID);
                                     DebugConsole.Log($"DialogueAction: started quest id={qid}");
                                 }
@@ -1676,6 +1653,8 @@ namespace Engine.Dialogue
                                             || q.ID.ToString() == parameter);
                                 if (quest != null)
                                 {
+                                    // Добавляем квест в доступные квесты перед запуском
+                                    player.QuestLog.AddAvailableQuest(quest);
                                     player.StartQuest(quest.ID);
                                     DebugConsole.Log($"DialogueAction: started quest '{parameter}'");
                                 }
