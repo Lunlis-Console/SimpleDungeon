@@ -4,6 +4,10 @@ using System.Collections.Generic;
 using Engine.Entities;
 using Engine.Dialogue;
 using Engine.Trading;
+using Engine.Core;
+using Engine.World;
+using Engine.Quests;
+using Engine.Data;
 
 namespace Engine.UI
 {
@@ -12,10 +16,11 @@ namespace Engine.UI
         private readonly NPC _npc;
         private readonly Player _player;
         private readonly ITrader _dialogueSuppliedTrader; // опционально: передавать из InteractionScreen
-        private DialogueSystem.DialogueNode _currentNode;
+        private DialogueDocument _dialogueDocument;
+        private DialogueNode _currentNode;
         private int _selectedIndex;
 
-        public DialogueSystem.DialogueOption SelectedOption { get; private set; }
+        public Response SelectedOption { get; private set; }
 
         // Конструктор: передаём NPC и Player; опционально ITrader (если InteractionScreen умеет готовить трейдера)
         public DialogueScreen(NPC npc, Player player, ITrader traderForDialogue = null)
@@ -27,8 +32,8 @@ namespace Engine.UI
             _selectedIndex = 0;
             SelectedOption = null;
 
-            // Попробуем инициализировать стартовый узел диалога
-            TryInitializeCurrentNodeFromNpc();
+            // Попробуем инициализировать диалог из NPC
+            TryInitializeDialogueFromNpc();
 
             // Гарантируем перерисовку
             RequestFullRedraw();
@@ -127,17 +132,19 @@ namespace Engine.UI
         private void RenderOptions()
         {
             int startY = Math.Max(8, Height - 8);
-            var options = _currentNode?.Options ?? new List<DialogueSystem.DialogueOption>();
+            var responses = _currentNode?.Responses ?? new List<Response>();
 
-            // Обновляем доступность опций через EvaluateCondition (safety)
-            foreach (var opt in options)
+            // Фильтруем опции по условиям видимости
+            var availableResponses = new List<Response>();
+            foreach (var response in responses)
             {
-                try { opt.IsAvailable = opt.EvaluateCondition(_player); } catch { opt.IsAvailable = true; }
+                if (EvaluateResponseCondition(response))
+                {
+                    availableResponses.Add(response);
+                }
             }
 
-            var availableOptions = options.Where(o => o.IsAvailable).ToList();
-
-            if (availableOptions.Count == 0)
+            if (availableResponses.Count == 0)
             {
                 try { _renderer.Write(2, startY, "(Нет доступных ответов)", ConsoleColor.DarkGray); } catch { }
                 return;
@@ -149,11 +156,10 @@ namespace Engine.UI
             int currentY = startY;
 
             // Показываем все опции в едином списке
-            for (int i = 0; i < availableOptions.Count; i++)
+            for (int i = 0; i < availableResponses.Count; i++)
             {
                 bool isSelected = i == _selectedIndex;
-                bool isVisited = availableOptions[i].IsVisited;
-                var text = availableOptions[i].Text ?? "(пустой ответ)";
+                var text = availableResponses[i].Text ?? "(пустой ответ)";
 
                 try
                 {
@@ -164,10 +170,7 @@ namespace Engine.UI
                     }
                     else
                     {
-                        if (isVisited)
-                            _renderer.Write(4, currentY, text, ConsoleColor.DarkGray);
-                        else
-                            _renderer.Write(4, currentY, text, ConsoleColor.Gray);
+                        _renderer.Write(4, currentY, text, ConsoleColor.Gray);
                     }
                 }
                 catch { /* игнорируем ошибки отрисовки */ }
@@ -194,14 +197,14 @@ namespace Engine.UI
         {
             HandleCommonInput(keyInfo);
 
-            var options = _currentNode?.Options ?? new List<DialogueSystem.DialogueOption>();
-            var availableOptions = options.Where(o => o.IsAvailable).ToList();
+            var responses = _currentNode?.Responses ?? new List<Response>();
+            var availableResponses = responses.Where(r => EvaluateResponseCondition(r)).ToList();
 
             switch (keyInfo.Key)
             {
                 case ConsoleKey.W:
                 case ConsoleKey.UpArrow:
-                    if (availableOptions.Count > 0)
+                    if (availableResponses.Count > 0)
                     {
                         _selectedIndex = Math.Max(0, _selectedIndex - 1);
                         try { RequestPartialRedraw(); } catch { RequestFullRedraw(); }
@@ -210,34 +213,49 @@ namespace Engine.UI
 
                 case ConsoleKey.S:
                 case ConsoleKey.DownArrow:
-                    if (availableOptions.Count > 0)
+                    if (availableResponses.Count > 0)
                     {
-                        _selectedIndex = Math.Min(availableOptions.Count - 1, _selectedIndex + 1);
+                        _selectedIndex = Math.Min(availableResponses.Count - 1, _selectedIndex + 1);
                         try { RequestPartialRedraw(); } catch { RequestFullRedraw(); }
                     }
                     break;
 
                 case ConsoleKey.E:
                 case ConsoleKey.Enter:
-                    if (availableOptions.Count > 0)
+                    if (availableResponses.Count > 0)
                     {
-                        var selectedOption = availableOptions[_selectedIndex];
-                        SelectedOption = selectedOption;
-                        selectedOption.IsVisited = true;
+                        var selectedResponse = availableResponses[_selectedIndex];
+                        SelectedOption = selectedResponse;
 
                         try
                         {
-                            // ExecuteSelection использует DialogueActions.Execute(...)
-                            selectedOption.ExecuteSelection(_player, this);
+                            // Выполняем действия ответа
+                            ExecuteResponseActions(selectedResponse);
+
+                            // Переходим к следующему узлу, если указан
+                            if (!string.IsNullOrEmpty(selectedResponse.Target))
+                            {
+                                var nextNode = _dialogueDocument?.Nodes?.FirstOrDefault(n => n.Id == selectedResponse.Target);
+                                if (nextNode != null)
+                                {
+                                    SetCurrentNode(nextNode);
+                                }
+                                else
+                                {
+                                    DebugConsole.Log($"Узел диалога '{selectedResponse.Target}' не найден");
+                                    CloseDialogue();
+                                }
+                            }
+                            else
+                            {
+                                // Если нет следующего узла, закрываем диалог
+                                CloseDialogue();
+                            }
                         }
                         catch (Exception ex)
                         {
-                            DebugConsole.Log("Ошибка при выполнении опции диалога: " + ex.Message);
-
-                            if (selectedOption.NextNode != null)
-                                SetCurrentNode(selectedOption.NextNode);
-                            else
-                                CloseDialogue();
+                            DebugConsole.Log("Ошибка при выполнении ответа диалога: " + ex.Message);
+                            CloseDialogue();
                         }
 
                         // Если выбор открыл TradeScreen — не закрываем диалог и выходим
@@ -263,12 +281,11 @@ namespace Engine.UI
 
         #region --- IDialogueUI implementation ---
 
-        public void SetCurrentNode(DialogueSystem.DialogueNode node)
+        public void SetCurrentNode(DialogueNode node)
         {
             if (node == null) return;
             _currentNode = node;
             _selectedIndex = 0;
-            try { _currentNode.OnEnter?.Invoke(); } catch { }
             try { RequestFullRedraw(); } catch { }
         }
 
@@ -279,44 +296,110 @@ namespace Engine.UI
 
         #endregion
 
-        #region --- Utils: init current node from NPC if available ---
+        #region --- Utils: init dialogue from NPC if available ---
 
-        private void TryInitializeCurrentNodeFromNpc()
+        private void TryInitializeDialogueFromNpc()
         {
             try
             {
-                // В проекте у NPC есть GreetingDialogue и/или Trader и т.д.
-                // Попробуем взять GreetingDialogue, если он задан.
-                if (_npc == null) { _currentNode = null; return; }
-
-                if (_npc.GreetingDialogue != null)
-                {
-                    _currentNode = _npc.GreetingDialogue;
-                    return;
+                if (_npc == null) 
+                { 
+                    _currentNode = null; 
+                    return; 
                 }
 
-                // Если NPC.Trader предоставляет Greeting через GetShopGreeting, можно сделать заглушку:
-                if (_npc.Trader != null)
+                // Получаем диалог из NPC
+                _dialogueDocument = _npc.GetDialogueDocument();
+                
+                if (_dialogueDocument != null && _dialogueDocument.Nodes != null)
                 {
-                    // Создаём простой узел с приветствием продавца
-                    var text = _npc.Trader.ShopGreeting ?? _npc.Greeting ?? $"{_npc.Name}: Привет.";
-                    _currentNode = new DialogueSystem.DialogueNode(text, null)
+                    // Находим стартовый узел
+                    var startNode = _dialogueDocument.Nodes.FirstOrDefault(n => n.Id == _dialogueDocument.Start);
+                    if (startNode != null)
                     {
-                        Options = new List<DialogueSystem.DialogueOption>()
-                    };
-                    return;
+                        _currentNode = startNode;
+                        DebugConsole.Log($"DialogueScreen: Инициализирован диалог '{_dialogueDocument.Name}' с узлом '{startNode.Id}'");
+                        return;
+                    }
                 }
 
-                // fallback: пустой узел
-                _currentNode = new DialogueSystem.DialogueNode(_npc.Greeting ?? "(пусто)", null)
+                // Если нет диалога, создаем простой узел с приветствием
+                _currentNode = new DialogueNode
                 {
-                    Options = new List<DialogueSystem.DialogueOption>()
+                    Id = "default_greeting",
+                    Text = _npc.Greeting ?? $"{_npc.Name}: Привет.",
+                    Responses = new List<Response>()
                 };
+
+                // Добавляем базовые опции
+                if (_npc.Trader != null || (_npc.ItemsForSale != null && _npc.ItemsForSale.Count > 0))
+                {
+                    _currentNode.Responses.Add(new Response
+                    {
+                        Text = "Покажи мне свои товары...",
+                        Actions = new List<Engine.Dialogue.DialogueAction>
+                        {
+                            new Engine.Dialogue.DialogueAction { Type = "StartTrade" }
+                        }
+                    });
+                }
+
+                _currentNode.Responses.Add(new Response
+                {
+                    Text = "Я пойду.",
+                    Actions = new List<Engine.Dialogue.DialogueAction>
+                    {
+                        new Engine.Dialogue.DialogueAction { Type = "EndDialogue" }
+                    }
+                });
+
+                DebugConsole.Log("DialogueScreen: Создан простой диалог с приветствием");
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"DialogueScreen.TryInitializeCurrentNodeFromNpc: {ex.Message}");
+                DebugConsole.Log($"DialogueScreen.TryInitializeDialogueFromNpc: {ex.Message}");
                 _currentNode = null;
+            }
+        }
+
+        #endregion
+
+        #region --- Helper methods ---
+
+        /// <summary>
+        /// Проверяет условие видимости для ответа диалога
+        /// </summary>
+        private bool EvaluateResponseCondition(Response response)
+        {
+            if (string.IsNullOrWhiteSpace(response.Condition)) return true;
+            var result = DialogueSystem.EvaluateCondition(response.Condition, _player, _npc);
+            DebugConsole.Log($"EvaluateResponseCondition: '{response.Condition}' = {result} for NPC {_npc.ID} ({_npc.Name})");
+            return result;
+        }
+
+        /// <summary>
+        /// Выполняет действия ответа диалога
+        /// </summary>
+        private void ExecuteResponseActions(Response response)
+        {
+            if (response.Actions == null) return;
+
+            foreach (var action in response.Actions)
+            {
+                // Специальные действия UI обрабатываем здесь
+                switch (action.Type?.ToLower())
+                {
+                    case "starttrade":
+                        OpenTrade();
+                        break;
+                    case "enddialogue":
+                        CloseDialogue();
+                        break;
+                    default:
+                        // Остальные действия обрабатываем в DialogueSystem
+                        DialogueSystem.ExecuteAction(action, _player, _npc);
+                        break;
+                }
             }
         }
 

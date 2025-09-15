@@ -268,6 +268,18 @@ namespace JsonEditor
             int top = 12;
             int vertGap = 30;
 
+            // Добавляем подсказку
+            var lblHint = new Label 
+            { 
+                Text = "ID узлов диалогов для разных состояний квеста. Эти узлы будут созданы автоматически QuestDialogueManager.", 
+                Left = leftLabel, 
+                Top = top, 
+                Width = 500, 
+                Height = 40,
+                ForeColor = Color.Blue
+            };
+            top += 50;
+
             var lblOfferNode = new Label { Text = "Узел предложения квеста:", Left = leftLabel, Top = top + 4, Width = 180 };
             txtOfferNode = new TextBox { Left = leftControl, Top = top, Width = 200 };
             top += vertGap;
@@ -282,13 +294,27 @@ namespace JsonEditor
 
             var lblCompletedNode = new Label { Text = "Узел завершенного квеста:", Left = leftLabel, Top = top + 4, Width = 180 };
             txtCompletedNode = new TextBox { Left = leftControl, Top = top, Width = 200 };
+            top += vertGap;
+
+            // Добавляем примеры
+            var lblExamples = new Label 
+            { 
+                Text = "Примеры ID: quest_offer_5001, quest_progress_5001, quest_complete_5001, quest_done_5001", 
+                Left = leftLabel, 
+                Top = top, 
+                Width = 500, 
+                Height = 20,
+                ForeColor = Color.Gray
+            };
 
             tab.Controls.AddRange(new Control[]
             {
+                lblHint,
                 lblOfferNode, txtOfferNode,
                 lblInProgressNode, txtInProgressNode,
                 lblReadyToCompleteNode, txtReadyToCompleteNode,
-                lblCompletedNode, txtCompletedNode
+                lblCompletedNode, txtCompletedNode,
+                lblExamples
             });
         }
 
@@ -526,6 +552,13 @@ namespace JsonEditor
             _quest.DialogueNodes.InProgress = txtInProgressNode.Text.Trim();
             _quest.DialogueNodes.ReadyToComplete = txtReadyToCompleteNode.Text.Trim();
             _quest.DialogueNodes.Completed = txtCompletedNode.Text.Trim();
+
+            // Валидация узлов диалогов
+            if (string.IsNullOrEmpty(_quest.DialogueNodes.Offer))
+            {
+                MessageBox.Show("Необходимо указать ID узла предложения квеста.", "Ошибка валидации", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
             this.DialogResult = DialogResult.OK;
             this.Close();

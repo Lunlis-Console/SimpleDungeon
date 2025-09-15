@@ -168,8 +168,14 @@ namespace Engine.Core
         {
             get
             {
-                if (_questManager == null && CurrentPlayer != null)
+                if (_questManager == null)
                 {
+                    if (CurrentPlayer == null)
+                    {
+                        DebugConsole.Log("QuestManager: CurrentPlayer is null, cannot initialize");
+                        return null;
+                    }
+                    
                     _questManager = new QuestManager(WorldRepository, CurrentPlayer.QuestLog);
                     // Загружаем квесты из game_data.json
                     var gameData = WorldRepository.GetGameData();

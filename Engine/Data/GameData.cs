@@ -113,7 +113,10 @@ namespace Engine.Data
         public string Greeting { get; set; } = string.Empty;
         public List<int> QuestsToGive { get; set; } = new List<int>();
         public MerchantData Merchant { get; set; } = new MerchantData();
+        
+        [Obsolete("Используйте DefaultDialogueId вместо GreetingDialogueId. Поле будет удалено в будущих версиях.")]
         public string GreetingDialogueId { get; set; } = null;
+        
         public string DefaultDialogueId { get; set; } = null;
     }
 

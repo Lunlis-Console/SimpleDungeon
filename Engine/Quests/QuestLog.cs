@@ -31,12 +31,24 @@ namespace Engine.Quests
         /// </summary>
         public void AddAvailableQuest(EnhancedQuest quest)
         {
+            DebugConsole.Log($"QuestLog.AddAvailableQuest: Adding quest {quest.ID} ({quest.Name}), State: {quest.State}");
+            DebugConsole.Log($"  AvailableQuests count before: {AvailableQuests.Count}");
+            DebugConsole.Log($"  ActiveQuests count: {ActiveQuests.Count}");
+            DebugConsole.Log($"  CompletedQuests count: {CompletedQuests.Count}");
+            
             if (!AvailableQuests.Any(q => q.ID == quest.ID) && 
                 !ActiveQuests.Any(q => q.ID == quest.ID) && 
                 !CompletedQuests.Any(q => q.ID == quest.ID))
             {
                 AvailableQuests.Add(quest);
+                DebugConsole.Log($"  Quest {quest.ID} successfully added to AvailableQuests");
             }
+            else
+            {
+                DebugConsole.Log($"  Quest {quest.ID} already exists in one of the lists, not adding");
+            }
+            
+            DebugConsole.Log($"  AvailableQuests count after: {AvailableQuests.Count}");
         }
 
         /// <summary>
@@ -119,9 +131,24 @@ namespace Engine.Quests
         /// </summary>
         public void UpdateQuestProgress(object context = null)
         {
+            DebugConsole.Log($"QuestLog.UpdateQuestProgress called with context: {context?.GetType().Name ?? "null"}");
+            
             foreach (var quest in ActiveQuests)
             {
-                quest.CheckAllConditions(_player, context);
+                DebugConsole.Log($"Updating quest {quest.ID} ({quest.Name}) - Current state: {quest.State}");
+                
+                bool wasCompleted = quest.CheckAllConditions(_player, context);
+                
+                DebugConsole.Log($"Quest {quest.ID} after update - State: {quest.State}, All conditions completed: {wasCompleted}");
+                
+                // Логируем детали условий
+                if (quest.Conditions != null)
+                {
+                    foreach (var condition in quest.Conditions)
+                    {
+                        DebugConsole.Log($"  Condition {condition.ID}: {condition.Description} - Progress: {condition.CurrentProgress}/{condition.RequiredAmount}, Completed: {condition.IsCompleted}");
+                    }
+                }
             }
         }
 
@@ -130,9 +157,12 @@ namespace Engine.Quests
         /// </summary>
         public EnhancedQuest GetQuest(int questID)
         {
-            return AvailableQuests.FirstOrDefault(q => q.ID == questID) ??
-                   ActiveQuests.FirstOrDefault(q => q.ID == questID) ??
-                   CompletedQuests.FirstOrDefault(q => q.ID == questID);
+            var quest = AvailableQuests.FirstOrDefault(q => q.ID == questID) ??
+                       ActiveQuests.FirstOrDefault(q => q.ID == questID) ??
+                       CompletedQuests.FirstOrDefault(q => q.ID == questID);
+            
+            DebugConsole.Log($"QuestLog.GetQuest({questID}): Found = {quest != null}, Name = {quest?.Name}, State = {quest?.State}, QuestGiver = {quest?.QuestGiverID}");
+            return quest;
         }
 
         /// <summary>
@@ -140,7 +170,18 @@ namespace Engine.Quests
         /// </summary>
         public List<EnhancedQuest> GetAvailableQuestsForNPC(int npcID)
         {
-            return AvailableQuests.Where(q => q.QuestGiverID == npcID && q.CanStart(_player, this)).ToList();
+            DebugConsole.Log($"QuestLog.GetAvailableQuestsForNPC: Looking for quests for NPC {npcID}");
+            DebugConsole.Log($"  Total AvailableQuests: {AvailableQuests.Count}");
+            
+            var quests = AvailableQuests.Where(q => q.QuestGiverID == npcID && q.CanStart(_player, this)).ToList();
+            
+            DebugConsole.Log($"  Found {quests.Count} available quests for NPC {npcID}");
+            foreach (var quest in quests)
+            {
+                DebugConsole.Log($"    Quest {quest.ID}: {quest.Name}, State: {quest.State}, CanStart: {quest.CanStart(_player, this)}");
+            }
+            
+            return quests;
         }
 
         /// <summary>

@@ -6,6 +6,8 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 using Engine.Data;
+using Engine.Dialogue;
+using Engine.Quests;
 
 namespace JsonEditor
 {
@@ -52,7 +54,11 @@ namespace JsonEditor
             // пункты добавим динамически после загрузки GameData
             dataMenu.DropDownOpening += (s, e) => RebuildDataMenu(dataMenu);
 
-            _menu.Items.AddRange(new[] { fileMenu, dataMenu });
+            var toolsMenu = new ToolStripMenuItem("Инструменты");
+            var validateItem = new ToolStripMenuItem("Проверить синхронизацию с runtime", null, (s, e) => ValidateRuntimeSync());
+            toolsMenu.DropDownItems.Add(validateItem);
+
+            _menu.Items.AddRange(new[] { fileMenu, dataMenu, toolsMenu });
 
             // Status
             _status = new StatusStrip();
@@ -629,19 +635,198 @@ namespace JsonEditor
         {
             if (dialogue == null) return;
 
-            // Используем DialogueEditorForm для редактирования диалогов
-            using (var form = new SimpleDungeon.Tools.DialogueEditor.DialogueEditorForm())
+            // Конвертируем DialogueData в DialogueDocument для редактирования
+            var document = ConvertDialogueDataToDocument(dialogue);
+            
+            using (var form = new NewDialogueEditorForm(_gameData, document))
             {
-                form.EditDialogFromGameData(_currentFilePath, dialogue);
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
-                    // Диалог редактируется напрямую в форме
+                    var editedDocument = form.GetDocument();
+                    // Конвертируем обратно в DialogueData
+                    ConvertDocumentToDialogueData(editedDocument, dialogue);
                     RefreshCurrentGrid();
                 }
             }
         }
 
-        // Вспомогательные методы
+        // Методы конвертации между старой и новой системами диалогов
+        private Engine.Dialogue.DialogueDocument ConvertDialogueDataToDocument(DialogueData dialogueData)
+        {
+            var document = new Engine.Dialogue.DialogueDocument
+            {
+                Id = dialogueData.Id,
+                Name = dialogueData.Name ?? $"Диалог {dialogueData.Id}",
+                Start = dialogueData.Start ?? "greeting",
+                Nodes = new List<Engine.Dialogue.DialogueNode>()
+            };
+
+            if (dialogueData.Nodes != null)
+            {
+                foreach (var nodeData in dialogueData.Nodes)
+                {
+                    var node = new Engine.Dialogue.DialogueNode
+                    {
+                        Id = nodeData.Id,
+                        Text = nodeData.Text,
+                        Type = nodeData.Type ?? "default",
+                        Responses = new List<Response>()
+                    };
+
+                    if (nodeData.Choices != null)
+                    {
+                        foreach (var choice in nodeData.Choices)
+                        {
+                            var response = new Response
+                            {
+                                Text = choice.Text,
+                                Target = choice.NextNodeId ?? "",
+                                Condition = choice.Condition ?? "",
+                                Actions = new List<Engine.Dialogue.DialogueAction>()
+                            };
+
+                            // Конвертируем действия
+                            if (choice.Actions != null && choice.Actions.Count > 0)
+                            {
+                                foreach (var actionData in choice.Actions)
+                                {
+                                    response.Actions.Add(new Engine.Dialogue.DialogueAction
+                                    {
+                                        Type = GetActionTypeName(actionData.Type),
+                                        Param = actionData.Parameter ?? ""
+                                    });
+                                }
+                            }
+                            else if (choice.Action != Engine.Data.DialogueAction.None)
+                            {
+                                response.Actions.Add(new Engine.Dialogue.DialogueAction
+                                {
+                                    Type = GetActionTypeName(choice.Action),
+                                    Param = choice.ActionParameter ?? ""
+                                });
+                            }
+
+                            node.Responses.Add(response);
+                        }
+                    }
+
+                    document.Nodes.Add(node);
+                }
+            }
+
+            return document;
+        }
+
+        private void ConvertDocumentToDialogueData(Engine.Dialogue.DialogueDocument document, DialogueData dialogueData)
+        {
+            dialogueData.Id = document.Id;
+            dialogueData.Name = document.Name;
+            dialogueData.Start = document.Start;
+            dialogueData.Nodes = new List<DialogueNodeData>();
+
+            foreach (var node in document.Nodes)
+            {
+                var nodeData = new DialogueNodeData
+                {
+                    Id = node.Id,
+                    Text = node.Text,
+                    Type = node.Type,
+                    Choices = new List<DialogueChoiceData>()
+                };
+
+                if (node.Responses != null)
+                {
+                    foreach (var response in node.Responses)
+                    {
+                        var choice = new DialogueChoiceData
+                        {
+                            Text = response.Text,
+                            NextNodeId = response.Target,
+                            Condition = response.Condition,
+                            Actions = new List<DialogueActionData>()
+                        };
+
+                        if (response.Actions != null)
+                        {
+                            foreach (var action in response.Actions)
+                            {
+                                choice.Actions.Add(new DialogueActionData
+                                {
+                                    Type = GetDialogueActionType(action.Type),
+                                    Parameter = action.Param
+                                });
+                            }
+                        }
+
+                        nodeData.Choices.Add(choice);
+                    }
+                }
+
+                dialogueData.Nodes.Add(nodeData);
+            }
+        }
+
+        private string GetActionTypeName(Engine.Data.DialogueAction actionType)
+        {
+            return actionType switch
+            {
+                Engine.Data.DialogueAction.StartQuest => "StartQuest",
+                Engine.Data.DialogueAction.CompleteQuest => "CompleteQuest",
+                Engine.Data.DialogueAction.StartTrade => "StartTrade",
+                Engine.Data.DialogueAction.EndDialogue => "EndDialogue",
+                Engine.Data.DialogueAction.GiveGold => "GiveGold",
+                Engine.Data.DialogueAction.GiveItem => "GiveItem",
+                Engine.Data.DialogueAction.SetFlag => "SetFlag",
+                _ => "None"
+            };
+        }
+
+        private Engine.Data.DialogueAction GetDialogueActionType(string actionType)
+        {
+            return actionType switch
+            {
+                "StartQuest" => Engine.Data.DialogueAction.StartQuest,
+                "CompleteQuest" => Engine.Data.DialogueAction.CompleteQuest,
+                "StartTrade" => Engine.Data.DialogueAction.StartTrade,
+                "EndDialogue" => Engine.Data.DialogueAction.EndDialogue,
+                "GiveGold" => Engine.Data.DialogueAction.GiveGold,
+                "GiveItem" => Engine.Data.DialogueAction.GiveItem,
+                "SetFlag" => Engine.Data.DialogueAction.SetFlag,
+                _ => Engine.Data.DialogueAction.None
+            };
+        }
+        private void ValidateRuntimeSync()
+        {
+            if (_gameData == null)
+            {
+                MessageBox.Show("Сначала загрузите файл данных.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            try
+            {
+                // Проверяем синхронизацию диалогов и квестов
+                var dialogueQuestResult = RuntimeSyncValidator.ValidateDialogueQuestSync(_gameData);
+                
+                // Проверяем торговлю NPC
+                var tradingResult = RuntimeSyncValidator.ValidateNPCTrading(_gameData);
+
+                // Объединяем результаты
+                var combinedResult = new ValidationResult();
+                combinedResult.Errors.AddRange(dialogueQuestResult.Errors);
+                combinedResult.Errors.AddRange(tradingResult.Errors);
+                combinedResult.Warnings.AddRange(dialogueQuestResult.Warnings);
+                combinedResult.Warnings.AddRange(tradingResult.Warnings);
+                combinedResult.Infos.AddRange(dialogueQuestResult.Infos);
+                combinedResult.Infos.AddRange(tradingResult.Infos);
+
+                RuntimeSyncValidator.ShowValidationResults(combinedResult);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при валидации: {ex.Message}", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
         private void CopyProperties(object source, object target)
         {
             if (source == null || target == null) return;

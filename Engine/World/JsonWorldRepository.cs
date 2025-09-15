@@ -518,7 +518,7 @@ namespace Engine.World
             // Устанавливаем DefaultDialogueId (приоритет над GreetingDialogueId для обратной совместимости)
             npc.DefaultDialogueId = !string.IsNullOrEmpty(npcData.DefaultDialogueId) 
                 ? npcData.DefaultDialogueId 
-                : npcData.GreetingDialogueId;
+                : npcData.GreetingDialogueId; // Обратная совместимость - будет удалено в будущих версиях
 
             // Добавление квестов (если список присутствует)
             if (npcData.QuestsToGive != null)
@@ -555,88 +555,18 @@ namespace Engine.World
                 // --- Привязка диалога по id (DefaultDialogueId или GreetingDialogueId для обратной совместимости) ---
                 var dialogueId = !string.IsNullOrEmpty(npcData.DefaultDialogueId) 
                     ? npcData.DefaultDialogueId 
-                    : npcData.GreetingDialogueId;
+                    : npcData.GreetingDialogueId; // Обратная совместимость - будет удалено в будущих версиях
                     
-                if (!string.IsNullOrWhiteSpace(dialogueId) && _gameData?.Dialogues != null)
+                if (!string.IsNullOrWhiteSpace(dialogueId))
                 {
-                    var d = _gameData.Dialogues.FirstOrDefault(x => x.Id == dialogueId);
-                    if (d != null)
-                    {
-                        var root = BuildDialogueFromData(d);
-                        if (root != null)
-                        {
-                            npc.GreetingDialogue = root;
-                        }
-                    }
+                    // Диалог теперь загружается динамически в NPC.GetDialogueDocument()
+                    DebugConsole.Log($"NPC {npc.ID} configured with dialogue ID: {dialogueId}");
                 }
 
 
             }
 
             return npc;
-        }
-
-        // Пример исправленного фрагмента — вставь вместо того, что у тебя не работало:
-        // замените существующий метод BuildDialogueFromData этим кодом
-        // Замените существующий метод BuildDialogueFromData(...) на этот:
-        private DialogueSystem.DialogueNode BuildDialogueFromData(Engine.Data.DialogueData data)
-        {
-            if (data == null || data.Nodes == null || data.Nodes.Count == 0)
-                return null;
-
-            // 1) создаём карту id -> runtime-нода
-            var map = new Dictionary<string, DialogueSystem.DialogueNode>();
-            foreach (var nodeData in data.Nodes)
-            {
-                var node = new DialogueSystem.DialogueNode(nodeData.Id, nodeData.Text ?? string.Empty);
-                map[nodeData.Id] = node;
-            }
-
-            // 2) связываем переходы через Choices
-            foreach (var nodeData in data.Nodes)
-            {
-                if (!map.TryGetValue(nodeData.Id, out var node)) continue;
-
-                foreach (var choice in nodeData.Choices)
-                {
-                    DialogueSystem.DialogueNode next = null;
-                    if (!string.IsNullOrEmpty(choice.NextNodeId) && map.ContainsKey(choice.NextNodeId))
-                    {
-                        next = map[choice.NextNodeId];
-                    }
-
-                    var option = new DialogueSystem.DialogueOption(choice.Text ?? string.Empty, next);
-                    option.Condition = choice.Condition;
-
-                    // Копируем все действия
-                    if (choice.Actions != null && choice.Actions.Count > 0)
-                    {
-                        option.Actions = choice.Actions.Select(a => new DialogueActionData
-                        {
-                            Type = a.Type,
-                            Parameter = a.Parameter
-                        }).ToList();
-                    }
-                    // Для обратной совместимости с одиночными действиями
-                    if (!System.Object.Equals(choice.Action, default(DialogueAction)))
-                    {
-                        option.Action = choice.Action.ToString();
-                        option.Parameter = choice.ActionParameter;
-
-                        option.Actions.Add(new DialogueActionData
-                        {
-                            Type = choice.Action,
-                            Parameter = choice.ActionParameter
-                        });
-                    }
-
-                    node.Options.Add(option);
-                }
-            }
-
-            // 3) Определяем стартовый узел (теперь всегда используем дефолтный старт)
-            var startNodeId = DetermineStartNodeId(data);
-            return startNodeId != null && map.ContainsKey(startNodeId) ? map[startNodeId] : null;
         }
 
         /// <summary>
@@ -657,22 +587,6 @@ namespace Engine.World
             var fallbackNodeId = data.Nodes.Count > 0 ? data.Nodes[0].Id : null;
             DebugConsole.Log($"Using fallback node: '{fallbackNodeId}'");
             return fallbackNodeId;
-        }
-
-        /// <summary>
-        /// Получает ID диалога из узла (вспомогательный метод)
-        /// </summary>
-        private string GetDialogueIdFromNode(DialogueSystem.DialogueNode node)
-        {
-            // Ищем NPC, который использует этот узел как GreetingDialogue
-            var npc = _npcs?.Values.FirstOrDefault(n => n.GreetingDialogue == node);
-            if (npc != null)
-            {
-                // Возвращаем ID диалога на основе NPC
-                var npcData = _gameData?.NPCs?.FirstOrDefault(n => n.ID == npc.ID);
-                return npcData?.GreetingDialogueId;
-            }
-            return null;
         }
 
         /// <summary>

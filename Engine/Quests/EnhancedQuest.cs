@@ -79,13 +79,22 @@ namespace Engine.Quests
         /// </summary>
         public void InitializeConditions()
         {
+            DebugConsole.Log($"EnhancedQuest.InitializeConditions: Quest {ID} ({Name}), Conditions count: {Conditions?.Count ?? 0}");
+            
             if (Conditions == null)
             {
                 _runtimeConditions = new List<QuestCondition>();
+                DebugConsole.Log($"EnhancedQuest.InitializeConditions: Quest {ID} - No conditions, created empty list");
             }
             else
             {
                 _runtimeConditions = Conditions.Select(c => c.ToQuestCondition()).ToList();
+                DebugConsole.Log($"EnhancedQuest.InitializeConditions: Quest {ID} - Created {_runtimeConditions.Count} runtime conditions");
+                
+                foreach (var condition in _runtimeConditions)
+                {
+                    DebugConsole.Log($"  Runtime condition {condition.ID}: {condition.Description}, Required: {condition.RequiredAmount}, Current: {condition.CurrentProgress}");
+                }
             }
         }
 
@@ -94,15 +103,23 @@ namespace Engine.Quests
         /// </summary>
         public bool CanStart(Player player, QuestLog questLog)
         {
+            DebugConsole.Log($"EnhancedQuest.CanStart: Quest {ID} ({Name}), State: {State}");
+            
             // Проверяем предварительные условия
             foreach (var prereqID in PrerequisiteQuestIDs)
             {
                 if (!questLog.CompletedQuests.Any(q => q.ID == prereqID))
+                {
+                    DebugConsole.Log($"  Cannot start: Prerequisite quest {prereqID} not completed");
                     return false;
+                }
             }
 
             // Проверяем, что квест еще не взят и не завершен
-            return State == QuestState.NotStarted;
+            bool canStart = State == QuestState.NotStarted;
+            DebugConsole.Log($"  Can start: {canStart} (State: {State})");
+            
+            return canStart;
         }
 
         /// <summary>
@@ -122,11 +139,18 @@ namespace Engine.Quests
         /// </summary>
         public bool CheckAllConditions(Player player, object context = null)
         {
+            DebugConsole.Log($"EnhancedQuest.CheckAllConditions: Quest {ID} ({Name}), State: {State}, Context: {context?.GetType().Name ?? "null"}");
+            
             bool allCompleted = true;
 
             foreach (var condition in _runtimeConditions)
             {
+                DebugConsole.Log($"  Checking condition {condition.ID}: {condition.Description}, Current: {condition.CurrentProgress}/{condition.RequiredAmount}, Completed: {condition.IsCompleted}");
+                
                 condition.UpdateProgress(player, context);
+                
+                DebugConsole.Log($"  After update: Current: {condition.CurrentProgress}/{condition.RequiredAmount}, Completed: {condition.IsCompleted}");
+                
                 if (!condition.IsCompleted)
                 {
                     allCompleted = false;
@@ -139,9 +163,11 @@ namespace Engine.Quests
             // Обновляем состояние квеста
             if (allCompleted && State == QuestState.InProgress)
             {
+                DebugConsole.Log($"EnhancedQuest.CheckAllConditions: Quest {ID} transitioning from InProgress to ReadyToComplete");
                 State = QuestState.ReadyToComplete;
             }
 
+            DebugConsole.Log($"EnhancedQuest.CheckAllConditions: Quest {ID} final state: {State}, allCompleted: {allCompleted}");
             return allCompleted;
         }
 

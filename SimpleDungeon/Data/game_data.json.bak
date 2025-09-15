@@ -717,9 +717,10 @@
       "conditions": [
         {
           "id": 0,
+          "type": "VisitLocation",
           "description": "Посетить Северную Поляну",
           "requiredAmount": 1,
-          "targetId": 0,
+          "targetId": 3002,
           "currentProgress": 0,
           "isCompleted": false
         }
@@ -733,6 +734,34 @@
         "InProgress": "quest_5001_inprogress",
         "ReadyToComplete": "quest_5001_readytocomplete",
         "Completed": "quest_5001_completed"
+      }
+    },
+    {
+      "id": 5002,
+      "name": "Серые разбойники с Северной поляны",
+      "description": "Убить 3 волков.",
+      "detailedDescription": "Местный купец Зарубий жалуется на стаю волков, что обосновалась на северной поляне. Хищники перекрыли важный торговый путь, угрожая бизнесу купца и безопасности жителей. Он просит вас проучить «серых разбойников» и очистить дорогу.",
+      "questGiverId": 4001,
+      "conditions": [
+        {
+          "id": 0,
+          "type": "KillMonsters",
+          "description": "Убить 3 волков",
+          "requiredAmount": 3,
+          "targetId": 2007,
+          "currentProgress": 0,
+          "isCompleted": false
+        }
+      ],
+      "rewards": {
+        "experience": 50,
+        "gold": 100
+      },
+      "dialogueNodes": {
+        "Offer": "quest_5002_offer",
+        "InProgress": "quest_5002_progress",
+        "ReadyToComplete": "quest_5002_readyToComplete",
+        "Completed": "quest_5002_readyToComplete_2"
       }
     }
   ],
@@ -787,16 +816,29 @@
             "Quantity": 1
           }
         ]
-      }
+      },
+      "DefaultDialogueId": "7002"
     },
     {
       "ID": 4002,
       "Name": "Староста Федот",
       "Greeting": "Добро пожаловать в нашу деревню, путник! Нам нужна твоя помощь.",
       "Merchant": {
-        "Gold": 0
+        "Name": "Староста Федот",
+        "ShopGreeting": "У меня есть несколько полезных вещей для путешественника.",
+        "Gold": 500,
+        "ItemsForSale": [
+          {
+            "ItemID": 1002,
+            "Quantity": 5
+          },
+          {
+            "ItemID": 1102,
+            "Quantity": 1
+          }
+        ]
       },
-      "GreetingDialogueId": "7001"
+      "DefaultDialogueId": "7001"
     },
     {
       "ID": 4003,
@@ -864,196 +906,404 @@
   ],
   "Dialogues": [
     {
-      "id": "7001",
-      "name": "Диалог Старосты Федота",
-      "start": "default_fedot",
-      "nodes": [
+      "Id": "7001",
+      "Name": "Диалог Старосты Федота",
+      "Start": "default_fedot",
+      "Nodes": [
         {
-          "id": "quest_5001_offer",
-          "text": "Вид у тебя здравый, а взгляд – решительный. Не подведи и меня, старосту деревни. Дело у меня к тебе есть, щекотливое. В последнее время с Северной Поляны доносятся странные звуки, а двое дровосеков, что туда на прошлой неделе ходили, еще не вернулись. Народ шепчется, нечисть ли лесная объявилась или, того хуже, разбойники логово устраивают. Сходи-ка, развей мои опасения. Разведай обстановку на поляне, посмотри, что там стряслось, и вернись с вестями. Справишься?",
-          "type": "quest_offer",
-          "tags": [
+          "Id": "quest_5001_offer",
+          "Text": "Вид у тебя здравый, а взгляд – решительный. Не подведи и меня, старосту деревни. Дело у меня к тебе есть, щекотливое. В последнее время с Северной Поляны доносятся странные звуки, а двое дровосеков, что туда на прошлой неделе ходили, еще не вернулись. Народ шепчется, нечисть ли лесная объявилась или, того хуже, разбойники логово устраивают. Сходи-ка, развей мои опасения. Разведай обстановку на поляне, посмотри, что там стряслось, и вернись с вестями. Справишься?",
+          "Type": "quest_offer",
+          "Tags": [
             "quest"
           ],
-          "choices": [
+          "Choices": [
             {
-              "text": "Я помогу.",
-              "nextNodeId": "quest_5001_offer_2",
-              "condition": "",
-              "actions": [
+              "Text": "Я помогу.",
+              "NextNodeId": "quest_5001_offer_2",
+              "Action": 0,
+              "Actions": [
                 {
-                  "type": 3,
-                  "parameter": "5001"
+                  "Type": 3,
+                  "Parameter": "5001"
                 }
               ],
-              "actionSummary": "StartQuest (5001)"
+              "ActionSummary": "StartQuest (5001)"
             },
             {
-              "text": "Мне нужно подумать.",
-              "condition": "",
-              "actions": [
+              "Text": "Мне нужно подумать.",
+              "Action": 0,
+              "Actions": [
                 {
-                  "type": 7
+                  "Type": 7
                 }
               ],
-              "actionSummary": "EndDialogue"
+              "ActionSummary": "EndDialogue"
             }
           ]
         },
         {
-          "id": "quest_5001_inprogress",
-          "text": "А, это снова ты. Что-то новое узнал? Или просто мимо проходил? Не задерживайся зря, дело-то важное. Пока мы тут сидим сложа руки, на Северной Поляне кто-то хозяйничает!",
-          "type": "quest_progress",
-          "tags": [
+          "Id": "quest_5001_inprogress",
+          "Text": "А, это снова ты. Что-то новое узнал? Или просто мимо проходил? Не задерживайся зря, дело-то важное. Пока мы тут сидим сложа руки, на Северной Поляне кто-то хозяйничает!",
+          "Type": "quest_progress",
+          "Tags": [
             "quest"
           ],
-          "choices": [
+          "Choices": [
             {
-              "text": "Я еще работаю над этим.",
-              "condition": "",
-              "actions": [
+              "Text": "Я еще работаю над этим.",
+              "Action": 0,
+              "Actions": [
                 {
-                  "type": 7
+                  "Type": 7
                 }
               ],
-              "actionSummary": "EndDialogue"
+              "ActionSummary": "EndDialogue"
             },
             {
-              "text": "Что мне нужно сделать?",
-              "nextNodeId": "quest_5001_inprogress_2",
-              "condition": "",
-              "actions": [],
-              "actionSummary": ""
+              "Text": "Что мне нужно сделать?",
+              "NextNodeId": "quest_5001_inprogress_2",
+              "Action": 0
             }
           ]
         },
         {
-          "id": "quest_5001_inprogress_2",
-          "text": "Забыл уже? Сходи на Северную Поляну, что на север от старой мельницы. Осмотри все как следует и возвращайся ко мне с докладом. Будь осторожен, не подставляйся зря.",
-          "type": "quest_progress",
-          "tags": [
+          "Id": "quest_5001_inprogress_2",
+          "Text": "Забыл уже? Сходи на Северную Поляну, что на север от старой мельницы. Осмотри все как следует и возвращайся ко мне с докладом. Будь осторожен, не подставляйся зря.",
+          "Type": "quest_progress",
+          "Tags": [
             "quest"
           ],
-          "choices": [
+          "Choices": [
             {
-              "text": "Понял.",
-              "condition": "",
-              "actions": [
+              "Text": "Понял.",
+              "Action": 0,
+              "Actions": [
                 {
-                  "type": 7
+                  "Type": 7
                 }
               ],
-              "actionSummary": "EndDialogue"
+              "ActionSummary": "EndDialogue"
             }
           ]
         },
         {
-          "id": "quest_5001_readytocomplete",
-          "text": "Вижу в глазах твоих – новости есть! Ну, не томи, рассказывай! Что творится на той поляне? Удалось выяснить, куда подевались мои дровосеки?",
-          "type": "quest_complete",
-          "tags": [
+          "Id": "quest_5001_readytocomplete",
+          "Text": "Вижу в глазах твоих – новости есть! Ну, не томи, рассказывай! Что творится на той поляне? Удалось выяснить, куда подевались мои дровосеки?",
+          "Type": "quest_complete",
+          "Tags": [
             "quest"
           ],
-          "choices": [
+          "Choices": [
             {
-              "text": "Да, я готов рассказать.",
-              "nextNodeId": "quest_5001_completed",
-              "condition": "",
-              "actions": [
+              "Text": "Да, я готов рассказать.",
+              "NextNodeId": "quest_5001_completed",
+              "Action": 0,
+              "Actions": [
                 {
-                  "type": 4,
-                  "parameter": "5001"
+                  "Type": 4,
+                  "Parameter": "5001"
                 }
               ],
-              "actionSummary": "CompleteQuest (5001)"
+              "ActionSummary": "CompleteQuest (5001)"
             },
             {
-              "text": "Я вернусь позже.",
-              "condition": "",
-              "actions": [
+              "Text": "Я вернусь позже.",
+              "Action": 0,
+              "Actions": [
                 {
-                  "type": 7
+                  "Type": 7
                 }
               ],
-              "actionSummary": "EndDialogue"
+              "ActionSummary": "EndDialogue"
             }
           ]
         },
         {
-          "id": "quest_5001_completed",
-          "text": "Так вот оно что! Значит, не разбойники, а гнездо вурдалаков! Это и к лучшему, теперь мы знаем врага в лицо. А за дровосеков не переживай, я уже отправил за ними группу охотников, они справятся. Спасибо тебе, друг. Твоя помощь для всей деревни дорогого стоит. Держи, это тебе за труды. И если надумаешь остаться – всегда найдем, куда применить твою смекалку да крепкую руку.",
-          "type": "quest_completed",
-          "tags": [
+          "Id": "quest_5001_completed",
+          "Text": "Так вот оно что! Значит, не разбойники, а гнездо вурдалаков! Это и к лучшему, теперь мы знаем врага в лицо. А за дровосеков не переживай, я уже отправил за ними группу охотников, они справятся. Спасибо тебе, друг. Твоя помощь для всей деревни дорогого стоит. Держи, это тебе за труды. И если надумаешь остаться – всегда найдем, куда применить твою смекалку да крепкую руку.",
+          "Type": "quest_completed",
+          "Tags": [
             "quest"
           ],
-          "choices": [
+          "Choices": [
             {
-              "text": "Спасибо за награду.",
-              "condition": "",
-              "actions": [
+              "Text": "Спасибо за награду.",
+              "Action": 0,
+              "Actions": [
                 {
-                  "type": 4,
-                  "parameter": "5001"
+                  "Type": 4,
+                  "Parameter": "5001"
                 }
               ],
-              "actionSummary": "CompleteQuest (5001)"
+              "ActionSummary": "CompleteQuest (5001)"
             }
           ]
         },
         {
-          "id": "quest_5001_offer_2",
-          "text": "Отлично! Буду ждать от тебя вестей.",
-          "type": "quest_offer",
-          "tags": [
+          "Id": "quest_5001_offer_2",
+          "Text": "Отлично! Буду ждать от тебя вестей.",
+          "Type": "quest_offer",
+          "Tags": [
             "quest"
           ],
-          "choices": [
+          "Choices": [
             {
-              "text": "Я пошел.",
-              "condition": "",
-              "actions": [
+              "Text": "Я пошел.",
+              "Action": 0,
+              "Actions": [
                 {
-                  "type": 7
+                  "Type": 7
                 }
               ],
-              "actionSummary": "EndDialogue"
+              "ActionSummary": "EndDialogue"
             }
           ]
         },
         {
-          "id": "default_fedot",
-          "text": "Приветствую, путник.",
-          "type": "greeting",
-          "tags": [
+          "Id": "default_fedot",
+          "Text": "Приветствую, путник.",
+          "Type": "greeting",
+          "Tags": [
             "default"
           ],
-          "choices": [
+          "Choices": [
             {
-              "text": "Есть для меня работа?",
-              "nextNodeId": "quest_5001_offer",
-              "condition": "hasAvailableQuests",
-              "actions": [],
-              "actionSummary": ""
+              "Text": "Есть для меня работа?",
+              "NextNodeId": "quest_5001_offer",
+              "Condition": "questAvailableForNPC:5001",
+              "Action": 0
             },
             {
-              "text": "Покажи мне свои товары...",
-              "condition": "",
-              "actions": [
-                {
-                  "type": 6
-                }
-              ],
-              "actionSummary": "StartTrade"
+              "Text": "Как дела с моим заданием?",
+              "NextNodeId": "quest_5001_inprogress",
+              "Condition": "questInProgressForNPC:5001",
+              "Action": 0
             },
             {
-              "text": "Я пойду.",
-              "condition": "",
-              "actions": [
+              "Text": "Я готов отчитаться о задании.",
+              "NextNodeId": "quest_5001_readytocomplete",
+              "Condition": "questReadyToCompleteForNPC:5001",
+              "Action": 0
+            },
+            {
+              "Text": "Покажи мне свои товары...",
+              "Action": 0,
+              "Actions": [
                 {
-                  "type": 7
+                  "Type": 6
                 }
               ],
-              "actionSummary": "EndDialogue"
+              "ActionSummary": "StartTrade"
+            },
+            {
+              "Text": "Я пойду.",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 7
+                }
+              ],
+              "ActionSummary": "EndDialogue"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "7002",
+      "Name": "Диалог Купец Зарубий",
+      "Start": "default_zaruby",
+      "Nodes": [
+        {
+          "Id": "default_zaruby",
+          "Text": "Привет!",
+          "Type": "default",
+          "Choices": [
+            {
+              "Text": "Что слышно в последнее время?",
+              "NextNodeId": "quest_5002_offer",
+              "Condition": "questAvailableForNPC:5002",
+              "Action": 0
+            },
+            {
+              "Text": "Покажи мне свои товары...",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 6
+                }
+              ],
+              "ActionSummary": "StartTrade"
+            },
+            {
+              "Text": "Уйти.",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 7
+                }
+              ],
+              "ActionSummary": "EndDialogue"
+            },
+            {
+              "Text": "Насчет поручения...",
+              "NextNodeId": "quest_5002_progress",
+              "Condition": "questInProgressForNPC:5002",
+              "Action": 0
+            },
+            {
+              "Text": "По поводу волков...",
+              "Condition": "questReadyToCompleteForNPC:5002",
+              "Action": 0
+            }
+          ]
+        },
+        {
+          "Id": "quest_5002_offer",
+          "Text": "Эх, дела-дела... Никакой торговли, никакого покоя.",
+          "Type": "quest_offer",
+          "Choices": [
+            {
+              "Text": "У вас проблемы, купец?",
+              "NextNodeId": "quest_5002_offer_2",
+              "Condition": "questAvailableForNPC:5002",
+              "Action": 0
+            }
+          ]
+        },
+        {
+          "Id": "quest_5002_offer_2",
+          "Text": "А как же! Прямо на северной поляне, где тропа на соляные копи разветвляется, расплодилась целая стая серых разбойников. Три матёрых волка совсем дорогу перекрыли! Товар не провезти, людей боюсь посылать.",
+          "Type": "quest_offer",
+          "Choices": [
+            {
+              "Text": "Что вы собираетесь делать?",
+              "NextNodeId": "quest_5002_offer_3",
+              "Condition": "questAvailableForNPC:5002",
+              "Action": 0
+            }
+          ]
+        },
+        {
+          "Id": "quest_5002_offer_3",
+          "Text": "Делать? Я слышал, ты лицом не прыткий и руку на мече сдерживаешь. Поможешь – и мне хорошо, и тебе не хуже будет. Изведи эту нечисть, очисть поляну, а я тебя золотом отблагодарю. Как скажешь?",
+          "Type": "quest_offer",
+          "Choices": [
+            {
+              "Text": "Ладно, разберусь с ними.",
+              "Condition": "questAvailableForNPC:5002",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 3,
+                  "Parameter": "5002"
+                }
+              ],
+              "ActionSummary": "StartQuest (5002)"
+            },
+            {
+              "Text": "А сколько вы заплатите?",
+              "NextNodeId": "quest_5002_offer_3_T",
+              "Condition": "questAvailableForNPC:5002",
+              "Action": 0
+            },
+            {
+              "Text": "Это не моё дело.",
+              "Condition": "questAvailableForNPC:5002",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 7
+                }
+              ],
+              "ActionSummary": "EndDialogue"
+            }
+          ]
+        },
+        {
+          "Id": "quest_5002_offer_3_T",
+          "Text": "Для меня дорога спокойная – дороже любых денег. Сто монет золотом тебе хватит? Я погляжу лишним для тебя не будет. Ха-ха-ха.",
+          "Type": "quest_offer",
+          "Choices": [
+            {
+              "Text": "Ладно, разберусь с ними.",
+              "Condition": "questAvailableForNPC:5002",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 3,
+                  "Parameter": "5002"
+                }
+              ],
+              "ActionSummary": "StartQuest (5002)"
+            },
+            {
+              "Text": "Это не моё дело.",
+              "Condition": "questAvailableForNPC:5002",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 7
+                }
+              ],
+              "ActionSummary": "EndDialogue"
+            }
+          ]
+        },
+        {
+          "Id": "quest_5002_progress",
+          "Text": "Действуй, не зевай. И смотри в оба – зубы у тех тварей острее бритвы. Ждать тебя буду.",
+          "Type": "quest_progress",
+          "Choices": [
+            {
+              "Text": "Уже иду.",
+              "Condition": "questInProgressForNPC:5002",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 7
+                }
+              ],
+              "ActionSummary": "EndDialogue"
+            }
+          ]
+        },
+        {
+          "Id": "quest_5002_readyToComplete",
+          "Text": "Ну что? Справился?",
+          "Type": "quest_complete",
+          "Choices": [
+            {
+              "Text": "Поляна свободна. Волков больше нет.",
+              "NextNodeId": "quest_5002_readyToComplete_2",
+              "Condition": "questReadyToCompleteForNPC:5002",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 4,
+                  "Parameter": "5002"
+                }
+              ],
+              "ActionSummary": "CompleteQuest (5002)"
+            }
+          ]
+        },
+        {
+          "Id": "quest_5002_readyToComplete_2",
+          "Text": "Отлично работаешь! Теперь караваны пойдут без задержки. Держи, заслужил, честно и без обмана. Будешь в этих краях – заходи, всегда найдётся для тебя дело с хорошей оплатой.",
+          "Type": "quest_complete",
+          "Choices": [
+            {
+              "Text": "Увидимся.",
+              "Condition": "questCompletedForNPC:5002",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 7
+                }
+              ],
+              "ActionSummary": "EndDialogue"
             }
           ]
         }

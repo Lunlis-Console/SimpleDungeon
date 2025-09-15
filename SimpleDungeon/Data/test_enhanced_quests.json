@@ -30,6 +30,34 @@
         "readyToComplete": "quest_1_complete",
         "completed": "quest_1_done"
       }
+    },
+    {
+      "id": 5001,
+      "name": "Разведка Северной Поляны",
+      "description": "Разведать обстановку на Северной Поляне",
+      "detailedDescription": "Староста Федот просит разведать обстановку на Северной Поляне, где пропали дровосеки. Нужно посетить локацию и вернуться с докладом.",
+      "questGiverId": 4002,
+      "conditions": [
+        {
+          "id": 5001,
+          "description": "Посетить Северную Поляну",
+          "requiredAmount": 1,
+          "currentProgress": 0,
+          "locationID": 5
+        }
+      ],
+      "rewards": {
+        "experience": 200,
+        "gold": 100,
+        "items": []
+      },
+      "prerequisites": [],
+      "dialogueNodes": {
+        "offer": "quest_5001_offer",
+        "inProgress": "quest_5001_inprogress",
+        "readyToComplete": "quest_5001_readytocomplete",
+        "completed": "quest_5001_completed"
+      }
     }
   ],
   "NPCs": [],

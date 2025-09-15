@@ -91,7 +91,13 @@ namespace Engine.Quests
         {
             if (context is Monster killedMonster && killedMonster.ID == MonsterID)
             {
+                int oldProgress = CurrentProgress;
                 CurrentProgress = Math.Min(CurrentProgress + 1, RequiredAmount);
+                DebugConsole.Log($"KillMonstersCondition.UpdateProgress: Monster {MonsterID} killed. Progress: {oldProgress} -> {CurrentProgress}/{RequiredAmount}");
+            }
+            else
+            {
+                DebugConsole.Log($"KillMonstersCondition.UpdateProgress: Context is not Monster or wrong ID. Context: {context?.GetType().Name}, MonsterID: {MonsterID}");
             }
         }
 

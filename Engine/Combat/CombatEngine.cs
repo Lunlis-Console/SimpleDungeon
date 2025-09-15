@@ -495,6 +495,21 @@ namespace Engine.Combat
             {
                 AddToCombatLog($"{GetName(Monster)} повержен! Вы победили.");
                 IsCombatOver = true;
+                
+                // Уведомляем QuestManager о убийстве монстра
+                try
+                {
+                    var questManager = Engine.Core.GameServices.QuestManager;
+                    if (questManager != null)
+                    {
+                        questManager.OnMonsterKilled(Monster, Player);
+                        DebugConsole.Log($"CombatEngine: Notified QuestManager about monster kill: {GetName(Monster)}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    DebugConsole.Log($"CombatEngine: Error notifying QuestManager: {ex.Message}");
+                }
             }
             else if (pHp <= 0)
             {

@@ -23,53 +23,68 @@ namespace Engine.Quests
         }
 
         /// <summary>
-        /// Загружает квесты из JSON файла
-        /// </summary>
-        public void LoadQuests(string questsFilePath)
-        {
-            try
-            {
-                if (!File.Exists(questsFilePath))
-                {
-                    DebugConsole.Log($"Файл квестов не найден: {questsFilePath}");
-                    return;
-                }
-
-                var json = File.ReadAllText(questsFilePath);
-                var questsData = JsonConvert.DeserializeObject<QuestsData>(json);
-
-                if (questsData?.Quests != null)
-                {
-                    _allQuests = questsData.Quests;
-                    InitializeQuests();
-                    DebugConsole.Log($"Загружено {_allQuests.Count} квестов");
-                }
-            }
-            catch (Exception ex)
-            {
-                DebugConsole.Log($"Ошибка загрузки квестов: {ex.Message}");
-            }
-        }
-
-        /// <summary>
         /// Инициализирует квесты после загрузки
         /// </summary>
         private void InitializeQuests()
         {
+            DebugConsole.Log($"QuestManager.InitializeQuests: Starting initialization of {_allQuests.Count} quests");
+            
             foreach (var quest in _allQuests)
             {
-                // Связываем квестодателя
-                quest.QuestGiver = _worldRepository.NPCByID(quest.QuestGiverID);
-                
-                // Инициализируем предметы-награды
-                foreach (var rewardItem in quest.Rewards.Items)
+                try
                 {
-                    rewardItem.ItemDetails = _worldRepository.ItemByID(rewardItem.ItemID);
-                }
+                    DebugConsole.Log($"Initializing quest: {quest.Name} (ID: {quest.ID}, State: {quest.State}, QuestGiverID: {quest.QuestGiverID})");
+                    
+                    // Связываем квестодателя
+                    quest.QuestGiver = _worldRepository.NPCByID(quest.QuestGiverID);
+                    
+                    // Валидация: проверяем, что NPC существует
+                    if (quest.QuestGiver == null)
+                    {
+                        DebugConsole.Log($"WARNING: Quest {quest.ID} ({quest.Name}) has QuestGiverID {quest.QuestGiverID} but NPC not found!");
+                    }
+                    else
+                    {
+                        DebugConsole.Log($"Quest {quest.ID} linked to NPC {quest.QuestGiver.ID} ({quest.QuestGiver.Name})");
+                    }
+                    
+                    // Инициализируем условия квеста
+                    DebugConsole.Log($"QuestManager.InitializeQuests: Initializing conditions for quest {quest.ID}");
+                    quest.InitializeConditions();
+                    DebugConsole.Log($"QuestManager.InitializeQuests: Conditions initialized for quest {quest.ID}");
+                    
+                    // Инициализируем предметы-награды
+                    DebugConsole.Log($"QuestManager.InitializeQuests: Initializing rewards for quest {quest.ID}");
+                    foreach (var rewardItem in quest.Rewards.Items)
+                    {
+                        rewardItem.ItemDetails = _worldRepository.ItemByID(rewardItem.ItemID);
+                    }
+                    DebugConsole.Log($"QuestManager.InitializeQuests: Rewards initialized for quest {quest.ID}");
 
-                // Добавляем в доступные квесты
-                _questLog.AddAvailableQuest(quest);
+                    // Добавляем в доступные квесты
+                    DebugConsole.Log($"QuestManager.InitializeQuests: About to add quest {quest.ID} to AvailableQuests");
+                    _questLog.AddAvailableQuest(quest);
+                    DebugConsole.Log($"QuestManager.InitializeQuests: Added quest {quest.ID} to AvailableQuests. Final state: {quest.State}");
+                }
+                catch (Exception ex)
+                {
+                    DebugConsole.Log($"ERROR: Failed to initialize quest {quest.ID}: {ex.Message}");
+                    DebugConsole.Log($"Stack trace: {ex.StackTrace}");
+                }
             }
+            
+            // Валидация всех связей квест-NPC
+            DebugConsole.Log("Running quest-NPC validation...");
+            try
+            {
+                Engine.Tools.QuestNPCValidator.ValidateQuestNPCConnections(_questLog, _worldRepository);
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.Log($"ERROR: Quest-NPC validation failed: {ex.Message}");
+            }
+            
+            DebugConsole.Log($"QuestManager.InitializeQuests: Completed initialization");
         }
 
         /// <summary>
@@ -109,8 +124,14 @@ namespace Engine.Quests
         /// </summary>
         public void SetAllQuests(List<EnhancedQuest> quests)
         {
+            DebugConsole.Log($"QuestManager.SetAllQuests: Setting {quests?.Count ?? 0} quests");
+            DebugConsole.Log($"QuestManager.SetAllQuests: _questLog is null: {_questLog == null}");
+            
             _allQuests = quests ?? new List<EnhancedQuest>();
+            DebugConsole.Log($"QuestManager.SetAllQuests: _allQuests count: {_allQuests.Count}");
+            
             InitializeQuests();
+            DebugConsole.Log($"Установлено {_allQuests.Count} квестов из GameData");
         }
 
         /// <summary>
