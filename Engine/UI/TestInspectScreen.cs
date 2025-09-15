@@ -1,9 +1,12 @@
 ﻿// TestInspectScreen.cs — временный тестовый экран
+// ВНИМАНИЕ: Этот экран используется только для отладки и тестирования
+// TODO: Удалить после завершения разработки
 using Engine.Core;
 using System;
 
 namespace Engine.UI
 {
+    // ВРЕМЕННЫЙ ТЕСТОВЫЙ ЭКРАН - НЕ ИСПОЛЬЗУЕТСЯ В ПРОДАКШЕНЕ
     public class TestInspectScreen : BaseScreen
     {
         private readonly object _monster;

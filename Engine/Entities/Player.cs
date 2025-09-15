@@ -52,7 +52,6 @@ namespace Engine.Entities
         public Dictionary<string, int> MonstersKilledByType { get; set; }
 
         private readonly IWorldRepository _worldRepository;
-        private static bool _needsRedraw = true;
 
         public Player(string name, int gold, int currentHP, int maximumHP, int currentEXP, int maximumEXP, int level,
             int baseAttack, int baseDefence, int agility, IWorldRepository worldRepository, Attributes attributes = null) :

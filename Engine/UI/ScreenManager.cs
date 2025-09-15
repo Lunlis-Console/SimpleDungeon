@@ -8,7 +8,7 @@ public static class ScreenManager
     private static bool _needsFullRedraw = true; // Начинаем с полной перерисовки
 
     public static int ScreenCount => _screenStack.Count;
-    public static BaseScreen CurrentScreen => _screenStack.Count > 0 ? _screenStack.Peek() : null;
+    public static BaseScreen? CurrentScreen => _screenStack.Count > 0 ? _screenStack.Peek() : null;
 
     // В ScreenManager.PushScreen
     public static void PushScreen(BaseScreen screen)
@@ -47,7 +47,7 @@ public static class ScreenManager
         }
     }
 
-    public static BaseScreen PopScreen()
+    public static BaseScreen? PopScreen()
     {
         if (_screenStack.Count > 0)
         {
@@ -185,7 +185,7 @@ public static class ScreenManager
         RequestFullRedraw();
     }
 
-    public static T GetScreen<T>() where T : BaseScreen
+    public static T? GetScreen<T>() where T : BaseScreen
     {
         // Ищем экран в стеке (кроме текущего активного)
         foreach (var screen in _screenStack)

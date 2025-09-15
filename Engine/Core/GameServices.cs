@@ -15,13 +15,13 @@ namespace Engine.Core
 {
     public static class GameServices
     {
-        private static IWorldRepository _worldRepository;
-        private static IOutputService _outputService;
-        private static IGameFactory _gameFactory;
-        private static EnhancedBufferedRenderer _bufferedRenderer;
-        private static CombatRenderer _combatRenderer;
-        private static QuestManager _questManager;
-        public static Player CurrentPlayer { get; set; }
+        private static IWorldRepository? _worldRepository;
+        private static IOutputService? _outputService;
+        private static IGameFactory? _gameFactory;
+        private static EnhancedBufferedRenderer? _bufferedRenderer;
+        private static CombatRenderer? _combatRenderer;
+        private static QuestManager? _questManager;
+        public static Player? CurrentPlayer { get; set; }
 
         public static EnhancedBufferedRenderer BufferedRenderer
         {

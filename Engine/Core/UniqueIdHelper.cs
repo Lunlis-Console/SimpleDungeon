@@ -132,9 +132,9 @@ namespace Engine.World
                 // Проверяем условия квеста на предмет дубликатов ItemID (только CollectItemsCondition)
                 if (quest.Conditions != null)
                 {
-                    var itemConditions = quest.Conditions.OfType<CollectItemsCondition>();
+                    var itemConditions = quest.Conditions.Where(c => c.Type == "CollectItems");
                     var dupItems = itemConditions
-                        .GroupBy(c => c.ItemID)
+                        .GroupBy(c => c.TargetID)
                         .Where(g => g.Count() > 1);
 
                     foreach (var dup in dupItems)

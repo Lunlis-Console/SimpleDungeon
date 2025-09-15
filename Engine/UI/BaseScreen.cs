@@ -167,7 +167,6 @@ namespace Engine.UI
         }
 
         // Рендер наложения, которое показывается поверх любого экрана (сообщения системы сообщений и т.п.)
-        private int __lastMessageCountForDebug = -1;
         // Поместите этот метод туда, где у вас сейчас рисуются сообщения (BaseScreen / ScreenManager).
         public virtual void RenderOverlay()
         {

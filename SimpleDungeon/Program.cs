@@ -13,10 +13,8 @@ namespace SimpleDungeon
         public static void Main(string[] args)
         {
             DebugConsole.Initialize();
-
             
             Console.Title = "Simple Dungeon";
-            // Console.CursorVisible = false;
 
             try
             {
@@ -30,7 +28,6 @@ namespace SimpleDungeon
                 Thread.Sleep(200); // Увеличиваем задержку
                 ScreenManager.ForceRedraw();
                 ScreenManager.RenderCurrentScreen();
-                //DebugConsole.Log("Initial render completed");
 
                 // Главный игровой цикл
                 MainGameLoop();
@@ -39,7 +36,6 @@ namespace SimpleDungeon
             {
                 DebugConsole.Log($"Fatal error: {ex.Message}");
                 DebugConsole.Log($"Stack trace: {ex.StackTrace}");
-                // Console.ReadKey();
             }
             finally
             {

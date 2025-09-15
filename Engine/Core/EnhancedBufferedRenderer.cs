@@ -16,7 +16,6 @@ namespace Engine.Core
         private bool _needsFullRedraw = true;
         private bool _windowResized = false;
         private int _framesSinceFullRedraw = 0;
-        private bool _firstRender = true;
 
         public bool InFrame { get; private set; }
 
