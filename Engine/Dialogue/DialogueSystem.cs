@@ -1410,8 +1410,29 @@ namespace Engine.Dialogue
                         case "FlagSet":
                             return WorldState.Instance.IsFlagSet(val);
 
+                        case "hasAvailableQuests":
+                            if (player == null) return false;
+                            // Проверяем, есть ли доступные квесты у текущего NPC
+                            // Это требует доступа к NPC, но в текущем контексте его нет
+                            // Пока возвращаем false, так как нужен контекст NPC
+                            return false;
 
-                        default:
+                        case "questAvailable":
+                            if (player == null || string.IsNullOrEmpty(val)) return false;
+                            if (int.TryParse(val, out var questId))
+                            {
+                                var quest = player.QuestLog.GetQuest(questId);
+                                return quest != null && quest.State == QuestState.NotStarted;
+                            }
+                            return false;
+
+                        case "questCompleted":
+                            if (player == null || string.IsNullOrEmpty(val)) return false;
+                            if (int.TryParse(val, out var completedQuestId))
+                            {
+                                var quest = player.QuestLog.GetQuest(completedQuestId);
+                                return quest != null && quest.State == QuestState.Completed;
+                            }
                             return false;
                     }
                 }
@@ -1419,6 +1440,8 @@ namespace Engine.Dialogue
                 {
                     return false;
                 }
+
+                return false;
             }
 
             // вставьте этот public static метод в класс DialogueSystem (Engine/Dialogue/DialogueSystem.cs)
