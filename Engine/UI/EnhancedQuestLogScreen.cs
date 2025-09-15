@@ -204,12 +204,12 @@ namespace Engine.UI
             {
                 QuestTab.Active => quest.State switch
                 {
-                    QuestState.ReadyToComplete => " ✓",
+                    QuestState.ReadyToComplete => " ?",
                     QuestState.InProgress => " ?",
                     _ => " ?"
                 },
                 QuestTab.Available => " !",
-                QuestTab.Completed => " ✓",
+                QuestTab.Completed => " ",
                 _ => ""
             };
         }

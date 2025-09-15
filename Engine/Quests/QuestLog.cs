@@ -44,13 +44,34 @@ namespace Engine.Quests
         /// </summary>
         public bool StartQuest(int questID)
         {
+            DebugConsole.Log($"QuestLog.StartQuest called for quest ID: {questID}");
+            DebugConsole.Log($"AvailableQuests before: {AvailableQuests.Count}");
+            DebugConsole.Log($"ActiveQuests before: {ActiveQuests.Count}");
+            
             var quest = AvailableQuests.FirstOrDefault(q => q.ID == questID);
-            if (quest == null || !quest.CanStart(_player, this))
+            if (quest == null)
+            {
+                DebugConsole.Log($"Quest {questID} not found in AvailableQuests");
                 return false;
+            }
+            
+            DebugConsole.Log($"Found quest: {quest.Name} (ID: {quest.ID}, State: {quest.State})");
+            
+            if (!quest.CanStart(_player, this))
+            {
+                DebugConsole.Log($"Quest {questID} cannot start");
+                return false;
+            }
 
             quest.StartQuest(_player);
+            DebugConsole.Log($"Quest {questID} started, State: {quest.State}");
+            
             AvailableQuests.Remove(quest);
             ActiveQuests.Add(quest);
+            
+            DebugConsole.Log($"AvailableQuests after: {AvailableQuests.Count}");
+            DebugConsole.Log($"ActiveQuests after: {ActiveQuests.Count}");
+            
             return true;
         }
 
@@ -59,13 +80,37 @@ namespace Engine.Quests
         /// </summary>
         public bool CompleteQuest(int questID)
         {
+            DebugConsole.Log($"QuestLog.CompleteQuest called for quest ID: {questID}");
+            DebugConsole.Log($"ActiveQuests before: {ActiveQuests.Count}");
+            DebugConsole.Log($"CompletedQuests before: {CompletedQuests.Count}");
+            
             var quest = ActiveQuests.FirstOrDefault(q => q.ID == questID);
-            if (quest == null || quest.State != QuestState.ReadyToComplete)
+            if (quest == null)
+            {
+                DebugConsole.Log($"Quest {questID} not found in ActiveQuests");
                 return false;
+            }
+            
+            DebugConsole.Log($"Found quest: {quest.Name} (ID: {quest.ID}, State: {quest.State})");
+            
+            // Проверяем, готов ли квест к завершению
+            if (quest.State != QuestState.ReadyToComplete)
+            {
+                DebugConsole.Log($"Quest {questID} is not ready to complete (State: {quest.State})");
+                return false;
+            }
 
+            // Завершаем квест
             quest.CompleteQuest(_player);
+            DebugConsole.Log($"Quest {questID} completed, State: {quest.State}");
+            
+            // Перемещаем квест из активных в завершенные
             ActiveQuests.Remove(quest);
             CompletedQuests.Add(quest);
+            
+            DebugConsole.Log($"ActiveQuests after: {ActiveQuests.Count}");
+            DebugConsole.Log($"CompletedQuests after: {CompletedQuests.Count}");
+            
             return true;
         }
 

@@ -1,6 +1,7 @@
 ﻿// Engine/Dialogue/DialogueSystem.cs
 using Engine.Data;
 using Engine.Entities;
+using Engine.Quests;
 using Engine.World;
 using System;
 using System.Collections;
@@ -1257,20 +1258,57 @@ namespace Engine.Dialogue
                     {
                         var questID = (int)idProperty.GetValue(questObj);
                         
-                        // Сначала добавляем квест в AvailableQuests, если его там нет
+                        // Проверяем, не принят ли уже этот квест
+                        var existingQuest = player.QuestLog.GetQuest(questID);
+                        if (existingQuest != null)
+                        {
+                            // Если квест уже активен или завершен, не добавляем его снова
+                            if (existingQuest.State == QuestState.InProgress || existingQuest.State == QuestState.Completed)
+                            {
+                                DebugConsole.Log($"Quest {questID} already exists in quest log (State: {existingQuest.State})");
+                                return false;
+                            }
+                            // Если квест в AvailableQuests, запускаем его
+                            else if (existingQuest.State == QuestState.NotStarted)
+                            {
+                                DebugConsole.Log($"Quest {questID} is available, starting it");
+                                bool success = player.QuestLog.StartQuest(questID);
+                                if (success)
+                                {
+                                    DebugConsole.Log($"Successfully started quest {questID}");
+                                    return true;
+                                }
+                                else
+                                {
+                                    DebugConsole.Log($"Failed to start quest {questID}");
+                                    return false;
+                                }
+                            }
+                        }
+                        
+                        // Получаем квест из репозитория
                         var worldRepo = JsonWorldRepository.Instance;
                         if (worldRepo != null)
                         {
                             var quest = worldRepo.QuestByID(questID);
                             if (quest != null)
                             {
-                                // Добавляем квест в доступные квесты
+                                // Добавляем квест в доступные квесты только если его там нет
                                 player.QuestLog.AddAvailableQuest(quest);
                                 DebugConsole.Log($"Added quest {questID} to AvailableQuests");
                                 
                                 // Теперь запускаем квест
-                                player.StartQuest(questID);
-                                return true;
+                                bool success = player.QuestLog.StartQuest(questID);
+                                if (success)
+                                {
+                                    DebugConsole.Log($"Successfully started quest {questID}");
+                                    return true;
+                                }
+                                else
+                                {
+                                    DebugConsole.Log($"Failed to start quest {questID}");
+                                    return false;
+                                }
                             }
                         }
                     }
@@ -1287,18 +1325,24 @@ namespace Engine.Dialogue
                 if (player == null || questObj == null) return false;
                 try
                 {
-                    var qlogProp = player.GetType().GetProperty("QuestLog", BindingFlags.Public | BindingFlags.Instance);
-                    var qlog = qlogProp?.GetValue(player);
-                    if (qlog != null)
+                    // Получаем ID квеста из объекта квеста
+                    var questIdProp = questObj.GetType().GetProperty("ID", BindingFlags.Public | BindingFlags.Instance);
+                    if (questIdProp != null)
                     {
-                        var completeMethod = qlog.GetType().GetMethod("CompleteQuest", BindingFlags.Public | BindingFlags.Instance);
-                        if (completeMethod != null)
+                        var questId = questIdProp.GetValue(questObj);
+                        if (questId is int id)
                         {
-                            // CompleteQuest(Quest, Player) или CompleteQuest(Quest)
-                            var ps = completeMethod.GetParameters().Length;
-                            if (ps == 2) completeMethod.Invoke(qlog, new object[] { questObj, player });
-                            else completeMethod.Invoke(qlog, new object[] { questObj });
-                            return true;
+                            DebugConsole.Log($"TryCompleteQuestForPlayer: attempting to complete quest ID {id}");
+                            bool success = player.QuestLog.CompleteQuest(id);
+                            if (success)
+                            {
+                                DebugConsole.Log($"TryCompleteQuestForPlayer: successfully completed quest ID {id}");
+                            }
+                            else
+                            {
+                                DebugConsole.Log($"TryCompleteQuestForPlayer: failed to complete quest ID {id}");
+                            }
+                            return success;
                         }
                     }
                 }
@@ -1639,10 +1683,43 @@ namespace Engine.Dialogue
                                 var quest = JsonWorldRepository.Instance?.QuestByID(qid);
                                 if (quest != null)
                                 {
-                                    // Добавляем квест в доступные квесты перед запуском
-                                    player.QuestLog.AddAvailableQuest(quest);
-                                    player.StartQuest(quest.ID);
-                                    DebugConsole.Log($"DialogueAction: started quest id={qid}");
+                                    // Проверяем состояние квеста
+                                    var existingQuest = player.QuestLog.GetQuest(qid);
+                                    if (existingQuest != null)
+                                    {
+                                        // Если квест уже активен или завершен, не добавляем его снова
+                                        if (existingQuest.State == QuestState.InProgress || existingQuest.State == QuestState.Completed)
+                                        {
+                                            DebugConsole.Log($"DialogueAction: quest id={qid} already exists (State: {existingQuest.State})");
+                                        }
+                                        // Если квест в AvailableQuests, запускаем его
+                                        else if (existingQuest.State == QuestState.NotStarted)
+                                        {
+                                            bool success = player.QuestLog.StartQuest(quest.ID);
+                                            if (success)
+                                            {
+                                                DebugConsole.Log($"DialogueAction: started quest id={qid}");
+                                            }
+                                            else
+                                            {
+                                                DebugConsole.Log($"DialogueAction: failed to start quest id={qid}");
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // Квест не найден в QuestLog, добавляем и запускаем
+                                        player.QuestLog.AddAvailableQuest(quest);
+                                        bool success = player.QuestLog.StartQuest(quest.ID);
+                                        if (success)
+                                        {
+                                            DebugConsole.Log($"DialogueAction: started quest id={qid}");
+                                        }
+                                        else
+                                        {
+                                            DebugConsole.Log($"DialogueAction: failed to start quest id={qid}");
+                                        }
+                                    }
                                 }
                             }
                             else
@@ -1653,10 +1730,43 @@ namespace Engine.Dialogue
                                             || q.ID.ToString() == parameter);
                                 if (quest != null)
                                 {
-                                    // Добавляем квест в доступные квесты перед запуском
-                                    player.QuestLog.AddAvailableQuest(quest);
-                                    player.StartQuest(quest.ID);
-                                    DebugConsole.Log($"DialogueAction: started quest '{parameter}'");
+                                    // Проверяем состояние квеста
+                                    var existingQuest = player.QuestLog.GetQuest(quest.ID);
+                                    if (existingQuest != null)
+                                    {
+                                        // Если квест уже активен или завершен, не добавляем его снова
+                                        if (existingQuest.State == QuestState.InProgress || existingQuest.State == QuestState.Completed)
+                                        {
+                                            DebugConsole.Log($"DialogueAction: quest '{parameter}' already exists (State: {existingQuest.State})");
+                                        }
+                                        // Если квест в AvailableQuests, запускаем его
+                                        else if (existingQuest.State == QuestState.NotStarted)
+                                        {
+                                            bool success = player.QuestLog.StartQuest(quest.ID);
+                                            if (success)
+                                            {
+                                                DebugConsole.Log($"DialogueAction: started quest '{parameter}'");
+                                            }
+                                            else
+                                            {
+                                                DebugConsole.Log($"DialogueAction: failed to start quest '{parameter}'");
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // Квест не найден в QuestLog, добавляем и запускаем
+                                        player.QuestLog.AddAvailableQuest(quest);
+                                        bool success = player.QuestLog.StartQuest(quest.ID);
+                                        if (success)
+                                        {
+                                            DebugConsole.Log($"DialogueAction: started quest '{parameter}'");
+                                        }
+                                        else
+                                        {
+                                            DebugConsole.Log($"DialogueAction: failed to start quest '{parameter}'");
+                                        }
+                                    }
                                 }
                             }
                         }

@@ -1,4 +1,5 @@
 ﻿using Engine.Core;
+using Engine.Data;
 using Engine.Dialogue;
 using Engine.Quests;
 using Engine.Trading;
@@ -119,35 +120,122 @@ namespace Engine.Entities
                     return GreetingDialogue;
                 }
 
-                // Получаем все узлы диалога из GreetingDialogue
-                var allNodes = GetAllDialogueNodes(GreetingDialogue);
-                var nodeMap = allNodes.ToDictionary(n => GetNodeId(n), n => n);
-
-                DebugConsole.Log($"Found {nodeMap.Count} dialogue nodes for NPC {ID}");
-
                 // Используем QuestDialogueManager для определения правильного узла
                 var dialogueDocument = ConvertToDialogueDocument();
                 var appropriateNodeId = questDialogueManager.GetDialogueNodeForNPC(ID, dialogueDocument);
 
                 DebugConsole.Log($"QuestDialogueManager selected node ID: '{appropriateNodeId}'");
 
-                if (!string.IsNullOrEmpty(appropriateNodeId) && nodeMap.ContainsKey(appropriateNodeId))
+                // Создаем узел диалога на основе выбранного ID из game_data.json
+                if (!string.IsNullOrEmpty(appropriateNodeId))
                 {
-                    var selectedNode = nodeMap[appropriateNodeId];
-                    DebugConsole.Log($"Found appropriate node: {appropriateNodeId}");
-                    return selectedNode;
+                    var selectedNode = CreateDialogueNodeFromId(appropriateNodeId);
+                    if (selectedNode != null)
+                    {
+                        DebugConsole.Log($"Created dialogue node for ID: {appropriateNodeId}");
+                        return selectedNode;
+                    }
                 }
-                else
-                {
-                    DebugConsole.Log($"Node '{appropriateNodeId}' not found in dialogue, using original");
-                    return GreetingDialogue;
-                }
+
+                DebugConsole.Log($"Failed to create node '{appropriateNodeId}', using original");
+                return GreetingDialogue;
             }
             catch (Exception ex)
             {
                 DebugConsole.Log($"GetAppropriateDialogueNode failed: {ex.Message}");
                 return GreetingDialogue;
             }
+        }
+
+        /// <summary>
+        /// Создает узел диалога на основе ID из game_data.json
+        /// </summary>
+        private DialogueSystem.DialogueNode CreateDialogueNodeFromId(string nodeId)
+        {
+            try
+            {
+                var worldRepo = _worldRepository;
+                if (worldRepo != null)
+                {
+                    var gameData = worldRepo.GetGameData();
+                    if (gameData?.Dialogues != null)
+                    {
+                        var dialogueData = gameData.Dialogues.FirstOrDefault(d => d.Id == "7001");
+                        if (dialogueData != null)
+                        {
+                            var nodeData = dialogueData.Nodes.FirstOrDefault(n => n.Id == nodeId);
+                            if (nodeData != null)
+                            {
+                                DebugConsole.Log($"CreateDialogueNodeFromId: Found node data for ID '{nodeId}'");
+                                
+                                var node = new DialogueSystem.DialogueNode(nodeData.Id, nodeData.Text ?? string.Empty);
+                                
+                                if (nodeData.Choices != null)
+                                {
+                                    foreach (var choice in nodeData.Choices)
+                                    {
+                                        if (choice == null) continue;
+
+                                        DialogueSystem.DialogueNode nextNode = null;
+                                        if (!string.IsNullOrEmpty(choice.NextNodeId))
+                                        {
+                                            // Создаем следующий узел рекурсивно
+                                            nextNode = CreateDialogueNodeFromId(choice.NextNodeId);
+                                        }
+
+                                        var option = new DialogueSystem.DialogueOption(choice.Text ?? string.Empty, nextNode);
+
+                                        // Копируем действия
+                                        if (choice.Actions != null && choice.Actions.Count > 0)
+                                        {
+                                            option.Actions = choice.Actions.Select(a => new DialogueActionData
+                                            {
+                                                Type = a.Type,
+                                                Parameter = a.Parameter
+                                            }).ToList();
+                                        }
+                                        // Для обратной совместимости с одиночными действиями
+                                        else if (choice.Action != Engine.Data.DialogueAction.None)
+                                        {
+                                            option.Actions.Add(new DialogueActionData
+                                            {
+                                                Type = choice.Action,
+                                                Parameter = choice.ActionParameter
+                                            });
+                                        }
+
+                                        node.Options.Add(option);
+                                    }
+                                }
+
+                                return node;
+                            }
+                            else
+                            {
+                                DebugConsole.Log($"CreateDialogueNodeFromId: Node data not found for ID '{nodeId}'");
+                            }
+                        }
+                        else
+                        {
+                            DebugConsole.Log("CreateDialogueNodeFromId: Dialogue data not found for ID 7001");
+                        }
+                    }
+                    else
+                    {
+                        DebugConsole.Log("CreateDialogueNodeFromId: GameData or Dialogues is null");
+                    }
+                }
+                else
+                {
+                    DebugConsole.Log("CreateDialogueNodeFromId: WorldRepository is null");
+                }
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.Log($"CreateDialogueNodeFromId failed: {ex.Message}");
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -211,62 +299,85 @@ namespace Engine.Entities
             {
                 Id = "7001", // ID диалога Старосты Федота
                 Name = "Диалог Старосты Федота",
-                Start = "quest_5001_offer",
+                Start = "default_start", // Временный стартовый узел, будет заменен QuestDialogueManager
                 Nodes = new List<DialogueNode>()
             };
 
-            // Добавляем узлы из GreetingDialogue
-            var allNodes = GetAllDialogueNodes(GreetingDialogue);
-            DebugConsole.Log($"ConvertToDialogueDocument: Found {allNodes.Count} nodes from GreetingDialogue");
-            
-            foreach (var node in allNodes)
+            // Загружаем все узлы диалога из game_data.json напрямую
+            var worldRepo = _worldRepository;
+            if (worldRepo != null)
             {
-                if (node == null) continue;
-
-                var nodeId = GetNodeId(node);
-                DebugConsole.Log($"ConvertToDialogueDocument: Adding node with ID '{nodeId}' and text '{node.Text?.Substring(0, Math.Min(30, node.Text?.Length ?? 0))}...'");
-
-                var dialogueNode = new DialogueNode
+                var gameData = worldRepo.GetGameData();
+                if (gameData?.Dialogues != null)
                 {
-                    Id = nodeId,
-                    Text = node.Text,
-                    Responses = new List<Response>()
-                };
-
-                if (node.Options != null)
-                {
-                    foreach (var option in node.Options)
+                    var dialogueData = gameData.Dialogues.FirstOrDefault(d => d.Id == "7001");
+                    if (dialogueData != null)
                     {
-                        if (option == null) continue;
-
-                        var response = new Response
+                        DebugConsole.Log($"ConvertToDialogueDocument: Found dialogue data with {dialogueData.Nodes.Count} nodes");
+                        
+                        foreach (var nodeData in dialogueData.Nodes)
                         {
-                            Text = option.Text,
-                            Target = GetNodeId(option.NextNode),
-                            Actions = new List<DialogueAction>()
-                        };
+                            if (nodeData == null) continue;
 
-                        if (option.Actions != null)
-                        {
-                            foreach (var action in option.Actions)
+                            DebugConsole.Log($"ConvertToDialogueDocument: Adding node with ID '{nodeData.Id}' and text '{nodeData.Text?.Substring(0, Math.Min(30, nodeData.Text?.Length ?? 0))}...'");
+
+                            var dialogueNode = new DialogueNode
                             {
-                                if (action == null) continue;
+                                Id = nodeData.Id,
+                                Text = nodeData.Text,
+                                Responses = new List<Response>()
+                            };
 
-                                response.Actions.Add(new DialogueAction
+                            if (nodeData.Choices != null)
+                            {
+                                foreach (var choice in nodeData.Choices)
                                 {
-                                    Type = action.Type.ToString(),
-                                    Param = action.Parameter
-                                });
-                            }
-                        }
+                                    if (choice == null) continue;
 
-                        dialogueNode.Responses.Add(response);
+                                    var response = new Response
+                                    {
+                                        Text = choice.Text,
+                                        Target = choice.NextNodeId,
+                                        Actions = new List<Engine.Dialogue.DialogueAction>()
+                                    };
+
+                                    if (choice.Actions != null)
+                                    {
+                                        foreach (var action in choice.Actions)
+                                        {
+                                            if (action == null) continue;
+
+                                            response.Actions.Add(new Engine.Dialogue.DialogueAction
+                                            {
+                                                Type = action.Type.ToString(),
+                                                Param = action.Parameter
+                                            });
+                                        }
+                                    }
+
+                                    dialogueNode.Responses.Add(response);
+                                }
+                            }
+
+                            document.Nodes.Add(dialogueNode);
+                        }
+                    }
+                    else
+                    {
+                        DebugConsole.Log("ConvertToDialogueDocument: Dialogue data not found for ID 7001");
                     }
                 }
-
-                document.Nodes.Add(dialogueNode);
+                else
+                {
+                    DebugConsole.Log("ConvertToDialogueDocument: GameData or Dialogues is null");
+                }
+            }
+            else
+            {
+                DebugConsole.Log("ConvertToDialogueDocument: WorldRepository is null");
             }
 
+            DebugConsole.Log($"ConvertToDialogueDocument: Final document has {document.Nodes.Count} nodes");
             return document;
         }
 

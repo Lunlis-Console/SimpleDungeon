@@ -24,6 +24,25 @@ namespace Engine.Dialogue
         {
             DebugConsole.Log($"GetDialogueNodeForNPC called for NPC {npcID}");
             
+            // Отладочная информация о состоянии всех квестов
+            DebugConsole.Log($"=== QUEST STATE DEBUG for NPC {npcID} ===");
+            DebugConsole.Log($"AvailableQuests count: {_questLog.AvailableQuests.Count}");
+            foreach (var q in _questLog.AvailableQuests)
+            {
+                DebugConsole.Log($"  Available: {q.Name} (ID: {q.ID}, State: {q.State}, QuestGiver: {q.QuestGiverID})");
+            }
+            DebugConsole.Log($"ActiveQuests count: {_questLog.ActiveQuests.Count}");
+            foreach (var q in _questLog.ActiveQuests)
+            {
+                DebugConsole.Log($"  Active: {q.Name} (ID: {q.ID}, State: {q.State}, QuestGiver: {q.QuestGiverID})");
+            }
+            DebugConsole.Log($"CompletedQuests count: {_questLog.CompletedQuests.Count}");
+            foreach (var q in _questLog.CompletedQuests)
+            {
+                DebugConsole.Log($"  Completed: {q.Name} (ID: {q.ID}, State: {q.State}, QuestGiver: {q.QuestGiverID})");
+            }
+            DebugConsole.Log($"=== END QUEST STATE DEBUG ===");
+            
             // Проверяем доступные квесты
             var availableQuests = _questLog.GetAvailableQuestsForNPC(npcID);
             DebugConsole.Log($"Available quests for NPC {npcID}: {availableQuests.Count}");
@@ -111,8 +130,24 @@ namespace Engine.Dialogue
                 }
             }
 
-            // Возвращаем стандартный стартовый узел
-            DebugConsole.Log($"Returning default start node: {dialogue.Start}");
+            // Возвращаем первый доступный узел диалога или стартовый узел
+            if (dialogue.Nodes != null && dialogue.Nodes.Any())
+            {
+                // Ищем узел с ID "quest_5001_offer" как fallback
+                var fallbackNode = dialogue.Nodes.FirstOrDefault(n => n.Id == "quest_5001_offer");
+                if (fallbackNode != null)
+                {
+                    DebugConsole.Log($"Returning fallback quest offer node: quest_5001_offer");
+                    return "quest_5001_offer";
+                }
+                
+                // Если нет, возвращаем первый узел
+                var firstNode = dialogue.Nodes.First();
+                DebugConsole.Log($"Returning first available node: {firstNode.Id}");
+                return firstNode.Id;
+            }
+            
+            DebugConsole.Log($"No nodes available, returning dialogue start: {dialogue.Start}");
             return dialogue.Start;
         }
 

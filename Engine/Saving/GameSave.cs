@@ -196,6 +196,7 @@ namespace Engine.Saving
                 var quest = worldRepository.QuestByID(questID);
                 if (quest != null)
                 {
+                    quest.State = QuestState.InProgress; // Устанавливаем правильное состояние
                     player.QuestLog.ActiveQuests.Add(quest);
                 }
             }
@@ -205,7 +206,20 @@ namespace Engine.Saving
                 var quest = worldRepository.QuestByID(questID);
                 if (quest != null)
                 {
+                    quest.State = QuestState.Completed; // Устанавливаем правильное состояние
                     player.QuestLog.CompletedQuests.Add(quest);
+                }
+            }
+
+            // Восстанавливаем AvailableQuests - добавляем все квесты, которые не активны и не завершены
+            var allQuests = worldRepository.GetAllQuests();
+            foreach (var quest in allQuests)
+            {
+                // Если квест не активен и не завершен, добавляем его в доступные
+                if (!save.ActiveQuests.Contains(quest.ID) && !save.CompletedQuests.Contains(quest.ID))
+                {
+                    quest.State = QuestState.NotStarted; // Устанавливаем правильное состояние
+                    player.QuestLog.AddAvailableQuest(quest);
                 }
             }
 
