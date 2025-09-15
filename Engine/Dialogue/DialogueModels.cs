@@ -29,6 +29,12 @@ namespace Engine.Dialogue
         [JsonProperty("text", NullValueHandling = NullValueHandling.Ignore)]
         public string Text { get; set; }
 
+        [JsonProperty("type", NullValueHandling = NullValueHandling.Ignore)]
+        public string Type { get; set; }
+
+        [JsonProperty("tags", NullValueHandling = NullValueHandling.Ignore)]
+        public List<string> Tags { get; set; } = new();
+
         [JsonProperty("responses", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
         public List<Response> Responses { get; set; } = new();
     }
@@ -41,6 +47,9 @@ namespace Engine.Dialogue
         // null or missing -> end dialogue
         [JsonProperty("target", NullValueHandling = NullValueHandling.Ignore)]
         public string Target { get; set; }
+
+        [JsonProperty("condition", NullValueHandling = NullValueHandling.Ignore)]
+        public string Condition { get; set; }
 
         [JsonProperty("actions", NullValueHandling = NullValueHandling.Ignore, DefaultValueHandling = DefaultValueHandling.Ignore)]
         public List<DialogueAction> Actions { get; set; } = new();

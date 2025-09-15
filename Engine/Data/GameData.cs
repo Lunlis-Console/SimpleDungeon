@@ -114,6 +114,7 @@ namespace Engine.Data
         public List<int> QuestsToGive { get; set; } = new List<int>();
         public MerchantData Merchant { get; set; } = new MerchantData();
         public string GreetingDialogueId { get; set; } = null;
+        public string DefaultDialogueId { get; set; } = null;
     }
 
     public class DialogueData
@@ -137,6 +138,8 @@ namespace Engine.Data
         public string Id { get; set; } = string.Empty;
         public string Text { get; set; } = string.Empty;
         public string ParentId { get; set; }
+        public string Type { get; set; } = string.Empty;
+        public List<string> Tags { get; set; } = new List<string>();
 
         [JsonPropertyName("Choices")]
         public List<DialogueChoiceData> Choices { get; set; } = new List<DialogueChoiceData>();
@@ -146,6 +149,7 @@ namespace Engine.Data
     {
         public string Text { get; set; } = string.Empty;
         public string NextNodeId { get; set; }
+        public string Condition { get; set; } = string.Empty;
 
         // Для одиночного действия (обратная совместимость)
         public DialogueAction Action { get; set; } = DialogueAction.None;

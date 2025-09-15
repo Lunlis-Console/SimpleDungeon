@@ -18,8 +18,98 @@ namespace Engine.Dialogue
         }
 
         /// <summary>
+        /// Внедряет квестовые узлы в переданный DialogueDocument и добавляет ссылки (responses)
+        /// в стартовый узел (dialogue.Start) для перехода к этим узлам.
+        /// Если autoOverrideStart == true и есть явная причина (напр. ReadyToComplete + настройка),
+        /// может вернуть id узла, на который следует перейти вместо start.
+        /// </summary>
+        public string InjectQuestNodesForNPC(int npcId, DialogueDocument dialogue, bool autoOverrideStart = false)
+        {
+            DebugConsole.Log($"InjectQuestNodesForNPC called for NPC {npcId}, autoOverrideStart={autoOverrideStart}");
+            
+            if (dialogue == null || dialogue.Nodes == null)
+            {
+                DebugConsole.Log("InjectQuestNodesForNPC: dialogue or nodes is null");
+                return null;
+            }
+
+            // Находим стартовый узел
+            var startNode = dialogue.Nodes.FirstOrDefault(n => n.Id == dialogue.Start);
+            if (startNode == null)
+            {
+                DebugConsole.Log($"InjectQuestNodesForNPC: start node '{dialogue.Start}' not found");
+                return null;
+            }
+
+            // Собираем квесты для NPC
+            var availableQuests = _questLog.GetAvailableQuestsForNPC(npcId);
+            var activeQuests = _questLog.GetActiveQuestsForNPC(npcId);
+            var completedQuests = _questLog.GetCompletedQuestsForNPC(npcId);
+
+            DebugConsole.Log($"NPC {npcId} quests - Available: {availableQuests.Count}, Active: {activeQuests.Count}, Completed: {completedQuests.Count}");
+
+            string forcedStartNode = null;
+            bool hasQuestNodes = false;
+
+            // Обрабатываем доступные квесты
+            foreach (var quest in availableQuests)
+            {
+                if (!string.IsNullOrEmpty(quest.DialogueNodes.Offer))
+                {
+                    AddQuestOfferNode(dialogue, quest);
+                    AddQuestPointerToStart(dialogue, quest.DialogueNodes.Offer, $"Про задачу: {quest.Name}");
+                    hasQuestNodes = true;
+                }
+            }
+
+            // Обрабатываем активные квесты
+            foreach (var quest in activeQuests)
+            {
+                if (quest.State == QuestState.ReadyToComplete && !string.IsNullOrEmpty(quest.DialogueNodes.ReadyToComplete))
+                {
+                    AddQuestCompleteNode(dialogue, quest);
+                    AddQuestPointerToStart(dialogue, quest.DialogueNodes.ReadyToComplete, $"Завершить задачу: {quest.Name}");
+                    hasQuestNodes = true;
+                    
+                    // Если включен автопереход и квест готов к завершению
+                    if (autoOverrideStart)
+                    {
+                        forcedStartNode = quest.DialogueNodes.ReadyToComplete;
+                        DebugConsole.Log($"Auto-override: forcing start to {forcedStartNode} for quest {quest.ID}");
+                    }
+                }
+                else if (quest.State == QuestState.InProgress && !string.IsNullOrEmpty(quest.DialogueNodes.InProgress))
+                {
+                    AddQuestInProgressNode(dialogue, quest);
+                    AddQuestPointerToStart(dialogue, quest.DialogueNodes.InProgress, $"Как дела с задачей: {quest.Name}");
+                    hasQuestNodes = true;
+                }
+            }
+
+            // Обрабатываем завершенные квесты
+            foreach (var quest in completedQuests)
+            {
+                if (!string.IsNullOrEmpty(quest.DialogueNodes.Completed))
+                {
+                    AddQuestCompletedNode(dialogue, quest);
+                    hasQuestNodes = true;
+                }
+            }
+
+            // Если есть квесты, но нет специального меню, создаем общее меню квестов
+            if (hasQuestNodes && !dialogue.Nodes.Any(n => n.Type == "quests_menu"))
+            {
+                CreateQuestMenuNode(dialogue);
+            }
+
+            DebugConsole.Log($"InjectQuestNodesForNPC completed. Forced start: {forcedStartNode}");
+            return forcedStartNode;
+        }
+
+        /// <summary>
         /// Получает подходящий узел диалога для NPC в зависимости от состояния квестов
         /// </summary>
+        [Obsolete("Use InjectQuestNodesForNPC instead")]
         public string GetDialogueNodeForNPC(int npcID, DialogueDocument dialogue)
         {
             DebugConsole.Log($"GetDialogueNodeForNPC called for NPC {npcID}");
@@ -253,6 +343,7 @@ namespace Engine.Dialogue
             {
                 Id = quest.DialogueNodes.Offer,
                 Text = $"У меня есть для тебя задание: {quest.Name}\n\n{quest.Description}",
+                Type = "quest_offer",
                 Responses = new List<Response>
                 {
                     new Response
@@ -281,6 +372,7 @@ namespace Engine.Dialogue
             {
                 Id = quest.DialogueNodes.InProgress,
                 Text = $"Как дела с заданием '{quest.Name}'?\n\n{quest.GetProgressText()}",
+                Type = "quest_in_progress",
                 Responses = new List<Response>
                 {
                     new Response
@@ -300,6 +392,7 @@ namespace Engine.Dialogue
             {
                 Id = quest.DialogueNodes.ReadyToComplete,
                 Text = $"Отлично! Ты выполнил задание '{quest.Name}'!\n\nВот твоя награда:",
+                Type = "quest_complete",
                 Responses = new List<Response>
                 {
                     new Response
@@ -323,6 +416,7 @@ namespace Engine.Dialogue
             {
                 Id = quest.DialogueNodes.Completed,
                 Text = $"Спасибо за выполнение задания '{quest.Name}'! Ты отлично справился.",
+                Type = "quest_completed",
                 Responses = new List<Response>
                 {
                     new Response
@@ -334,6 +428,54 @@ namespace Engine.Dialogue
             };
 
             dialogue.Nodes.Add(completedNode);
+        }
+
+        /// <summary>
+        /// Добавляет ссылку на квестовый узел в стартовый узел диалога
+        /// </summary>
+        private void AddQuestPointerToStart(DialogueDocument dialogue, string questNodeId, string choiceText)
+        {
+            var startNode = dialogue.Nodes.FirstOrDefault(n => n.Id == dialogue.Start);
+            if (startNode == null) return;
+            
+            if (startNode.Responses == null) 
+                startNode.Responses = new List<Response>();
+
+            // Проверка на дубликат
+            if (!startNode.Responses.Any(r => r.Target == questNodeId))
+            {
+                startNode.Responses.Add(new Response 
+                { 
+                    Text = choiceText, 
+                    Target = questNodeId, 
+                    Actions = new List<DialogueAction>() 
+                });
+                DebugConsole.Log($"Added quest pointer to start: '{choiceText}' -> {questNodeId}");
+            }
+        }
+
+        /// <summary>
+        /// Создает общее меню квестов
+        /// </summary>
+        private void CreateQuestMenuNode(DialogueDocument dialogue)
+        {
+            var menuNode = new DialogueNode
+            {
+                Id = "quests_menu",
+                Text = "У меня есть дела. Что тебя интересует?",
+                Type = "quests_menu",
+                Responses = new List<Response>
+                {
+                    new Response
+                    {
+                        Text = "Назад",
+                        Target = dialogue.Start
+                    }
+                }
+            };
+
+            dialogue.Nodes.Add(menuNode);
+            DebugConsole.Log("Created quests_menu node");
         }
     }
 }

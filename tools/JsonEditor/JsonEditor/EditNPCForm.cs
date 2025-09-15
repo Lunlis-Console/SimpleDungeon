@@ -14,6 +14,7 @@ namespace JsonEditor
         private TextBox txtName;
         private TextBox txtGreeting;
         private ComboBox comboGreetingDialogue;
+        private ComboBox comboDefaultDialogue;
         private Button btnOk;
         private Button btnCancel;
 
@@ -30,7 +31,7 @@ namespace JsonEditor
         {
             this.Text = "Редактирование NPC";
             this.Width = 600;
-            this.Height = 260;
+            this.Height = 300;
             this.StartPosition = FormStartPosition.CenterParent;
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -54,8 +55,17 @@ namespace JsonEditor
                 DropDownStyle = ComboBoxStyle.DropDownList
             };
 
-            btnOk = new Button { Text = "OK", Left = 340, Top = 150, Width = 75 };
-            btnCancel = new Button { Text = "Отмена", Left = 435, Top = 150, Width = 75 };
+            var lblDefaultDialogue = new Label { Text = "DefaultDialogue:", Left = 10, Top = 142, Width = 120 };
+            comboDefaultDialogue = new ComboBox
+            {
+                Left = 135,
+                Top = 138,
+                Width = 405,
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+
+            btnOk = new Button { Text = "OK", Left = 340, Top = 190, Width = 75 };
+            btnCancel = new Button { Text = "Отмена", Left = 435, Top = 190, Width = 75 };
 
             btnOk.Click += BtnOk_Click;
             btnCancel.Click += (s, e) => { this.DialogResult = DialogResult.Cancel; this.Close(); };
@@ -68,6 +78,8 @@ namespace JsonEditor
             this.Controls.Add(txtGreeting);
             this.Controls.Add(lblDialogue);
             this.Controls.Add(comboGreetingDialogue);
+            this.Controls.Add(lblDefaultDialogue);
+            this.Controls.Add(comboDefaultDialogue);
             this.Controls.Add(btnOk);
             this.Controls.Add(btnCancel);
         }
@@ -94,8 +106,13 @@ namespace JsonEditor
             comboGreetingDialogue.ValueMember = "Key";
             comboGreetingDialogue.DataSource = new BindingSource(items, null);
 
-            // Выбор текущего значения
+            comboDefaultDialogue.DisplayMember = "Value";
+            comboDefaultDialogue.ValueMember = "Key";
+            comboDefaultDialogue.DataSource = new BindingSource(items, null);
+
+            // Выбор текущих значений
             comboGreetingDialogue.SelectedValue = _npcData.GreetingDialogueId ?? "";
+            comboDefaultDialogue.SelectedValue = _npcData.DefaultDialogueId ?? "";
         }
 
         private void BtnOk_Click(object sender, EventArgs e)
@@ -114,6 +131,9 @@ namespace JsonEditor
 
             var sel = comboGreetingDialogue.SelectedValue as string;
             _npcData.GreetingDialogueId = string.IsNullOrEmpty(sel) ? null : sel;
+
+            var selDefault = comboDefaultDialogue.SelectedValue as string;
+            _npcData.DefaultDialogueId = string.IsNullOrEmpty(selDefault) ? null : selDefault;
 
             this.DialogResult = DialogResult.OK;
             this.Close();

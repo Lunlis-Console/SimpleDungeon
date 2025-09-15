@@ -515,7 +515,10 @@ namespace Engine.World
 
             var npc = new NPC(npcData.ID, npcData.Name, npcData.Greeting, this);
 
-
+            // Устанавливаем DefaultDialogueId (приоритет над GreetingDialogueId для обратной совместимости)
+            npc.DefaultDialogueId = !string.IsNullOrEmpty(npcData.DefaultDialogueId) 
+                ? npcData.DefaultDialogueId 
+                : npcData.GreetingDialogueId;
 
             // Добавление квестов (если список присутствует)
             if (npcData.QuestsToGive != null)
@@ -549,10 +552,14 @@ namespace Engine.World
 
                 npc.Trader = merchant;
 
-                // --- Привязка диалога по id (GreetingDialogueId) ---
-                if (!string.IsNullOrWhiteSpace(npcData.GreetingDialogueId) && _gameData?.Dialogues != null)
+                // --- Привязка диалога по id (DefaultDialogueId или GreetingDialogueId для обратной совместимости) ---
+                var dialogueId = !string.IsNullOrEmpty(npcData.DefaultDialogueId) 
+                    ? npcData.DefaultDialogueId 
+                    : npcData.GreetingDialogueId;
+                    
+                if (!string.IsNullOrWhiteSpace(dialogueId) && _gameData?.Dialogues != null)
                 {
-                    var d = _gameData.Dialogues.FirstOrDefault(x => x.Id == npcData.GreetingDialogueId);
+                    var d = _gameData.Dialogues.FirstOrDefault(x => x.Id == dialogueId);
                     if (d != null)
                     {
                         var root = BuildDialogueFromData(d);
@@ -599,6 +606,7 @@ namespace Engine.World
                     }
 
                     var option = new DialogueSystem.DialogueOption(choice.Text ?? string.Empty, next);
+                    option.Condition = choice.Condition;
 
                     // Копируем все действия
                     if (choice.Actions != null && choice.Actions.Count > 0)
@@ -626,7 +634,7 @@ namespace Engine.World
                 }
             }
 
-            // 3) Определяем стартовый узел с учетом состояния квестов
+            // 3) Определяем стартовый узел (теперь всегда используем дефолтный старт)
             var startNodeId = DetermineStartNodeId(data);
             return startNodeId != null && map.ContainsKey(startNodeId) ? map[startNodeId] : null;
         }
@@ -643,42 +651,6 @@ namespace Engine.World
             {
                 DebugConsole.Log($"Dialogue has explicit start node: {data.Start}");
                 return data.Start;
-            }
-
-            // Ищем квесты, связанные с этим диалогом
-            var questDialogueManager = GameServices.QuestManager?.GetQuestDialogueManager();
-            if (questDialogueManager != null)
-            {
-                DebugConsole.Log("QuestDialogueManager found");
-                
-                // Пытаемся найти NPC, который использует этот диалог
-                var npc = _npcs?.Values.FirstOrDefault(n => n.GreetingDialogue != null && 
-                    GetDialogueIdFromNode(n.GreetingDialogue) == data.Id);
-                
-                if (npc != null)
-                {
-                    DebugConsole.Log($"Found NPC {npc.ID} ({npc.Name}) using dialogue {data.Id}");
-                    
-                    // Используем QuestDialogueManager для определения правильного узла
-                    var dialogueDocument = ConvertToDialogueDocument(data);
-                    var appropriateNodeId = questDialogueManager.GetDialogueNodeForNPC(npc.ID, dialogueDocument);
-                    
-                    DebugConsole.Log($"QuestDialogueManager selected node: '{appropriateNodeId}'");
-                    
-                    if (!string.IsNullOrEmpty(appropriateNodeId) && appropriateNodeId != data.Start)
-                    {
-                        DebugConsole.Log($"Using quest-based node '{appropriateNodeId}' instead of '{data.Start}'");
-                        return appropriateNodeId;
-                    }
-                }
-                else
-                {
-                    DebugConsole.Log($"No NPC found using dialogue {data.Id}");
-                }
-            }
-            else
-            {
-                DebugConsole.Log("QuestDialogueManager is null");
             }
 
             // Fallback: возвращаем первый узел в списке
@@ -722,6 +694,8 @@ namespace Engine.World
                 {
                     Id = nodeData.Id,
                     Text = nodeData.Text,
+                    Type = nodeData.Type,
+                    Tags = nodeData.Tags ?? new List<string>(),
                     Responses = new List<Response>()
                 };
 
@@ -731,6 +705,7 @@ namespace Engine.World
                     {
                         Text = choice.Text,
                         Target = choice.NextNodeId,
+                        Condition = choice.Condition,
                         Actions = new List<DialogueAction>()
                     };
 

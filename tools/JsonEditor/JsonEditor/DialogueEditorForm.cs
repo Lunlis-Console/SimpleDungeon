@@ -22,6 +22,8 @@ namespace SimpleDungeon.Tools.DialogueEditor
         private readonly ListBox _nodesList;
         private readonly TextBox _nodeId;
         private readonly TextBox _nodeText;
+        private readonly ComboBox _nodeType;
+        private readonly ComboBox _nodeTags;
         private readonly ListView _responsesList;
         private readonly Button _addNodeBtn;
         private readonly Button _delNodeBtn;
@@ -85,11 +87,25 @@ namespace SimpleDungeon.Tools.DialogueEditor
             _nodeText.Leave += NodeText_Leave;
             Controls.Add(_nodeText);
 
+            var lbType = new Label { Left = 250, Top = 250, Text = "Type", Width = 80 };
+            Controls.Add(lbType);
+            _nodeType = new ComboBox { Left = 250, Top = 270, Width = 200, DropDownStyle = ComboBoxStyle.DropDownList };
+            _nodeType.Items.AddRange(new string[] { "", "greeting", "shop", "service", "small_talk", "quest_offer", "quest_progress", "quest_complete", "quest_completed", "quests_menu" });
+            _nodeType.SelectedIndexChanged += NodeType_SelectedIndexChanged;
+            Controls.Add(_nodeType);
+
+            var lbTags = new Label { Left = 460, Top = 250, Text = "Tags", Width = 80 };
+            Controls.Add(lbTags);
+            _nodeTags = new ComboBox { Left = 460, Top = 270, Width = 200, DropDownStyle = ComboBoxStyle.DropDown };
+            _nodeTags.Items.AddRange(new string[] { "", "default", "main", "quest", "service", "casual", "shop", "menu" });
+            _nodeTags.TextChanged += NodeTags_TextChanged;
+            Controls.Add(_nodeTags);
+
             // Responses list (Choices)
-            var lbResp = new Label { Left = 250, Top = 250, Text = "Responses / Choices", Width = 140 };
+            var lbResp = new Label { Left = 250, Top = 300, Text = "Responses / Choices", Width = 140 };
             Controls.Add(lbResp);
 
-            _responsesList = new ListView { Left = 250, Top = 270, Width = 700, Height = 250, View = View.Details, FullRowSelect = true };
+            _responsesList = new ListView { Left = 250, Top = 320, Width = 700, Height = 250, View = View.Details, FullRowSelect = true };
             _responsesList.Columns.Add("Text", 420);
             _responsesList.Columns.Add("Target", 160);
             // Новая колонка с действием
@@ -97,48 +113,48 @@ namespace SimpleDungeon.Tools.DialogueEditor
             _responsesList.DoubleClick += (s, e) => EditSelectedResponse();
             Controls.Add(_responsesList);
 
-            _addRespBtn = new Button { Left = 250, Top = 530, Width = 80, Text = "Add" };
+            _addRespBtn = new Button { Left = 250, Top = 580, Width = 80, Text = "Add" };
             _addRespBtn.Click += (s, e) => AddResponse();
             Controls.Add(_addRespBtn);
 
-            _editRespBtn = new Button { Left = 340, Top = 530, Width = 80, Text = "Edit" };
+            _editRespBtn = new Button { Left = 340, Top = 580, Width = 80, Text = "Edit" };
             _editRespBtn.Click += (s, e) => EditSelectedResponse();
             Controls.Add(_editRespBtn);
 
-            _delRespBtn = new Button { Left = 430, Top = 530, Width = 80, Text = "Del" };
+            _delRespBtn = new Button { Left = 430, Top = 580, Width = 80, Text = "Del" };
             _delRespBtn.Click += (s, e) => DeleteSelectedResponse();
             Controls.Add(_delRespBtn);
 
             // Bottom: load/save
-            _saveAsBtn = new Button { Left = 250, Top = 570, Width = 120, Text = "Save As..." };
+            _saveAsBtn = new Button { Left = 250, Top = 620, Width = 120, Text = "Save As..." };
             _saveAsBtn.Click += (s, e) => SaveToFile();
             Controls.Add(_saveAsBtn);
 
-            _loadBtn = new Button { Left = 380, Top = 570, Width = 120, Text = "Load JSON..." };
+            _loadBtn = new Button { Left = 380, Top = 620, Width = 120, Text = "Load JSON..." };
             _loadBtn.Click += (s, e) => LoadFromFile();
             Controls.Add(_loadBtn);
 
             // File/id controls (нижняя панель)
-            var lbDocId = new Label { Left = 10, Top = 630, Width = 60, Text = "Doc ID" };
+            var lbDocId = new Label { Left = 10, Top = 680, Width = 60, Text = "Doc ID" };
             Controls.Add(lbDocId);
-            _docIdBox = new TextBox { Left = 70, Top = 628, Width = 140 };
+            _docIdBox = new TextBox { Left = 70, Top = 678, Width = 140 };
             _docIdBox.Leave += (s, e) => { if (_doc != null) _doc.Id = _docIdBox.Text?.Trim(); };
             Controls.Add(_docIdBox);
 
-            var lbDocName = new Label { Left = 220, Top = 630, Width = 90, Text = "Dialogue Name" };
+            var lbDocName = new Label { Left = 220, Top = 680, Width = 90, Text = "Dialogue Name" };
             Controls.Add(lbDocName);
-            _docNameBox = new TextBox { Left = 310, Top = 628, Width = 300 };
+            _docNameBox = new TextBox { Left = 310, Top = 678, Width = 300 };
             _docNameBox.Leave += DocNameBox_Leave;
             Controls.Add(_docNameBox);
 
-            _filePathBox = new TextBox { Left = 620, Top = 628, Width = 260, ReadOnly = true };
+            _filePathBox = new TextBox { Left = 620, Top = 678, Width = 260, ReadOnly = true };
             Controls.Add(_filePathBox);
 
-            _saveCurrentBtn = new Button { Left = 890, Top = 624, Width = 80, Text = "Save" };
+            _saveCurrentBtn = new Button { Left = 890, Top = 674, Width = 80, Text = "Save" };
             _saveCurrentBtn.Click += (s, e) => SaveToCurrentFile();
             Controls.Add(_saveCurrentBtn);
 
-            _statusLabel = new Label { Left = 10, Top = 660, Width = 960, Height = 40, Text = "" };
+            _statusLabel = new Label { Left = 10, Top = 710, Width = 960, Height = 40, Text = "" };
             Controls.Add(_statusLabel);
 
             // Initialize doc
@@ -200,6 +216,25 @@ namespace SimpleDungeon.Tools.DialogueEditor
             RefreshNodesList();
         }
 
+        private void NodeType_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var sel = GetSelectedNode();
+            if (sel == null) return;
+            sel.Type = _nodeType.SelectedItem?.ToString() ?? "";
+            RefreshNodesList();
+        }
+
+        private void NodeTags_TextChanged(object sender, EventArgs e)
+        {
+            var sel = GetSelectedNode();
+            if (sel == null) return;
+            // Парсим теги из строки (разделенные запятыми)
+            var tags = _nodeTags.Text.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(t => t.Trim()).Where(t => !string.IsNullOrEmpty(t)).ToList();
+            sel.Tags = tags;
+            RefreshNodesList();
+        }
+
         private void CreateNewNode(string id = null, string text = null)
         {
             if (_doc == null) _doc = new DialogueData { Nodes = new List<DialogueNodeData>() };
@@ -212,7 +247,14 @@ namespace SimpleDungeon.Tools.DialogueEditor
                 nid = $"n{idx}";
             }
 
-            var node = new DialogueNodeData { Id = nid, Text = text ?? "", Choices = new List<DialogueChoiceData>() };
+            var node = new DialogueNodeData 
+            { 
+                Id = nid, 
+                Text = text ?? "", 
+                Type = "",
+                Tags = new List<string>(),
+                Choices = new List<DialogueChoiceData>() 
+            };
             _doc.Nodes.Add(node);
             RefreshNodesList();
             SelectNodeById(nid);
@@ -260,11 +302,15 @@ namespace SimpleDungeon.Tools.DialogueEditor
             {
                 _nodeId.Text = "";
                 _nodeText.Text = "";
+                _nodeType.SelectedIndex = -1;
+                _nodeTags.Text = "";
                 _responsesList.Items.Clear();
                 return;
             }
             _nodeId.Text = node.Id;
             _nodeText.Text = node.Text ?? "";
+            _nodeType.SelectedItem = node.Type ?? "";
+            _nodeTags.Text = string.Join(", ", node.Tags ?? new List<string>());
             RefreshResponses(node);
             _startLabel.Text = "Start: " + (_doc.Start ?? "(none)");
         }
@@ -856,6 +902,7 @@ namespace SimpleDungeon.Tools.DialogueEditor
         {
             private readonly TextBox _txtText;
             private readonly TextBox _txtTarget;
+            private readonly ComboBox _txtCondition;
             private readonly Button _ok;
             private readonly Button _cancel;
             public DialogueChoiceData Result { get; private set; }
@@ -873,7 +920,7 @@ namespace SimpleDungeon.Tools.DialogueEditor
 
                 Text = existing == null ? "Add Choice" : "Edit Choice";
                 Width = 540;
-                Height = 350; // Увеличиваем высоту формы для размещения всех элементов
+                Height = 380; // Увеличиваем высоту формы для размещения поля Condition
                 StartPosition = FormStartPosition.CenterParent;
                 FormBorderStyle = FormBorderStyle.FixedDialog;
                 MaximizeBox = false;
@@ -894,43 +941,49 @@ namespace SimpleDungeon.Tools.DialogueEditor
                 pickBtn.Click += (s, e) => { ShowPickNodeMenu(); };
                 Controls.Add(pickBtn);
 
+                var lb3 = new Label { Left = 10, Top = 80, Width = 80, Text = "Condition" };
+                Controls.Add(lb3);
+                _txtCondition = new ComboBox { Left = 100, Top = 80, Width = 400, DropDownStyle = ComboBoxStyle.DropDown };
+                _txtCondition.Items.AddRange(new string[] { "", "hasAvailableQuests", "hasActiveQuests", "questAvailable:quest_id", "questCompleted:quest_id", "hasItem:item_id", "level:min_level", "flag:flag_name" });
+                Controls.Add(_txtCondition);
+
                 // Элементы для действий
-                var lblAction = new Label { Left = 10, Top = 80, Width = 100, Text = "Действие" };
+                var lblAction = new Label { Left = 10, Top = 115, Width = 100, Text = "Действие" };
                 Controls.Add(lblAction);
 
-                _comboAction = new ComboBox { Left = 120, Top = 80, Width = 150, DropDownStyle = ComboBoxStyle.DropDownList };
+                _comboAction = new ComboBox { Left = 120, Top = 115, Width = 150, DropDownStyle = ComboBoxStyle.DropDownList };
                 _comboAction.Items.AddRange(Enum.GetValues(typeof(DialogueAction)).Cast<object>().ToArray());
                 Controls.Add(_comboAction);
 
                 // TextBox для параметра
-                var lblParam = new Label { Left = 10, Top = 110, Width = 100, Text = "Параметр" };
+                var lblParam = new Label { Left = 10, Top = 145, Width = 100, Text = "Параметр" };
                 Controls.Add(lblParam);
 
-                _txtActionParam = new TextBox { Left = 120, Top = 110, Width = 200 };
+                _txtActionParam = new TextBox { Left = 120, Top = 145, Width = 200 };
                 Controls.Add(_txtActionParam);
 
                 // Кнопки управления действиями
-                _btnAddAction = new Button { Left = 330, Top = 80, Width = 90, Text = "Добавить" };
+                _btnAddAction = new Button { Left = 330, Top = 115, Width = 90, Text = "Добавить" };
                 _btnAddAction.Click += (s, e) => AddAction();
                 Controls.Add(_btnAddAction);
 
-                _btnRemoveAction = new Button { Left = 330, Top = 110, Width = 90, Text = "Удалить" };
+                _btnRemoveAction = new Button { Left = 330, Top = 145, Width = 90, Text = "Удалить" };
                 _btnRemoveAction.Click += (s, e) => RemoveAction();
                 Controls.Add(_btnRemoveAction);
 
                 // ListBox для списка действий
-                var lblActions = new Label { Left = 10, Top = 140, Width = 100, Text = "Список действий" };
+                var lblActions = new Label { Left = 10, Top = 175, Width = 100, Text = "Список действий" };
                 Controls.Add(lblActions);
 
-                _lstActions = new ListBox { Left = 120, Top = 140, Width = 300, Height = 100 };
+                _lstActions = new ListBox { Left = 120, Top = 175, Width = 300, Height = 100 };
                 Controls.Add(_lstActions);
 
                 // Кнопки OK/Cancel
-                _ok = new Button { Left = 320, Top = 280, Width = 80, Text = "OK" };
+                _ok = new Button { Left = 320, Top = 315, Width = 80, Text = "OK" };
                 _ok.Click += (s, e) => { OnOk(); };
                 Controls.Add(_ok);
 
-                _cancel = new Button { Left = 410, Top = 280, Width = 80, Text = "Cancel" };
+                _cancel = new Button { Left = 410, Top = 315, Width = 80, Text = "Cancel" };
                 _cancel.Click += (s, e) => { DialogResult = DialogResult.Cancel; Close(); };
                 Controls.Add(_cancel);
 
@@ -939,6 +992,7 @@ namespace SimpleDungeon.Tools.DialogueEditor
                 {
                     _txtText.Text = existing.Text;
                     _txtTarget.Text = existing.NextNodeId;
+                    _txtCondition.Text = existing.Condition ?? "";
 
                     if (existing.Actions != null)
                     {
@@ -1007,6 +1061,7 @@ namespace SimpleDungeon.Tools.DialogueEditor
             {
                 var text = _txtText.Text?.Trim() ?? string.Empty;
                 var next = string.IsNullOrWhiteSpace(_txtTarget.Text) ? null : _txtTarget.Text.Trim();
+                var condition = string.IsNullOrWhiteSpace(_txtCondition.Text) ? null : _txtCondition.Text.Trim();
 
                 if (string.IsNullOrEmpty(text))
                 {
@@ -1020,6 +1075,7 @@ namespace SimpleDungeon.Tools.DialogueEditor
                     {
                         Text = text,
                         NextNodeId = next,
+                        Condition = condition,
                         Actions = _lstActions.Items.Cast<DialogueActionData>().ToList()
                     };
                 }
@@ -1027,6 +1083,7 @@ namespace SimpleDungeon.Tools.DialogueEditor
                 {
                     _editing.Text = text;
                     _editing.NextNodeId = next;
+                    _editing.Condition = condition;
                     _editing.Actions = _lstActions.Items.Cast<DialogueActionData>().ToList();
                     Result = _editing;
                 }

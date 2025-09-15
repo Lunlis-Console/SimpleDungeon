@@ -21,6 +21,7 @@ namespace Engine.Entities
         public virtual int SellPriceModifier => 80; // 80% по умолчанию
         public ITrader Trader { get; set; } // Добавляем это свойство
         public DialogueSystem.DialogueNode GreetingDialogue { get; set; }
+        public string DefaultDialogueId { get; set; }
 
         private readonly IWorldRepository _worldRepository;
 
@@ -120,24 +121,36 @@ namespace Engine.Entities
                     return GreetingDialogue;
                 }
 
-                // Используем QuestDialogueManager для определения правильного узла
+                // Используем новый API для инъекции квестовых узлов
                 var dialogueDocument = ConvertToDialogueDocument();
-                var appropriateNodeId = questDialogueManager.GetDialogueNodeForNPC(ID, dialogueDocument);
+                var forcedNodeId = questDialogueManager.InjectQuestNodesForNPC(ID, dialogueDocument, autoOverrideStart: false);
 
-                DebugConsole.Log($"QuestDialogueManager selected node ID: '{appropriateNodeId}'");
+                DebugConsole.Log($"InjectQuestNodesForNPC returned forced node: '{forcedNodeId}'");
 
-                // Создаем узел диалога на основе выбранного ID из game_data.json
-                if (!string.IsNullOrEmpty(appropriateNodeId))
+                // Если есть принудительный старт, используем его
+                if (!string.IsNullOrEmpty(forcedNodeId))
                 {
-                    var selectedNode = CreateDialogueNodeFromId(appropriateNodeId);
-                    if (selectedNode != null)
+                    var forcedNode = CreateDialogueNodeFromId(forcedNodeId);
+                    if (forcedNode != null)
                     {
-                        DebugConsole.Log($"Created dialogue node for ID: {appropriateNodeId}");
-                        return selectedNode;
+                        DebugConsole.Log($"Using forced start node: {forcedNodeId}");
+                        return forcedNode;
                     }
                 }
 
-                DebugConsole.Log($"Failed to create node '{appropriateNodeId}', using original");
+                // Иначе используем дефолтный стартовый узел
+                var defaultNodeId = dialogueDocument.Start;
+                if (!string.IsNullOrEmpty(defaultNodeId))
+                {
+                    var defaultNode = CreateDialogueNodeFromId(defaultNodeId);
+                    if (defaultNode != null)
+                    {
+                        DebugConsole.Log($"Using default start node: {defaultNodeId}");
+                        return defaultNode;
+                    }
+                }
+
+                DebugConsole.Log("Failed to create any node, using original");
                 return GreetingDialogue;
             }
             catch (Exception ex)
@@ -297,8 +310,8 @@ namespace Engine.Entities
         {
             var document = new DialogueDocument
             {
-                Id = "7001", // ID диалога Старосты Федота
-                Name = "Диалог Старосты Федота",
+                Id = DefaultDialogueId ?? "7001", // Используем DefaultDialogueId или fallback
+                Name = $"Диалог {Name}",
                 Start = "default_start", // Временный стартовый узел, будет заменен QuestDialogueManager
                 Nodes = new List<DialogueNode>()
             };
@@ -310,10 +323,14 @@ namespace Engine.Entities
                 var gameData = worldRepo.GetGameData();
                 if (gameData?.Dialogues != null)
                 {
-                    var dialogueData = gameData.Dialogues.FirstOrDefault(d => d.Id == "7001");
+                    var dialogueId = DefaultDialogueId ?? "7001";
+                    var dialogueData = gameData.Dialogues.FirstOrDefault(d => d.Id == dialogueId);
                     if (dialogueData != null)
                     {
                         DebugConsole.Log($"ConvertToDialogueDocument: Found dialogue data with {dialogueData.Nodes.Count} nodes");
+                        
+                        // Устанавливаем правильный стартовый узел
+                        document.Start = dialogueData.Start ?? (dialogueData.Nodes.Count > 0 ? dialogueData.Nodes[0].Id : "default_start");
                         
                         foreach (var nodeData in dialogueData.Nodes)
                         {
@@ -325,6 +342,8 @@ namespace Engine.Entities
                             {
                                 Id = nodeData.Id,
                                 Text = nodeData.Text,
+                                Type = nodeData.Type,
+                                Tags = nodeData.Tags ?? new List<string>(),
                                 Responses = new List<Response>()
                             };
 
@@ -338,6 +357,7 @@ namespace Engine.Entities
                                     {
                                         Text = choice.Text,
                                         Target = choice.NextNodeId,
+                                        Condition = choice.Condition,
                                         Actions = new List<Engine.Dialogue.DialogueAction>()
                                     };
 
@@ -364,7 +384,7 @@ namespace Engine.Entities
                     }
                     else
                     {
-                        DebugConsole.Log("ConvertToDialogueDocument: Dialogue data not found for ID 7001");
+                        DebugConsole.Log($"ConvertToDialogueDocument: Dialogue data not found for ID {dialogueId}");
                     }
                 }
                 else
@@ -377,7 +397,7 @@ namespace Engine.Entities
                 DebugConsole.Log("ConvertToDialogueDocument: WorldRepository is null");
             }
 
-            DebugConsole.Log($"ConvertToDialogueDocument: Final document has {document.Nodes.Count} nodes");
+            DebugConsole.Log($"ConvertToDialogueDocument: Final document has {document.Nodes.Count} nodes, start: {document.Start}");
             return document;
         }
 

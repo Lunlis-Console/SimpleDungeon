@@ -143,32 +143,106 @@ namespace Engine.UI
                 return;
             }
 
-            try { _renderer.Write(2, startY - 2, "ВЫБЕРИТЕ ОТВЕТ:", ConsoleColor.Cyan); } catch { }
+            // Определяем тип узла для отображения заголовка
+            string headerText = GetNodeTypeHeader();
+            try { _renderer.Write(2, startY - 2, headerText, ConsoleColor.Cyan); } catch { }
 
-            for (int i = 0; i < availableOptions.Count; i++)
+            // Группируем опции по типам для лучшего отображения
+            var questOptions = availableOptions.Where(o => IsQuestRelatedOption(o.Text)).ToList();
+            var regularOptions = availableOptions.Where(o => !IsQuestRelatedOption(o.Text)).ToList();
+
+            int currentY = startY;
+
+            // Сначала показываем обычные опции
+            if (regularOptions.Count > 0)
             {
-                bool isSelected = i == _selectedIndex;
-                bool isVisited = availableOptions[i].IsVisited;
-                int y = startY + i;
-                var text = availableOptions[i].Text ?? "(пустой ответ)";
-
-                try
+                for (int i = 0; i < regularOptions.Count; i++)
                 {
-                    if (isSelected)
+                    bool isSelected = i == _selectedIndex;
+                    bool isVisited = regularOptions[i].IsVisited;
+                    var text = regularOptions[i].Text ?? "(пустой ответ)";
+
+                    try
                     {
-                        _renderer.Write(2, y, "►");
-                        _renderer.Write(4, y, text);
-                    }
-                    else
-                    {
-                        if (isVisited)
-                            _renderer.Write(4, y, text, ConsoleColor.DarkGray);
+                        if (isSelected)
+                        {
+                            _renderer.Write(2, currentY, "►");
+                            _renderer.Write(4, currentY, text, ConsoleColor.White);
+                        }
                         else
-                            _renderer.Write(4, y, text, ConsoleColor.Gray);
+                        {
+                            if (isVisited)
+                                _renderer.Write(4, currentY, text, ConsoleColor.DarkGray);
+                            else
+                                _renderer.Write(4, currentY, text, ConsoleColor.Gray);
+                        }
                     }
+                    catch { /* игнорируем ошибки отрисовки */ }
+                    currentY++;
                 }
-                catch { /* игнорируем ошибки отрисовки */ }
             }
+
+            // Затем показываем квестовые опции с отдельным заголовком
+            if (questOptions.Count > 0)
+            {
+                if (regularOptions.Count > 0)
+                {
+                    try { _renderer.Write(2, currentY, "─", ConsoleColor.DarkGray); } catch { }
+                    currentY++;
+                }
+                
+                try { _renderer.Write(2, currentY, "ЗАДАНИЯ:", ConsoleColor.Yellow); } catch { }
+                currentY++;
+
+                for (int i = 0; i < questOptions.Count; i++)
+                {
+                    int optionIndex = regularOptions.Count + i;
+                    bool isSelected = optionIndex == _selectedIndex;
+                    bool isVisited = questOptions[i].IsVisited;
+                    var text = questOptions[i].Text ?? "(пустой ответ)";
+
+                    try
+                    {
+                        if (isSelected)
+                        {
+                            _renderer.Write(2, currentY, "►");
+                            _renderer.Write(4, currentY, text, ConsoleColor.White);
+                        }
+                        else
+                        {
+                            if (isVisited)
+                                _renderer.Write(4, currentY, text, ConsoleColor.DarkGray);
+                            else
+                                _renderer.Write(4, currentY, text, ConsoleColor.Green);
+                        }
+                    }
+                    catch { /* игнорируем ошибки отрисовки */ }
+                    currentY++;
+                }
+            }
+        }
+
+        private string GetNodeTypeHeader()
+        {
+            // Определяем тип узла по тексту или другим признакам
+            var nodeText = _currentNode?.Text ?? "";
+            
+            if (nodeText.Contains("задание") || nodeText.Contains("квест"))
+                return "ЗАДАНИЯ:";
+            else if (nodeText.Contains("торгов") || nodeText.Contains("продаж"))
+                return "ТОРГОВЛЯ:";
+            else if (nodeText.Contains("спасибо") || nodeText.Contains("завершен"))
+                return "ЗАВЕРШЕНИЕ:";
+            else
+                return "ВЫБЕРИТЕ ОТВЕТ:";
+        }
+
+        private bool IsQuestRelatedOption(string optionText)
+        {
+            if (string.IsNullOrEmpty(optionText)) return false;
+            
+            var questKeywords = new[] { "задание", "квест", "задача", "работа", "поручение", "миссия" };
+            return questKeywords.Any(keyword => optionText.ToLower().Contains(keyword));
         }
 
         private void RenderHeader(string title)
