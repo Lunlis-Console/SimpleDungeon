@@ -53,7 +53,7 @@
       "Name": "Железный меч",
       "Type": 1,
       "Price": 10,
-      "AttackBonus": 15,
+      "AttackBonus": 50,
       "DefenceBonus": 0,
       "AgilityBonus": 10,
       "HealthBonus": 0,
@@ -1154,6 +1154,7 @@
             },
             {
               "Text": "По поводу волков...",
+              "NextNodeId": "quest_5002_readyToComplete",
               "Condition": "questReadyToCompleteForNPC:5002",
               "Action": 0
             }

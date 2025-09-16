@@ -461,23 +461,14 @@ namespace Engine.Entities
             CurrentEXP += monster.RewardEXP;
             MonstersKilled++;
 
-            Console.WriteLine($"Вы получаете {monster.RewardGold} золота и {monster.RewardEXP} опыта!");
-
             List<Item> loot = monster.GetLoot();
 
             if(loot.Count > 0)
             {
-                Console.WriteLine("Добыча: ");
-
                 foreach( Item item in loot )
                 {
                     AddItemToInventory( item );
-                    Console.WriteLine($"- {item.Name}");
                 }
-            }
-            else
-            {
-                Console.WriteLine("Добыча: ");
             }
 
             CheckLevelUp();

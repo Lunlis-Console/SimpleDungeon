@@ -53,7 +53,7 @@
       "Name": "Железный меч",
       "Type": 1,
       "Price": 10,
-      "AttackBonus": 15,
+      "AttackBonus": 50,
       "DefenceBonus": 0,
       "AgilityBonus": 10,
       "HealthBonus": 0,
@@ -602,13 +602,20 @@
       "Description": "Поляна к северу от деревни, тут обитают крысы.",
       "MonsterSpawns": [
         {
+          "MonsterTemplateID": 2003,
+          "Level": 0,
+          "SpawnWeight": 0,
+          "Count": 3
+        },
+        {
           "MonsterTemplateID": 2007,
           "Level": 0,
           "SpawnWeight": 0,
-          "Count": 5
+          "Count": 3
         }
       ],
       "MonsterTemplates": [
+        2003,
         2007
       ],
       "ScaleMonstersToPlayerLevel": true,

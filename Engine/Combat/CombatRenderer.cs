@@ -20,7 +20,7 @@ namespace Engine.Combat
         /// Рисует кадр боя.
         /// </summary>
         public void RenderCombatFrame(object player, object monster, List<string> combatLog, int currentTurn,
-            bool isPlayerTurnReady, bool isEnemyActing, bool isMonsterPreparing = false)
+            bool isPlayerTurnReady, bool isEnemyActing, bool isMonsterPreparing = false, int logScrollOffset = 0)
         {
             int width = _r.Width;
             int height = _r.Height;
@@ -54,8 +54,8 @@ namespace Engine.Combat
             _r.Write(0, bottomFrameTop, bottomTopFrame, ConsoleColor.DarkGray, ConsoleColor.Black);
 
             // Контролы внизу (центруем)
-            string controls = "1-Атаковать  2-Заклинание  3-Защита  4-Бежать  Q-Выход";
-            if (controls.Length > width - 4) controls = "1-атака 2-магия 3-защ 4-бежать Q-выход";
+            string controls = "1-Атаковать  2-Заклинание  3-Защита  4-Бежать";
+            if (controls.Length > width - 4) controls = "1-атака 2-магия 3-защ 4-бежать";
             int ctlPad = Math.Max(0, (width - 2 - controls.Length) / 2);
             string controlsLine = "│" + new string(' ', ctlPad) + controls + new string(' ', Math.Max(0, width - 2 - controls.Length - ctlPad)) + "│";
             _r.Write(0, bottomFrameRow, controlsLine, ConsoleColor.DarkGray, ConsoleColor.Black);
@@ -166,13 +166,13 @@ namespace Engine.Combat
                 _r.FillArea(1, statusRow, Math.Max(1, width - 2), 1, ' ', ConsoleColor.White, ConsoleColor.Black);
             }
 
-            // --- ЛОГ: зона сокращена на 1 строку сверху, чтобы не перекрывать скорость ---
-            int logTop = monsterSpeedRow + 2;     // было +1, теперь +2 — одну строку сверху уменьшаем
+            // --- ЛОГ: поднимаем на одну строку вверх и увеличиваем количество видимых сообщений ---
+            int logTop = monsterSpeedRow + 1;     // поднимаем лог на одну строку вверх
             int logBottom = playerSpeedRow - 1;
             if (logBottom < logTop) logBottom = logTop;
             int logHeight = Math.Max(1, logBottom - logTop + 1);
 
-            int maxVisible = Math.Min(6, logHeight);
+            int maxVisible = logHeight; // используем все доступное пространство для лога
 
             var filtered = new List<string>();
             if (combatLog != null)
@@ -188,24 +188,39 @@ namespace Engine.Combat
             }
 
             int visibleCount = Math.Min(maxVisible, filtered.Count);
-            int start = Math.Max(0, filtered.Count - visibleCount);
+            
+            // Если есть прокрутка, показываем с учетом смещения
+            int start;
+            if (logScrollOffset > 0)
+            {
+                start = Math.Max(0, filtered.Count - visibleCount - logScrollOffset);
+            }
+            else
+            {
+                start = Math.Max(0, filtered.Count - visibleCount);
+            }
 
-            // Показываем последние visibleCount строк, прикреплённо к logTop (не центрируем вертикально — так меньше мерцаний)
-            for (int i = 0; i < visibleCount; i++)
+            // Показываем строки с учетом прокрутки
+            for (int i = 0; i < visibleCount && start + i < filtered.Count; i++)
             {
                 string line = filtered[start + i];
                 if (line.Length > width - 6) line = line.Substring(0, width - 9) + "...";
                 int lx = Math.Max(1, (width - line.Length) / 2);
-                _r.Write(lx, logTop + i, line, ConsoleColor.White, ConsoleColor.Black);
+                // Отображаем снизу вверх: logBottom - visibleCount + 1 + i
+                int row = logBottom - visibleCount + 1 + i;
+                _r.Write(lx, row, line, ConsoleColor.White, ConsoleColor.Black);
             }
 
-            // Индикатор количества скрытых сообщений — размещаем одну строку выше логTop, если есть место
+            // Индикатор количества скрытых сообщений — размещаем прямо под скоростью противника
             if (filtered.Count > visibleCount)
             {
                 string more = $"... {filtered.Count - visibleCount} пред.";
                 int mx = Math.Max(1, (width - more.Length) / 2);
-                int my = logTop - 1;
-                if (my >= contentTop) _r.Write(mx, my, more, ConsoleColor.DarkGray, ConsoleColor.Black);
+                int my = monsterSpeedRow + 1; // Размещаем прямо под скоростью противника
+                if (my >= contentTop && my < logTop) 
+                {
+                    _r.Write(mx, my, more, ConsoleColor.DarkGray, ConsoleColor.Black);
+                }
             }
 
             // Готово
