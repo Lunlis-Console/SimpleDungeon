@@ -32,6 +32,9 @@ namespace Engine.UI
             _selectedIndex = 0;
             SelectedOption = null;
 
+            // Включаем режим диалога для MessageSystem
+            MessageSystem.EnterDialogueMode();
+
             // Попробуем инициализировать диалог из NPC
             TryInitializeDialogueFromNpc();
 
@@ -291,6 +294,9 @@ namespace Engine.UI
 
         public void CloseDialogue()
         {
+            // Выходим из режима диалога для MessageSystem
+            MessageSystem.ExitDialogueMode();
+            
             try { ScreenManager.PopScreen(); } catch { }
         }
 
@@ -401,6 +407,60 @@ namespace Engine.UI
                         break;
                 }
             }
+        }
+
+        #endregion
+
+        #region --- MessageSystem positioning ---
+
+        /// <summary>
+        /// Переопределяем RenderOverlay для позиционирования MessageSystem ниже текста НПС
+        /// </summary>
+        public override void RenderOverlay()
+        {
+            int messageSystemStartY = CalculateMessageSystemPosition();
+            RenderOverlay(messageSystemStartY);
+        }
+
+        /// <summary>
+        /// Вычисляет позицию для MessageSystem на основе текущего содержимого диалога
+        /// </summary>
+        private int CalculateMessageSystemPosition()
+        {
+            // Начинаем с позиции после заголовка
+            int y = 4; // Позиция после заголовка (headerHeight + 1)
+            
+            // Добавляем высоту текста диалога
+            var text = _currentNode?.Text ?? _npc?.Greeting ?? "(пустой диалог)";
+            var lines = WrapText(text, Math.Max(20, Width - 4));
+            
+            foreach (var line in lines)
+            {
+                if (y < Height - 10) // Проверяем границы экрана
+                {
+                    y++;
+                }
+            }
+            
+            // Добавляем отступ после текста диалога
+            y += 2;
+            
+            // Добавляем высоту разделительной линии
+            y += 1;
+            
+            // Добавляем высоту заголовка опций ("ВЫБЕРИТЕ ОТВЕТ:")
+            y += 1;
+            
+            // Добавляем высоту всех доступных опций
+            var responses = _currentNode?.Responses ?? new List<Response>();
+            var availableResponses = responses.Where(r => EvaluateResponseCondition(r)).ToList();
+            y += availableResponses.Count;
+            
+            // Добавляем небольшой отступ перед MessageSystem
+            y += 1;
+            
+            // Ограничиваем позицию границами экрана
+            return Math.Min(y, Height - 6); // Оставляем место для футера
         }
 
         #endregion

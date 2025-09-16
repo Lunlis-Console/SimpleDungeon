@@ -6,6 +6,10 @@
         private const int MaxMessages = 5;
         private const int MessageLifetime = 5000; // 5 секунд
 
+        // Состояние позиционирования для диалогов
+        private static bool _isInDialogueMode = false;
+        private static int _savedPosition = 4; // Позиция по умолчанию (под заголовком)
+
         public class MessageData
         {
             public string Text { get; set; } = string.Empty;
@@ -14,6 +18,33 @@
         }
 
         public static IEnumerable<MessageData> Messages => _messages;
+
+        /// <summary>
+        /// Включает режим диалога с сохранением текущей позиции
+        /// </summary>
+        public static void EnterDialogueMode()
+        {
+            if (!_isInDialogueMode)
+            {
+                _isInDialogueMode = true;
+            }
+        }
+
+        /// <summary>
+        /// Выходит из режима диалога и восстанавливает прежнюю позицию
+        /// </summary>
+        public static void ExitDialogueMode()
+        {
+            if (_isInDialogueMode)
+            {
+                _isInDialogueMode = false;
+            }
+        }
+
+        /// <summary>
+        /// Проверяет, находится ли MessageSystem в режиме диалога
+        /// </summary>
+        public static bool IsInDialogueMode => _isInDialogueMode;
 
         public static void AddMessage(string message)
         {

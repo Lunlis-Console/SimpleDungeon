@@ -170,6 +170,15 @@ namespace Engine.UI
         // Поместите этот метод туда, где у вас сейчас рисуются сообщения (BaseScreen / ScreenManager).
         public virtual void RenderOverlay()
         {
+            RenderOverlay(GetDefaultMessageSystemPosition());
+        }
+
+        /// <summary>
+        /// Рендер MessageSystem с возможностью указать позицию начала отображения
+        /// </summary>
+        /// <param name="startY">Y-координата начала отображения сообщений</param>
+        protected virtual void RenderOverlay(int startY)
+        {
             var msgsEnum = MessageSystem.Messages;
             if (msgsEnum == null) return;
 
@@ -177,15 +186,11 @@ namespace Engine.UI
             var msgs = msgsEnum as System.Collections.Generic.IList<MessageSystem.MessageData> ?? msgsEnum.ToList();
             if (msgs.Count == 0) return;
 
-            // Параметры позиционирования — под хедером
-            int headerHeight = 3;        // подстрой под ваш Header
-            int topY = headerHeight + 1; // первая строка для сообщений (под хедером)
             int paddingRight = 2;
-
             int screenWidth = Console.WindowWidth;
             int screenHeight = Console.WindowHeight;
 
-            int maxLines = Math.Max(0, screenHeight - topY - 2);
+            int maxLines = Math.Max(0, screenHeight - startY - 2);
             if (maxLines <= 0) return;
 
             // Выбираем последние N сообщений (в порядке от старого к новому в исходном массиве)
@@ -194,8 +199,8 @@ namespace Engine.UI
 
             // Мы хотим рисовать новые сверху, старые снизу.
             // Поэтому перебираем lastMsgs в обратном порядке (новое сначала),
-            // а рисуем вниз, начиная с topY.
-            int lineY = topY;
+            // а рисуем вниз, начиная с startY.
+            int lineY = startY;
             for (int i = lastMsgs.Count - 1; i >= 0; i--)
             {
                 var m = lastMsgs[i]; // i = last -> самое новое, i = 0 -> самое старое
@@ -222,6 +227,22 @@ namespace Engine.UI
                 lineY++;
                 if (lineY >= screenHeight - 1) break;
             }
+        }
+
+        /// <summary>
+        /// Получает позицию по умолчанию для MessageSystem (под заголовком)
+        /// </summary>
+        protected virtual int GetDefaultMessageSystemPosition()
+        {
+            // Если мы в режиме диалога, используем специальную позицию
+            if (MessageSystem.IsInDialogueMode)
+            {
+                // В режиме диалога позиция будет переопределена в DialogueScreen
+                return 4; // Временная позиция, будет заменена в DialogueScreen
+            }
+            
+            int headerHeight = 3;        // подстрой под ваш Header
+            return headerHeight + 1;     // первая строка для сообщений (под хедером)
         }
         private ConsoleColor GetColorByAlpha(double alpha)
         {
