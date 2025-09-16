@@ -6,16 +6,16 @@ using Engine.Data;
 
 namespace JsonEditor
 {
-    public partial class EditRoomForm : Form
+    public partial class EditSubRoomForm : Form
     {
-        private RoomData _room;
+        private RoomData _parentRoom;
+        private RoomData _subRoom;
         private GameData _gameData;
         private bool _isNew;
 
         private TextBox _txtId;
         private TextBox _txtName;
         private TextBox _txtDescription;
-        private ComboBox _cmbParentLocation;
         private DataGridView _gridNPCs;
         private DataGridView _gridMonsterTemplates;
         private DataGridView _gridGroundItems;
@@ -24,15 +24,11 @@ namespace JsonEditor
         private ComboBox _cmbRoomEast;
         private ComboBox _cmbRoomSouth;
         private ComboBox _cmbRoomWest;
-        private DataGridView _gridSubRooms;
-        private Button _btnAddSubRoom;
-        private Button _btnEditSubRoom;
-        private Button _btnRemoveSubRoom;
-        private Button _btnVisualEditor;
 
-        public EditRoomForm(RoomData room, GameData gameData, bool isNew = false)
+        public EditSubRoomForm(RoomData parentRoom, RoomData subRoom, GameData gameData, bool isNew = false)
         {
-            _room = room ?? new RoomData();
+            _parentRoom = parentRoom ?? throw new ArgumentNullException(nameof(parentRoom));
+            _subRoom = subRoom ?? new RoomData();
             _gameData = gameData;
             _isNew = isNew;
 
@@ -42,7 +38,7 @@ namespace JsonEditor
 
         private void InitializeComponent()
         {
-            Text = _isNew ? "Новое помещение" : "Редактирование помещения";
+            Text = _isNew ? $"Новое под-помещение в {_parentRoom.Name}" : $"Редактирование под-помещения в {_parentRoom.Name}";
             Size = new System.Drawing.Size(900, 1000); // Увеличиваем размер
             StartPosition = FormStartPosition.CenterParent;
             FormBorderStyle = FormBorderStyle.FixedDialog;
@@ -73,15 +69,14 @@ namespace JsonEditor
             var lblDescription = new Label { Text = "Описание:", Location = new System.Drawing.Point(10, 55), Size = new System.Drawing.Size(80, 20) };
             _txtDescription = new TextBox { Location = new System.Drawing.Point(100, 53), Size = new System.Drawing.Size(750, 20), Multiline = true, Height = 50, ScrollBars = ScrollBars.Vertical };
 
-            var lblParentLocation = new Label { Text = "Родительская локация:", Location = new System.Drawing.Point(10, 85), Size = new System.Drawing.Size(120, 20) };
-            _cmbParentLocation = new ComboBox { Location = new System.Drawing.Point(140, 83), Size = new System.Drawing.Size(300, 20), DropDownStyle = ComboBoxStyle.DropDownList };
+            var lblParentInfo = new Label { Text = $"Родительское помещение: {_parentRoom.Name} (ID: {_parentRoom.ID})", Location = new System.Drawing.Point(10, 85), Size = new System.Drawing.Size(400, 20), ForeColor = System.Drawing.Color.Blue };
 
-            basicInfoGroup.Controls.AddRange(new Control[] { lblId, _txtId, lblName, _txtName, lblDescription, _txtDescription, lblParentLocation, _cmbParentLocation });
+            basicInfoGroup.Controls.AddRange(new Control[] { lblId, _txtId, lblName, _txtName, lblDescription, _txtDescription, lblParentInfo });
 
             // NPCs
             var npcGroup = new GroupBox
             {
-                Text = "NPC в помещении",
+                Text = "NPC в под-помещении",
                 Location = new System.Drawing.Point(10, 140),
                 Size = new System.Drawing.Size(420, 200)
             };
@@ -155,7 +150,7 @@ namespace JsonEditor
             // Room Connections
             var connectionsGroup = new GroupBox
             {
-                Text = "Связи с другими помещениями",
+                Text = "Связи с другими под-помещениями",
                 Location = new System.Drawing.Point(10, 630),
                 Size = new System.Drawing.Size(860, 120)
             };
@@ -174,32 +169,6 @@ namespace JsonEditor
 
             connectionsGroup.Controls.AddRange(new Control[] { lblNorth, _cmbRoomNorth, lblEast, _cmbRoomEast, lblSouth, _cmbRoomSouth, lblWest, _cmbRoomWest });
 
-            // Sub-Rooms Section
-            var subRoomsGroup = new GroupBox
-            {
-                Text = "Под-помещения",
-                Location = new System.Drawing.Point(10, 760),
-                Size = new System.Drawing.Size(860, 180)
-            };
-
-            _gridSubRooms = new DataGridView
-            {
-                Location = new System.Drawing.Point(10, 20),
-                Size = new System.Drawing.Size(750, 120),
-                AllowUserToAddRows = false,
-                AllowUserToDeleteRows = false,
-                RowHeadersVisible = false,
-                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
-            };
-
-            _btnAddSubRoom = new Button { Text = "Добавить", Location = new System.Drawing.Point(770, 20), Size = new System.Drawing.Size(80, 25) };
-            _btnEditSubRoom = new Button { Text = "Редактировать", Location = new System.Drawing.Point(770, 50), Size = new System.Drawing.Size(80, 25) };
-            _btnRemoveSubRoom = new Button { Text = "Удалить", Location = new System.Drawing.Point(770, 80), Size = new System.Drawing.Size(80, 25) };
-            _btnVisualEditor = new Button { Text = "Графический редактор", Location = new System.Drawing.Point(770, 110), Size = new System.Drawing.Size(80, 25) };
-
-            subRoomsGroup.Controls.AddRange(new Control[] { _gridSubRooms, _btnAddSubRoom, _btnEditSubRoom, _btnRemoveSubRoom, _btnVisualEditor });
-
             // Buttons
             var buttonPanel = new FlowLayoutPanel
             {
@@ -217,7 +186,7 @@ namespace JsonEditor
 
             // Добавляем все группы в основной панель
             mainPanel.Controls.AddRange(new Control[] { 
-                basicInfoGroup, npcGroup, monsterGroup, itemsGroup, scaleGroup, connectionsGroup, subRoomsGroup 
+                basicInfoGroup, npcGroup, monsterGroup, itemsGroup, scaleGroup, connectionsGroup 
             });
 
             Controls.Add(mainPanel);
@@ -229,41 +198,29 @@ namespace JsonEditor
 
         private void LoadData()
         {
-            // Load locations
-            _cmbParentLocation.Items.Clear();
-            _cmbParentLocation.Items.Add(new ComboBoxItem { Text = "(Не выбрано)", Value = 0 });
-            foreach (var location in _gameData.Locations)
-            {
-                _cmbParentLocation.Items.Add(new ComboBoxItem { Text = $"{location.Name} (ID: {location.ID})", Value = location.ID });
-            }
-
             // Initialize grids
             InitializeNPCsGrid();
             InitializeMonsterTemplatesGrid();
             InitializeGroundItemsGrid();
 
-            // Load rooms for connections
+            // Load sub-rooms for connections (only rooms that belong to the same parent)
+            var subRooms = GetSubRoomsForParent(_parentRoom.ID);
             var roomComboBoxes = new[] { _cmbRoomNorth, _cmbRoomEast, _cmbRoomSouth, _cmbRoomWest };
             foreach (var cmb in roomComboBoxes)
             {
                 cmb.Items.Clear();
                 cmb.Items.Add(new ComboBoxItem { Text = "(Нет)", Value = 0 });
-                foreach (var room in _gameData.Rooms)
+                foreach (var room in subRooms)
                 {
                     cmb.Items.Add(new ComboBoxItem { Text = $"{room.Name} (ID: {room.ID})", Value = room.ID });
                 }
             }
 
             // Set current values
-            _txtId.Text = _room.ID.ToString();
-            _txtName.Text = _room.Name;
-            _txtDescription.Text = _room.Description;
-            _chkScaleMonsters.Checked = _room.ScaleMonstersToPlayerLevel;
-
-            // Set parent location
-            var parentLocation = _cmbParentLocation.Items.Cast<ComboBoxItem>().FirstOrDefault(x => x.Value == _room.ParentLocationID);
-            if (parentLocation != null)
-                _cmbParentLocation.SelectedItem = parentLocation;
+            _txtId.Text = _subRoom.ID.ToString();
+            _txtName.Text = _subRoom.Name;
+            _txtDescription.Text = _subRoom.Description;
+            _chkScaleMonsters.Checked = _subRoom.ScaleMonstersToPlayerLevel;
 
             // Load data into grids
             LoadNPCsData();
@@ -271,34 +228,17 @@ namespace JsonEditor
             LoadGroundItemsData();
 
             // Set room connections
-            SetRoomConnection(_cmbRoomNorth, _room.RoomToNorth);
-            SetRoomConnection(_cmbRoomEast, _room.RoomToEast);
-            SetRoomConnection(_cmbRoomSouth, _room.RoomToSouth);
-            SetRoomConnection(_cmbRoomWest, _room.RoomToWest);
-
-            // Initialize sub-rooms grid
-            InitializeSubRoomsGrid();
-            LoadSubRoomsData();
-
-            // Add event handlers
-            _btnAddSubRoom.Click += BtnAddSubRoom_Click;
-            _btnEditSubRoom.Click += BtnEditSubRoom_Click;
-            _btnRemoveSubRoom.Click += BtnRemoveSubRoom_Click;
-            _btnVisualEditor.Click += BtnVisualEditor_Click;
+            SetRoomConnection(_cmbRoomNorth, _subRoom.RoomToNorth);
+            SetRoomConnection(_cmbRoomEast, _subRoom.RoomToEast);
+            SetRoomConnection(_cmbRoomSouth, _subRoom.RoomToSouth);
+            SetRoomConnection(_cmbRoomWest, _subRoom.RoomToWest);
         }
 
-        private void SetRoomConnection(ComboBox cmb, int? roomId)
+        private List<RoomData> GetSubRoomsForParent(int parentRoomId)
         {
-            if (roomId.HasValue)
-            {
-                var room = cmb.Items.Cast<ComboBoxItem>().FirstOrDefault(x => x.Value == roomId.Value);
-                if (room != null)
-                    cmb.SelectedItem = room;
-            }
-            else
-            {
-                cmb.SelectedIndex = 0; // "(Нет)"
-            }
+            // Возвращаем все помещения, которые принадлежат к тому же родительскому помещению
+            // Для простоты пока возвращаем все помещения, но можно добавить специальное поле ParentRoomID
+            return _gameData.Rooms.Where(r => r.ID != _subRoom.ID).ToList();
         }
 
         private void InitializeNPCsGrid()
@@ -336,7 +276,7 @@ namespace JsonEditor
             _gridNPCs.Rows.Clear();
             foreach (var npc in _gameData.NPCs)
             {
-                bool selected = _room.NPCsHere.Contains(npc.ID);
+                bool selected = _subRoom.NPCsHere.Contains(npc.ID);
                 int count = 1; // По умолчанию 1 NPC
                 _gridNPCs.Rows.Add(selected, npc.ID, npc.Name, count);
             }
@@ -347,7 +287,7 @@ namespace JsonEditor
             _gridMonsterTemplates.Rows.Clear();
             foreach (var monster in _gameData.Monsters)
             {
-                bool selected = _room.MonsterTemplates.Contains(monster.ID);
+                bool selected = _subRoom.MonsterTemplates.Contains(monster.ID);
                 int count = 1; // По умолчанию 1 монстр
                 _gridMonsterTemplates.Rows.Add(selected, monster.ID, monster.Name, count);
             }
@@ -362,7 +302,7 @@ namespace JsonEditor
                 int count = 1;
 
                 // Проверяем, есть ли этот предмет в GroundItems
-                var groundItem = _room.GroundItems?.FirstOrDefault(gi => gi.ItemID == item.ID);
+                var groundItem = _subRoom.GroundItems?.FirstOrDefault(gi => gi.ItemID == item.ID);
                 if (groundItem != null)
                 {
                     selected = true;
@@ -370,6 +310,20 @@ namespace JsonEditor
                 }
 
                 _gridGroundItems.Rows.Add(selected, item.ID, item.Name, count);
+            }
+        }
+
+        private void SetRoomConnection(ComboBox cmb, int? roomId)
+        {
+            if (roomId.HasValue)
+            {
+                var room = cmb.Items.Cast<ComboBoxItem>().FirstOrDefault(x => x.Value == roomId.Value);
+                if (room != null)
+                    cmb.SelectedItem = room;
+            }
+            else
+            {
+                cmb.SelectedIndex = 0; // "(Нет)"
             }
         }
 
@@ -404,7 +358,7 @@ namespace JsonEditor
             }
 
             // Check for duplicate ID
-            if (_isNew || _room.ID != id)
+            if (_isNew || _subRoom.ID != id)
             {
                 if (_gameData.Rooms.Any(r => r.ID == id))
                 {
@@ -418,17 +372,14 @@ namespace JsonEditor
 
         private void SaveData()
         {
-            _room.ID = int.Parse(_txtId.Text);
-            _room.Name = _txtName.Text.Trim();
-            _room.Description = _txtDescription.Text.Trim();
-            _room.ScaleMonstersToPlayerLevel = _chkScaleMonsters.Checked;
-
-            // Parent location
-            var parentLocation = _cmbParentLocation.SelectedItem as ComboBoxItem;
-            _room.ParentLocationID = parentLocation?.Value ?? 0;
+            _subRoom.ID = int.Parse(_txtId.Text);
+            _subRoom.Name = _txtName.Text.Trim();
+            _subRoom.Description = _txtDescription.Text.Trim();
+            _subRoom.ScaleMonstersToPlayerLevel = _chkScaleMonsters.Checked;
+            _subRoom.ParentLocationID = _parentRoom.ParentLocationID; // Наследуем родительскую локацию
 
             // NPCs - сохраняем только выбранные
-            _room.NPCsHere.Clear();
+            _subRoom.NPCsHere.Clear();
             foreach (DataGridViewRow row in _gridNPCs.Rows)
             {
                 try
@@ -442,11 +393,11 @@ namespace JsonEditor
                 }
 
                 if (!int.TryParse(Convert.ToString(row.Cells["ID"].Value), out int id)) continue;
-                _room.NPCsHere.Add(id);
+                _subRoom.NPCsHere.Add(id);
             }
 
             // Monster templates - сохраняем только выбранные
-            _room.MonsterTemplates.Clear();
+            _subRoom.MonsterTemplates.Clear();
             foreach (DataGridViewRow row in _gridMonsterTemplates.Rows)
             {
                 try
@@ -460,11 +411,11 @@ namespace JsonEditor
                 }
 
                 if (!int.TryParse(Convert.ToString(row.Cells["ID"].Value), out int id)) continue;
-                _room.MonsterTemplates.Add(id);
+                _subRoom.MonsterTemplates.Add(id);
             }
 
             // Ground Items - сохраняем выбранные с количеством
-            _room.GroundItems.Clear();
+            _subRoom.GroundItems.Clear();
             foreach (DataGridViewRow row in _gridGroundItems.Rows)
             {
                 try
@@ -481,14 +432,14 @@ namespace JsonEditor
                 int count = 1;
                 int.TryParse(Convert.ToString(row.Cells["Count"].Value), out count);
                 count = Math.Max(1, count);
-                _room.GroundItems.Add(new InventoryItemData(id, count));
+                _subRoom.GroundItems.Add(new InventoryItemData(id, count));
             }
 
             // Room connections
-            _room.RoomToNorth = GetRoomConnection(_cmbRoomNorth);
-            _room.RoomToEast = GetRoomConnection(_cmbRoomEast);
-            _room.RoomToSouth = GetRoomConnection(_cmbRoomSouth);
-            _room.RoomToWest = GetRoomConnection(_cmbRoomWest);
+            _subRoom.RoomToNorth = GetRoomConnection(_cmbRoomNorth);
+            _subRoom.RoomToEast = GetRoomConnection(_cmbRoomEast);
+            _subRoom.RoomToSouth = GetRoomConnection(_cmbRoomSouth);
+            _subRoom.RoomToWest = GetRoomConnection(_cmbRoomWest);
         }
 
         private int? GetRoomConnection(ComboBox cmb)
@@ -497,157 +448,7 @@ namespace JsonEditor
             return item?.Value > 0 ? item.Value : null;
         }
 
-        private void InitializeSubRoomsGrid()
-        {
-            _gridSubRooms.Columns.Clear();
-            var colId = new DataGridViewTextBoxColumn { Name = "ID", HeaderText = "ID", ReadOnly = true, FillWeight = 15 };
-            var colName = new DataGridViewTextBoxColumn { Name = "Name", HeaderText = "Название", ReadOnly = true, FillWeight = 50 };
-            var colDescription = new DataGridViewTextBoxColumn { Name = "Description", HeaderText = "Описание", ReadOnly = true, FillWeight = 35 };
-            _gridSubRooms.Columns.AddRange(new DataGridViewColumn[] { colId, colName, colDescription });
-        }
-
-        private void LoadSubRoomsData()
-        {
-            _gridSubRooms.Rows.Clear();
-            var subRooms = GetSubRoomsForCurrentRoom();
-            foreach (var subRoom in subRooms)
-            {
-                _gridSubRooms.Rows.Add(subRoom.ID, subRoom.Name, subRoom.Description);
-            }
-        }
-
-        private List<RoomData> GetSubRoomsForCurrentRoom()
-        {
-            // Пока возвращаем все помещения, но можно добавить специальное поле ParentRoomID
-            // для более точной фильтрации
-            return _gameData.Rooms.Where(r => r.ID != _room.ID).ToList();
-        }
-
-        private void BtnAddSubRoom_Click(object sender, EventArgs e)
-        {
-            var newSubRoom = new RoomData
-            {
-                ID = GetNextRoomId(),
-                Name = "Новое под-помещение",
-                Description = "Описание под-помещения",
-                ParentLocationID = _room.ParentLocationID
-            };
-
-            using (var form = new EditSubRoomForm(_room, newSubRoom, _gameData, true))
-            {
-                if (form.ShowDialog(this) == DialogResult.OK)
-                {
-                    _gameData.Rooms.Add(newSubRoom);
-                    LoadSubRoomsData();
-                }
-            }
-        }
-
-        private void BtnEditSubRoom_Click(object sender, EventArgs e)
-        {
-            if (_gridSubRooms.SelectedRows.Count == 0)
-            {
-                MessageBox.Show("Выберите под-помещение для редактирования.", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            var selectedRow = _gridSubRooms.SelectedRows[0];
-            var roomId = Convert.ToInt32(selectedRow.Cells["ID"].Value);
-            var subRoom = _gameData.Rooms.FirstOrDefault(r => r.ID == roomId);
-
-            if (subRoom != null)
-            {
-                using (var form = new EditSubRoomForm(_room, subRoom, _gameData, false))
-                {
-                    if (form.ShowDialog(this) == DialogResult.OK)
-                    {
-                        LoadSubRoomsData();
-                    }
-                }
-            }
-        }
-
-        private void BtnRemoveSubRoom_Click(object sender, EventArgs e)
-        {
-            if (_gridSubRooms.SelectedRows.Count == 0)
-            {
-                MessageBox.Show("Выберите под-помещение для удаления.", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            var selectedRow = _gridSubRooms.SelectedRows[0];
-            var roomId = Convert.ToInt32(selectedRow.Cells["ID"].Value);
-            var roomName = selectedRow.Cells["Name"].Value.ToString();
-
-            var result = MessageBox.Show($"Вы уверены, что хотите удалить под-помещение '{roomName}'?", 
-                "Подтверждение удаления", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
-            if (result == DialogResult.Yes)
-            {
-                var subRoom = _gameData.Rooms.FirstOrDefault(r => r.ID == roomId);
-                if (subRoom != null)
-                {
-                    _gameData.Rooms.Remove(subRoom);
-                    LoadSubRoomsData();
-                }
-            }
-        }
-
-        private void BtnVisualEditor_Click(object sender, EventArgs e)
-        {
-            // Получаем все помещения текущей локации
-            var currentLocationRooms = _gameData.Rooms.Where(r => r.ParentLocationID == _room.ParentLocationID).ToList();
-            
-            if (currentLocationRooms.Count < 2)
-            {
-                MessageBox.Show("Для использования графического редактора необходимо минимум 2 помещения в локации.", 
-                              "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            // Открываем графический редактор
-            using (var visualEditor = new RoomConnectionEditor(currentLocationRooms, _room))
-            {
-                if (visualEditor.ShowDialog() == DialogResult.OK)
-                {
-                    // Обновляем данные в основном списке
-                    foreach (var room in currentLocationRooms)
-                    {
-                        var existingRoom = _gameData.Rooms.FirstOrDefault(r => r.ID == room.ID);
-                        if (existingRoom != null)
-                        {
-                            // Обновляем существующее помещение
-                            var index = _gameData.Rooms.IndexOf(existingRoom);
-                            _gameData.Rooms[index] = room;
-                        }
-                        else
-                        {
-                            // Добавляем новое помещение
-                            _gameData.Rooms.Add(room);
-                        }
-                    }
-                    
-                    // Обновляем текущее помещение
-                    var updatedRoom = currentLocationRooms.FirstOrDefault(r => r.ID == _room.ID);
-                    if (updatedRoom != null)
-                    {
-                        _room = updatedRoom;
-                        LoadData(); // Перезагружаем данные формы
-                    }
-                    
-                    // Обновляем список под-помещений
-                    LoadSubRoomsData();
-                    
-                    MessageBox.Show("Изменения в графическом редакторе сохранены!", 
-                                  "Успех", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-            }
-        }
-
-        private int GetNextRoomId()
-        {
-            return _gameData.Rooms.Count > 0 ? _gameData.Rooms.Max(r => r.ID) + 1 : 5000;
-        }
+        public RoomData GetSubRoom() => _subRoom;
 
         // Helper classes
         private class ComboBoxItem

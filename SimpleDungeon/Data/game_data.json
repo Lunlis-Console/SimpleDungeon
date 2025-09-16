@@ -596,7 +596,6 @@
           "Quantity": 1
         }
       ],
-      "RoomEntrances": [],
       "ScaleMonstersToPlayerLevel": true,
       "LocationToNorth": 3002,
       "LocationToEast": 3004,
@@ -625,8 +624,9 @@
         2003,
         2007
       ],
-      "GroundItems": [],
-      "RoomEntrances": [6001],
+      "RoomEntrances": [
+        6001
+      ],
       "ScaleMonstersToPlayerLevel": true,
       "LocationToSouth": 3001
     },
@@ -642,8 +642,6 @@
           "Count": 1
         }
       ],
-      "GroundItems": [],
-      "RoomEntrances": [],
       "ScaleMonstersToPlayerLevel": true,
       "LocationToNorth": 3001
     },
@@ -671,8 +669,6 @@
           "Count": 1
         }
       ],
-      "GroundItems": [],
-      "RoomEntrances": [],
       "ScaleMonstersToPlayerLevel": true,
       "LocationToWest": 3001
     },
@@ -706,8 +702,6 @@
           "Count": 1
         }
       ],
-      "GroundItems": [],
-      "RoomEntrances": [],
       "ScaleMonstersToPlayerLevel": true,
       "LocationToEast": 3001
     },
@@ -727,8 +721,6 @@
       "MonsterTemplates": [
         2006
       ],
-      "GroundItems": [],
-      "RoomEntrances": [],
       "ScaleMonstersToPlayerLevel": false
     }
   ],
@@ -1681,13 +1673,6 @@
       "Name": "Пещера крыс",
       "Description": "Темная и сырая пещера, полная крыс. Стены покрыты мхом, а воздух пропитан запахом гнили.",
       "ParentLocationID": 3002,
-      "NPCsHere": [],
-      "GroundItems": [
-        {
-          "ItemID": 1001,
-          "Quantity": 3
-        }
-      ],
       "MonsterSpawns": [
         {
           "MonsterTemplateID": 2003,
@@ -1696,12 +1681,10 @@
           "Count": 2
         }
       ],
-      "MonsterTemplates": [2003],
-      "Entrances": [],
-      "RoomToNorth": null,
+      "MonsterTemplates": [
+        2003
+      ],
       "RoomToEast": 5002,
-      "RoomToSouth": null,
-      "RoomToWest": null,
       "ScaleMonstersToPlayerLevel": true
     },
     {
@@ -1709,7 +1692,6 @@
       "Name": "Глубокий зал",
       "Description": "Просторный зал с высокими потолками. В центре стоит древний алтарь, покрытый пылью веков.",
       "ParentLocationID": 3002,
-      "NPCsHere": [],
       "GroundItems": [
         {
           "ItemID": 1102,
@@ -1724,12 +1706,22 @@
           "Count": 1
         }
       ],
-      "MonsterTemplates": [2007],
-      "Entrances": [],
-      "RoomToNorth": null,
-      "RoomToEast": null,
-      "RoomToSouth": null,
+      "MonsterTemplates": [
+        2007
+      ],
+      "RoomToEast": 5003,
       "RoomToWest": 5001,
+      "ScaleMonstersToPlayerLevel": true
+    },
+    {
+      "ID": 5003,
+      "Name": "Пещерная река",
+      "Description": "Здесь влажно и в темноте слышно журчание воды.",
+      "ParentLocationID": 3002,
+      "MonsterTemplates": [
+        2003
+      ],
+      "RoomToWest": 5002,
       "ScaleMonstersToPlayerLevel": true
     }
   ],
@@ -1742,10 +1734,8 @@
       "ParentLocationID": 3002,
       "EntranceType": "cave",
       "IsLocked": false,
-      "LockDescription": "",
       "RequiresKey": false,
-      "RequiredKeyID": 0,
-      "RequiredItemIDs": []
+      "RequiredKeyID": 0
     }
   ]
 }

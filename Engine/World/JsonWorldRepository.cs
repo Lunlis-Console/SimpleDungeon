@@ -333,16 +333,16 @@ namespace Engine.World
                     .ToDictionary(m => m.ID, m => CreateTitleFromData(m));
             }
 
-            // Locations (после того как NPCs/Monsters созданы)
-            if (_gameData.Locations != null)
+            // Room Entrances (входы в помещения) - загружаем ПЕРЕД локациями
+            if (_gameData.RoomEntrances != null)
             {
-                _locations = _gameData.Locations
-                    .GroupBy(m => m.ID)
+                _roomEntrances = _gameData.RoomEntrances
+                    .GroupBy(re => re.ID)
                     .Select(g => g.First())
-                    .ToDictionary(m => m.ID, m => CreateLocationFromData(m));
+                    .ToDictionary(re => re.ID, re => CreateRoomEntranceFromData(re));
             }
 
-            // Rooms (помещения)
+            // Rooms (помещения) - загружаем ПЕРЕД локациями
             if (_gameData.Rooms != null)
             {
                 _rooms = _gameData.Rooms
@@ -351,13 +351,13 @@ namespace Engine.World
                     .ToDictionary(r => r.ID, r => CreateRoomFromData(r));
             }
 
-            // Room Entrances (входы в помещения)
-            if (_gameData.RoomEntrances != null)
+            // Locations (после того как NPCs/Monsters/Rooms/RoomEntrances созданы)
+            if (_gameData.Locations != null)
             {
-                _roomEntrances = _gameData.RoomEntrances
-                    .GroupBy(re => re.ID)
+                _locations = _gameData.Locations
+                    .GroupBy(m => m.ID)
                     .Select(g => g.First())
-                    .ToDictionary(re => re.ID, re => CreateRoomEntranceFromData(re));
+                    .ToDictionary(m => m.ID, m => CreateLocationFromData(m));
             }
 
             DebugConsole.Log($"Загружено: {_titles.Count} титулов, {_locations.Count} локаций, {_rooms.Count} помещений, {_roomEntrances.Count} входов");
@@ -877,6 +877,49 @@ namespace Engine.World
                     }
                 }
             }
+
+            // Добавляем шаблоны монстров для спавна
+            if (roomData.MonsterSpawns != null)
+            {
+                var monsterTemplates = new List<Monster>();
+                foreach (var spawnData in roomData.MonsterSpawns)
+                {
+                    var baseMonster = MonsterByID(spawnData.MonsterTemplateID);
+                    if (baseMonster != null)
+                    {
+                        // определяем, сколько экземпляров нужно добавить (по умолчанию 1)
+                        int count = spawnData.Count >= 1 ? spawnData.Count : 1;
+                        
+                        // Если Level указан <=0, используем уровень шаблона
+                        int templateLevel = spawnData.Level;
+                        if (templateLevel <= 0) templateLevel = baseMonster.Level;
+
+                        for (int i = 0; i < count; i++)
+                        {
+                            // Создаём шаблон монстра (будет клонирован позже при реальном спавне)
+                            monsterTemplates.Add(new Monster(baseMonster, templateLevel));
+                        }
+                    }
+                }
+                room.MonsterTemplates = monsterTemplates;
+            }
+            else if (roomData.MonsterTemplates != null)
+            {
+                // Fallback для старого формата данных
+                var monsterTemplates = new List<Monster>();
+                foreach (var monsterId in roomData.MonsterTemplates)
+                {
+                    var monster = MonsterByID(monsterId);
+                    if (monster != null)
+                    {
+                        monsterTemplates.Add(monster);
+                    }
+                }
+                room.MonsterTemplates = monsterTemplates;
+            }
+
+            // Устанавливаем настройки масштабирования монстров
+            room.ScaleMonstersToPlayerLevel = roomData.ScaleMonstersToPlayerLevel;
 
             // Добавляем входы в другие помещения
             if (roomData.Entrances != null)

@@ -201,7 +201,14 @@ namespace JsonEditor
                     MultiSelect = false
                 };
 
-                grid.DataSource = ilist;
+                // Специальная обработка для помещений - показываем только корневые помещения
+                IList displayList = ilist;
+                if (p.Name == "Rooms")
+                {
+                    displayList = GetRootRooms();
+                }
+
+                grid.DataSource = displayList;
                 grid.SelectionChanged += (s, e) => OnGridSelectionChanged(p.Name);
                 grid.CellDoubleClick += (s, e) => OnGridDoubleClick(p.Name);
 
@@ -550,6 +557,10 @@ namespace JsonEditor
                     EditDialogue(selectedItem as DialogueData);
                     break;
 
+                case "rooms":
+                    EditRoom(selectedItem as RoomData);
+                    break;
+
                 default:
                     // Для неизвестных типов используем PropertyGrid
                     _propertyGrid.SelectedObject = selectedItem;
@@ -616,6 +627,20 @@ namespace JsonEditor
                     var editedLocation = form.GetLocation();
                     CopyProperties(editedLocation, location);
                     RefreshCurrentGrid();
+                }
+            }
+        }
+
+        private void EditRoom(RoomData room)
+        {
+            if (room == null) return;
+
+            using (var form = new EditRoomForm(room, _gameData, false))
+            {
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    RefreshCurrentGrid();
+                    _statusLabel.Text = $"Обновлено помещение: {room.Name}";
                 }
             }
         }
@@ -948,6 +973,15 @@ namespace JsonEditor
             if (!_lists.TryGetValue(tabName, out var info)) return;
 
             var grid = info.grid;
+            
+            // Специальная обработка для помещений - обновляем отображение корневых помещений
+            if (tabName == "Rooms")
+            {
+                var rootRooms = GetRootRooms();
+                grid.DataSource = null;
+                grid.DataSource = rootRooms;
+            }
+            
             grid.Refresh();
             _statusLabel.Text = "Изменения применены";
         }
@@ -992,9 +1026,10 @@ namespace JsonEditor
             }
 
             var idx = grid.SelectedRows[0].Index;
-            if (idx < 0 || idx >= info.list.Count) return;
+            var rootRooms = GetRootRooms();
+            if (idx < 0 || idx >= rootRooms.Count) return;
 
-            var room = info.list[idx] as RoomData;
+            var room = rootRooms[idx];
             if (room == null) return;
 
             using (var form = new EditRoomForm(room, _gameData, false))
@@ -1074,6 +1109,21 @@ namespace JsonEditor
         {
             if (_gameData.RoomEntrances.Count == 0) return 6001;
             return _gameData.RoomEntrances.Max(r => r.ID) + 1;
+        }
+
+        /// <summary>
+        /// Получает список корневых помещений (тех, на которые есть входы)
+        /// </summary>
+        private List<RoomData> GetRootRooms()
+        {
+            if (_gameData?.RoomEntrances == null || _gameData?.Rooms == null)
+                return new List<RoomData>();
+
+            // Получаем ID всех помещений, на которые есть входы
+            var rootRoomIds = _gameData.RoomEntrances.Select(e => e.TargetRoomID).ToHashSet();
+            
+            // Возвращаем только те помещения, на которые есть входы
+            return _gameData.Rooms.Where(r => rootRoomIds.Contains(r.ID)).ToList();
         }
     }
 }
