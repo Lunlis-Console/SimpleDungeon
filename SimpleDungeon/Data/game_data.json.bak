@@ -590,6 +590,12 @@
           "Count": 1
         }
       ],
+      "GroundItems": [
+        {
+          "ItemID": 1103,
+          "Quantity": 1
+        }
+      ],
       "ScaleMonstersToPlayerLevel": true,
       "LocationToNorth": 3002,
       "LocationToEast": 3004,
@@ -769,6 +775,33 @@
         "InProgress": "quest_5002_progress",
         "ReadyToComplete": "quest_5002_readyToComplete",
         "Completed": "quest_5002_readyToComplete_2"
+      }
+    },
+    {
+      "id": 5003,
+      "name": "Потерянные драгоценности.",
+      "description": "Ремесленник попросил вас собрать потерянные материалы.",
+      "questGiverId": 4003,
+      "conditions": [
+        {
+          "id": 0,
+          "type": "CollectItems",
+          "description": "Собрать 4 ящика с материалами.",
+          "requiredAmount": 4,
+          "targetId": 1604,
+          "currentProgress": 0,
+          "isCompleted": false
+        }
+      ],
+      "rewards": {
+        "experience": 25,
+        "gold": 25,
+        "items": [
+          {
+            "itemId": 1403,
+            "quantity": 1
+          }
+        ]
       }
     }
   ],
@@ -1316,6 +1349,10 @@
           ]
         }
       ]
+    },
+    {
+      "Id": "7003",
+      "Name": "Диалог Ремесленника"
     }
   ]
 }

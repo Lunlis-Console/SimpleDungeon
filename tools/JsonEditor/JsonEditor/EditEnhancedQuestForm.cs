@@ -50,7 +50,7 @@ namespace JsonEditor
         private Button btnCancel;
 
         private BindingList<QuestConditionData> _conditionsBinding;
-        private BindingList<QuestRewardItem> _rewardItemsBinding;
+        private BindingList<QuestRewardItemDisplay> _rewardItemsBinding;
         private BindingList<int> _prerequisitesBinding;
 
         public EditEnhancedQuestForm(GameData gameData, EnhancedQuest quest = null)
@@ -374,9 +374,9 @@ namespace JsonEditor
             lstConditions.DisplayMember = "Description";
 
             // Инициализация предметов-наград
-            _rewardItemsBinding = new BindingList<QuestRewardItem>(_quest.Rewards?.Items ?? new List<QuestRewardItem>());
+            _rewardItemsBinding = new BindingList<QuestRewardItemDisplay>();
+            LoadRewardItems();
             lstRewardItems.DataSource = _rewardItemsBinding;
-            lstRewardItems.DisplayMember = "ItemDetails.Name";
 
             // Инициализация предварительных условий
             _prerequisitesBinding = new BindingList<int>(_quest.PrerequisiteQuestIDs ?? new List<int>());
@@ -454,14 +454,15 @@ namespace JsonEditor
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
-                    _rewardItemsBinding.Add(form.RewardItem);
+                    var itemName = GetItemName(form.RewardItem.ItemID);
+                    _rewardItemsBinding.Add(new QuestRewardItemDisplay(form.RewardItem, itemName));
                 }
             }
         }
 
         private void BtnRemoveRewardItem_Click(object sender, EventArgs e)
         {
-            if (lstRewardItems.SelectedItem is QuestRewardItem selectedItem)
+            if (lstRewardItems.SelectedItem is QuestRewardItemDisplay selectedItem)
             {
                 if (MessageBox.Show("Удалить этот предмет-награду?", "Подтверждение",
                     MessageBoxButtons.YesNo) == DialogResult.Yes)
@@ -523,12 +524,18 @@ namespace JsonEditor
                 return;
             }
 
+            if (!(cbQuestGiver.SelectedItem is NPCComboItem selectedNPC))
+            {
+                MessageBox.Show("Ошибка: выбранный элемент не является NPC.");
+                return;
+            }
+
             // Сохранение данных
             _quest.ID = id;
             _quest.Name = txtName.Text.Trim();
             _quest.Description = txtDescription.Text.Trim();
             _quest.DetailedDescription = txtDetailedDescription.Text.Trim();
-            _quest.QuestGiverID = ((NPCComboItem)cbQuestGiver.SelectedItem).NPCData.ID;
+            _quest.QuestGiverID = selectedNPC.NPCData.ID;
 
             // Награды
             if (_quest.Rewards == null)
@@ -536,7 +543,7 @@ namespace JsonEditor
 
             _quest.Rewards.Gold = (int)nudRewardGold.Value;
             _quest.Rewards.Experience = (int)nudRewardEXP.Value;
-            _quest.Rewards.Items = _rewardItemsBinding.ToList();
+            _quest.Rewards.Items = _rewardItemsBinding.Select(d => d.RewardItem).ToList();
 
             // Условия
             _quest.Conditions = _conditionsBinding.ToList();
@@ -579,6 +586,44 @@ namespace JsonEditor
 
         public EnhancedQuest GetQuest() => _quest;
 
+        private Engine.Entities.Item CreateItemFromData(ItemData itemData)
+        {
+            if (itemData == null) return null;
+
+            // Создаем базовый Item объект с правильным конструктором
+            var item = new Engine.Entities.Item(
+                itemData.ID,
+                itemData.Name,
+                itemData.NamePlural,
+                itemData.Type,
+                itemData.Price,
+                itemData.Description
+            );
+
+            return item;
+        }
+
+        private void LoadRewardItems()
+        {
+            _rewardItemsBinding.Clear(); // Очищаем список перед загрузкой
+            
+            if (_quest.Rewards?.Items == null) return;
+
+            foreach (var rewardItem in _quest.Rewards.Items)
+            {
+                var itemName = GetItemName(rewardItem.ItemID);
+                _rewardItemsBinding.Add(new QuestRewardItemDisplay(rewardItem, itemName));
+            }
+        }
+
+        private string GetItemName(int itemId)
+        {
+            if (_gameData.Items == null) return $"Item ID:{itemId}";
+
+            var itemData = _gameData.Items.FirstOrDefault(i => i.ID == itemId);
+            return itemData?.Name ?? $"Item ID:{itemId}";
+        }
+
         private class NPCComboItem
         {
             public NPCData NPCData { get; }
@@ -591,6 +636,23 @@ namespace JsonEditor
             public override string ToString()
             {
                 return $"{NPCData.Name} (ID: {NPCData.ID})";
+            }
+        }
+
+        private class QuestRewardItemDisplay
+        {
+            public QuestRewardItem RewardItem { get; }
+            public string ItemName { get; }
+
+            public QuestRewardItemDisplay(QuestRewardItem rewardItem, string itemName)
+            {
+                RewardItem = rewardItem;
+                ItemName = itemName;
+            }
+
+            public override string ToString()
+            {
+                return $"{ItemName} x{RewardItem.Quantity}";
             }
         }
     }
