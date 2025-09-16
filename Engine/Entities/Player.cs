@@ -583,8 +583,8 @@ namespace Engine.Entities
                 BaseAttack += 2;
                 BaseDefence += 2;
 
-                Console.WriteLine($"Поздравляем! Вы достигли {Level} уровня!");
-                Console.WriteLine("Ваши параметры увеличились!");
+                MessageSystem.AddMessage($"Поздравляем! Вы достигли {Level} уровня!");
+                MessageSystem.AddMessage("Ваши параметры увеличились!");
             }
         }
 
