@@ -114,6 +114,7 @@ namespace Engine.Quests
                 {
                     ID = ID,
                     Description = Description,
+                    RequiredAmount = RequiredAmount,
                     LocationID = TargetID,
                     CurrentProgress = CurrentProgress
                 },

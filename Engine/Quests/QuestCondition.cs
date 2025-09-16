@@ -124,15 +124,21 @@ namespace Engine.Quests
 
         public override bool CheckCondition(Player player, object context = null)
         {
-            if (player?.CurrentLocation == null) return false;
-            
-            CurrentProgress = player.CurrentLocation.ID == LocationID ? 1 : 0;
+            // Для условий посещения локации не проверяем автоматически при каждом вызове
+            // Прогресс обновляется только при смене локации через UpdateProgress
             return IsCompleted;
         }
 
         public override void UpdateProgress(Player player, object context = null)
         {
-            CheckCondition(player, context);
+            if (player?.CurrentLocation == null) return;
+            
+            // Обновляем прогресс только если игрок находится в нужной локации
+            if (player.CurrentLocation.ID == LocationID && CurrentProgress == 0)
+            {
+                CurrentProgress = 1;
+                DebugConsole.Log($"VisitLocationCondition.UpdateProgress: Player visited location {LocationID}. Progress: 0 -> {CurrentProgress}/{RequiredAmount}");
+            }
         }
 
         public override string GetProgressText()

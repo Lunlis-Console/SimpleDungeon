@@ -91,6 +91,16 @@ namespace Engine.Quests
                 _runtimeConditions = Conditions.Select(c => c.ToQuestCondition()).ToList();
                 DebugConsole.Log($"EnhancedQuest.InitializeConditions: Quest {ID} - Created {_runtimeConditions.Count} runtime conditions");
                 
+                // Сбрасываем прогресс всех условий при инициализации, если квест еще не начат
+                if (State == QuestState.NotStarted)
+                {
+                    foreach (var condition in _runtimeConditions)
+                    {
+                        condition.CurrentProgress = 0;
+                        DebugConsole.Log($"  Reset condition {condition.ID}: {condition.Description}, Progress reset to 0");
+                    }
+                }
+                
                 foreach (var condition in _runtimeConditions)
                 {
                     DebugConsole.Log($"  Runtime condition {condition.ID}: {condition.Description}, Required: {condition.RequiredAmount}, Current: {condition.CurrentProgress}");
@@ -130,6 +140,14 @@ namespace Engine.Quests
             if (State != QuestState.NotStarted) return;
 
             State = QuestState.InProgress;
+            
+            // Сбрасываем прогресс всех условий при получении квеста
+            foreach (var condition in _runtimeConditions)
+            {
+                condition.CurrentProgress = 0;
+            }
+            UpdateConditionData();
+            
             OnQuestStart?.Invoke(player);
             MessageSystem.AddMessage($"Получен новый квест: {Name}");
         }
@@ -266,10 +284,14 @@ namespace Engine.Quests
             int totalProgress = 0;
             foreach (var condition in _runtimeConditions)
             {
-                totalProgress += (int)((double)condition.CurrentProgress / condition.RequiredAmount * 100);
+                if (condition.RequiredAmount > 0) // Защита от деления на ноль
+                {
+                    int conditionProgress = (int)((double)condition.CurrentProgress / condition.RequiredAmount * 100);
+                    totalProgress += conditionProgress;
+                }
             }
 
-            return totalProgress / _runtimeConditions.Count;
+            return _runtimeConditions.Count > 0 ? totalProgress / _runtimeConditions.Count : 0;
         }
 
         /// <summary>
