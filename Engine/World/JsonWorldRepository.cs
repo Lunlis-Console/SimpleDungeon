@@ -742,6 +742,19 @@ namespace Engine.World
                 }
             }
 
+            // Добавление предметов на землю
+            if (locationData.GroundItems != null)
+            {
+                foreach (var groundItemData in locationData.GroundItems)
+                {
+                    var item = ItemByID(groundItemData.ItemID);
+                    if (item != null)
+                    {
+                        var inventoryItem = new InventoryItem(item, groundItemData.Quantity);
+                        location.GroundItems.Add(inventoryItem);
+                    }
+                }
+            }
 
             return location;
         }

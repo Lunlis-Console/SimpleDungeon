@@ -82,6 +82,9 @@ namespace Engine.Data
         public List<int> NPCsHere { get; set; } = new();              // старое, оставить
         public List<NPCSpawnData> NPCSpawns { get; set; } = new();    // новое поле с количеством
         public List<int> MonsterTemplates { get; set; } = new();
+        
+        // Предметы на земле
+        public List<InventoryItemData> GroundItems { get; set; } = new();
 
         public bool ScaleMonstersToPlayerLevel { get; set; }
         public int? LocationToNorth { get; set; }

@@ -590,6 +590,12 @@
           "Count": 1
         }
       ],
+      "GroundItems": [
+        {
+          "ItemID": 1103,
+          "Quantity": 1
+        }
+      ],
       "ScaleMonstersToPlayerLevel": true,
       "LocationToNorth": 3002,
       "LocationToEast": 3004,

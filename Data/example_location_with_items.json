@@ -1,0 +1,31 @@
+{
+  "ID": 3007,
+  "Name": "Заброшенная хижина",
+  "Description": "Старая хижина в лесу. Здесь можно найти полезные предметы.",
+  "GroundItems": [
+    {
+      "ItemID": 1001,
+      "Quantity": 3
+    },
+    {
+      "ItemID": 1101,
+      "Quantity": 1
+    },
+    {
+      "ItemID": 1002,
+      "Quantity": 2
+    }
+  ],
+  "MonsterSpawns": [
+    {
+      "MonsterTemplateID": 2002,
+      "Level": 1,
+      "SpawnWeight": 1,
+      "Count": 1
+    }
+  ],
+  "MonsterTemplates": [2002],
+  "ScaleMonstersToPlayerLevel": true,
+  "LocationToNorth": 3002,
+  "LocationToEast": 3004
+}
