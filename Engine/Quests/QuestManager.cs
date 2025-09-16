@@ -187,6 +187,58 @@ namespace Engine.Quests
         {
             UpdateQuestProgress();
         }
+
+        /// <summary>
+        /// Обрабатывает спавн предметов для активных квестов
+        /// </summary>
+        public void ProcessQuestItemSpawns()
+        {
+            var activeQuests = _questLog.ActiveQuests;
+            QuestItemSpawnManager.Instance.InitializeQuestItemSpawns(activeQuests);
+        }
+
+        /// <summary>
+        /// Обрабатывает начало квеста и спавн предметов
+        /// </summary>
+        public void OnQuestStarted(EnhancedQuest quest, Player player)
+        {
+            DebugConsole.Log($"QuestManager.OnQuestStarted: Quest {quest.ID} started");
+            
+            // Обрабатываем спавн предметов для условий собирания
+            var collectConditions = quest.GetRuntimeConditions()
+                .OfType<CollectItemsCondition>()
+                .Where(c => c.SpawnLocations.Any());
+            
+            foreach (var condition in collectConditions)
+            {
+                DebugConsole.Log($"QuestManager.OnQuestStarted: Force spawning items for condition {condition.ID}");
+                QuestItemSpawnManager.Instance.ForceSpawnQuestItems(condition);
+            }
+        }
+
+        /// <summary>
+        /// Обрабатывает завершение квеста и очистку предметов
+        /// </summary>
+        public void OnQuestCompleted(EnhancedQuest quest, Player player)
+        {
+            DebugConsole.Log($"QuestManager.OnQuestCompleted: Quest {quest.ID} completed");
+            
+            // Очищаем предметы квеста с локаций и из инвентаря игрока
+            var collectConditions = quest.GetRuntimeConditions()
+                .OfType<CollectItemsCondition>()
+                .Where(c => c.SpawnLocations.Any());
+            
+            foreach (var condition in collectConditions)
+            {
+                DebugConsole.Log($"QuestManager.OnQuestCompleted: Cleaning up items for condition {condition.ID}");
+                
+                // Удаляем предметы квеста с локаций
+                QuestItemSpawnManager.Instance.CleanupQuestItems(condition);
+                
+                // Удаляем предметы квеста из инвентаря игрока
+                QuestItemSpawnManager.Instance.RemoveQuestItemsFromPlayer(condition, player);
+            }
+        }
     }
 
     /// <summary>

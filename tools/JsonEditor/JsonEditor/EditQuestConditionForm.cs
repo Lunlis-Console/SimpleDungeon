@@ -21,9 +21,12 @@ namespace JsonEditor
         private ComboBox cbTargetLocation;
         private ComboBox cbTargetNPC;
         private NumericUpDown nudRequiredLevel;
+        private Button btnConfigureSpawn;
 
         private Button btnOk;
         private Button btnCancel;
+
+        private List<QuestItemSpawnData> _currentSpawnLocations = new List<QuestItemSpawnData>();
 
         public EditQuestConditionForm(GameData gameData, QuestCondition existingCondition = null)
         {
@@ -128,6 +131,18 @@ namespace JsonEditor
             nudRequiredLevel = new NumericUpDown { Left = leftControl, Top = top, Width = 100, Minimum = 1, Maximum = 100 };
             top += vertGap;
 
+            // Кнопка настройки спавна предметов
+            btnConfigureSpawn = new Button 
+            { 
+                Text = "Настроить спавн предметов", 
+                Left = leftLabel, 
+                Top = top, 
+                Width = 200,
+                Enabled = false
+            };
+            btnConfigureSpawn.Click += BtnConfigureSpawn_Click;
+            top += vertGap + 10;
+
             // Кнопки
             btnOk = new Button { Text = "OK", Left = 150, Top = top + 20, Width = 80, DialogResult = DialogResult.OK };
             btnCancel = new Button { Text = "Отмена", Left = 240, Top = top + 20, Width = 80, DialogResult = DialogResult.Cancel };
@@ -144,6 +159,7 @@ namespace JsonEditor
                 lblTargetLocation, cbTargetLocation,
                 lblTargetNPC, cbTargetNPC,
                 lblRequiredLevel, nudRequiredLevel,
+                btnConfigureSpawn,
                 btnOk, btnCancel
             });
 
@@ -170,6 +186,11 @@ namespace JsonEditor
                     case CollectItemsCondition collectCondition:
                         cbConditionType.SelectedIndex = 0;
                         SelectItem(collectCondition.ItemID);
+                        // Загружаем данные спавна если они есть
+                        if (collectCondition.SpawnLocations != null && collectCondition.SpawnLocations.Any())
+                        {
+                            _currentSpawnLocations = collectCondition.SpawnLocations.ToList();
+                        }
                         break;
                     case KillMonstersCondition killCondition:
                         cbConditionType.SelectedIndex = 1;
@@ -288,6 +309,7 @@ namespace JsonEditor
             cbTargetLocation.Visible = false;
             cbTargetNPC.Visible = false;
             nudRequiredLevel.Visible = false;
+            btnConfigureSpawn.Visible = false;
 
             // Показываем соответствующие элементы в зависимости от типа
             switch (cbConditionType.SelectedIndex)
@@ -295,6 +317,8 @@ namespace JsonEditor
                 case 0: // Собрать предметы
                     cbTargetItem.Visible = true;
                     nudRequiredAmount.Visible = true;
+                    btnConfigureSpawn.Visible = true;
+                    btnConfigureSpawn.Enabled = true;
                     break;
                 case 1: // Убить монстров
                     cbTargetMonster.Visible = true;
@@ -333,7 +357,9 @@ namespace JsonEditor
                 case 0: // Собрать предметы
                     if (cbTargetItem.SelectedItem is ItemComboItem selectedItem)
                     {
-                        QuestCondition = new CollectItemsCondition(id, description, selectedItem.ItemData.ID, (int)nudRequiredAmount.Value);
+                        var collectCondition = new CollectItemsCondition(id, description, selectedItem.ItemData.ID, (int)nudRequiredAmount.Value);
+                        collectCondition.SpawnLocations = _currentSpawnLocations;
+                        QuestCondition = collectCondition;
                     }
                     else
                     {
@@ -389,6 +415,17 @@ namespace JsonEditor
 
             this.DialogResult = DialogResult.OK;
             this.Close();
+        }
+
+        private void BtnConfigureSpawn_Click(object sender, EventArgs e)
+        {
+            using (var form = new EditQuestItemSpawnForm(_gameData, _currentSpawnLocations))
+            {
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    _currentSpawnLocations = form.SpawnLocations;
+                }
+            }
         }
 
         // Вспомогательные классы для ComboBox

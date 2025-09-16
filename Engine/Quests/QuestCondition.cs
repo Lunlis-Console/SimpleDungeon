@@ -37,6 +37,11 @@ namespace Engine.Quests
     public class CollectItemsCondition : QuestCondition
     {
         public int ItemID { get; set; }
+        
+        /// <summary>
+        /// Список локаций, где могут спавниться предметы для этого квеста
+        /// </summary>
+        public List<QuestItemSpawnData> SpawnLocations { get; set; } = new List<QuestItemSpawnData>();
 
         public CollectItemsCondition() : base() { }
 
@@ -218,6 +223,66 @@ namespace Engine.Quests
         public override string ToString()
         {
             return GetProgressText();
+        }
+    }
+
+    /// <summary>
+    /// Данные о спавне предметов квеста на локации
+    /// </summary>
+    public class QuestItemSpawnData
+    {
+        /// <summary>
+        /// ID локации, где может спавниться предмет
+        /// </summary>
+        public int LocationID { get; set; }
+        
+        /// <summary>
+        /// Шанс спавна предмета (от 0 до 100)
+        /// </summary>
+        public int SpawnChance { get; set; }
+        
+        /// <summary>
+        /// Количество предметов, которое может заспавниться за раз
+        /// </summary>
+        public int Quantity { get; set; } = 1;
+        
+        /// <summary>
+        /// Максимальное количество предметов этого типа на локации одновременно
+        /// </summary>
+        public int MaxItemsOnLocation { get; set; } = 1;
+        
+        /// <summary>
+        /// Интервал времени между попытками спавна (в игровых циклах)
+        /// </summary>
+        public int SpawnInterval { get; set; } = 1;
+        
+        /// <summary>
+        /// Счетчик для отслеживания интервала спавна
+        /// </summary>
+        [Newtonsoft.Json.JsonIgnore]
+        public int SpawnCounter { get; set; } = 0;
+        
+        /// <summary>
+        /// Флаг, указывающий, что предметы уже были заспавнены для этого квеста
+        /// </summary>
+        [Newtonsoft.Json.JsonIgnore]
+        public bool HasSpawned { get; set; } = false;
+
+        public QuestItemSpawnData() 
+        { 
+            SpawnChance = 25;
+            Quantity = 1;
+            MaxItemsOnLocation = 1;
+            SpawnInterval = 1;
+        }
+        
+        public QuestItemSpawnData(int locationID, int spawnChance, int quantity = 1, int maxItemsOnLocation = 1, int spawnInterval = 1)
+        {
+            LocationID = locationID;
+            SpawnChance = spawnChance;
+            Quantity = quantity;
+            MaxItemsOnLocation = maxItemsOnLocation;
+            SpawnInterval = spawnInterval;
         }
     }
 }

@@ -1,0 +1,59 @@
+{
+  "id": 1001,
+  "name": "Сбор редких трав",
+  "description": "Соберите 3 редкие травы для алхимика",
+  "detailedDescription": "Алхимик просит вас найти редкие травы, которые растут в лесу. Эти травы могут появляться в разных местах с определенной вероятностью.",
+  "questGiverId": 2001,
+  "conditions": [
+    {
+      "id": 1,
+      "type": "CollectItems",
+      "description": "Собрать редкие травы",
+      "requiredAmount": 3,
+      "targetId": 1001,
+      "currentProgress": 0,
+      "isCompleted": false,
+      "spawnLocations": [
+        {
+          "locationID": 3001,
+          "spawnChance": 25,
+          "quantity": 1,
+          "maxItemsOnLocation": 2,
+          "spawnInterval": 3
+        },
+        {
+          "locationID": 3002,
+          "spawnChance": 30,
+          "quantity": 1,
+          "maxItemsOnLocation": 1,
+          "spawnInterval": 2
+        },
+        {
+          "locationID": 3003,
+          "spawnChance": 20,
+          "quantity": 1,
+          "maxItemsOnLocation": 1,
+          "spawnInterval": 4
+        }
+      ]
+    }
+  ],
+  "rewards": {
+    "experience": 100,
+    "gold": 50,
+    "items": [
+      {
+        "itemId": 2001,
+        "quantity": 1
+      }
+    ]
+  },
+  "prerequisites": [],
+  "dialogueNodes": {
+    "offer": "Мне нужны редкие травы для зелья. Можешь помочь?",
+    "inProgress": "Как дела с поиском трав?",
+    "readyToComplete": "Отлично! Ты нашел все травы!",
+    "completed": "Спасибо за помощь с травами!"
+  }
+}
+

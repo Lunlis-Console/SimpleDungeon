@@ -29,6 +29,9 @@ namespace Engine.Quests
         [JsonProperty("isCompleted")]
         public bool IsCompleted { get; set; }
 
+        [JsonProperty("spawnLocations")]
+        public List<QuestItemSpawnData> SpawnLocations { get; set; } = new List<QuestItemSpawnData>();
+
         public QuestConditionData() { }
 
         // Конструкторы для удобства создания из различных условий
@@ -41,6 +44,7 @@ namespace Engine.Quests
             TargetID = condition.ItemID;
             CurrentProgress = condition.CurrentProgress;
             IsCompleted = condition.IsCompleted;
+            SpawnLocations = condition.SpawnLocations ?? new List<QuestItemSpawnData>();
         }
 
         public QuestConditionData(KillMonstersCondition condition)
@@ -100,7 +104,8 @@ namespace Engine.Quests
                     Description = Description,
                     RequiredAmount = RequiredAmount,
                     ItemID = TargetID,
-                    CurrentProgress = CurrentProgress
+                    CurrentProgress = CurrentProgress,
+                    SpawnLocations = SpawnLocations ?? new List<QuestItemSpawnData>()
                 },
                 "KillMonsters" => new KillMonstersCondition
                 {

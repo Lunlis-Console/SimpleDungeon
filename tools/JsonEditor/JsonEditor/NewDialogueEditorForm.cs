@@ -43,10 +43,14 @@ namespace JsonEditor
         private Button _btnAddAction;
         private Button _btnDeleteAction;
         private Button _btnSave;
+        private Button _btnApply;
         private Button _btnCancel;
 
         private Engine.Dialogue.DialogueNode _currentNode;
         private Response _currentResponse;
+
+        // Событие для уведомления об изменениях
+        public event EventHandler ChangesApplied;
 
         public NewDialogueEditorForm(GameData gameData, Engine.Dialogue.DialogueDocument document = null)
         {
@@ -284,7 +288,11 @@ namespace JsonEditor
             _btnSave.Click += BtnSave_Click;
             panel.Controls.Add(_btnSave);
 
-            _btnCancel = new Button { Text = "Отмена", Location = new Point(790, 5), Size = new Size(80, 30) };
+            _btnApply = new Button { Text = "Применить", Location = new Point(790, 5), Size = new Size(80, 30) };
+            _btnApply.Click += BtnApply_Click;
+            panel.Controls.Add(_btnApply);
+
+            _btnCancel = new Button { Text = "Отмена", Location = new Point(880, 5), Size = new Size(80, 30) };
             _btnCancel.Click += BtnCancel_Click;
             panel.Controls.Add(_btnCancel);
 
@@ -538,6 +546,24 @@ namespace JsonEditor
 
         private void BtnSave_Click(object sender, EventArgs e)
         {
+            // Сохраняем изменения и закрываем форму
+            SaveChanges();
+            this.DialogResult = DialogResult.OK;
+            this.Close();
+        }
+
+        private void BtnApply_Click(object sender, EventArgs e)
+        {
+            // Сохраняем изменения, но не закрываем форму
+            SaveChanges();
+            MessageBox.Show("Изменения применены!", "Применение", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            
+            // Уведомляем о применении изменений
+            ChangesApplied?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void SaveChanges()
+        {
             // Сохраняем изменения
             _document.Id = _txtDocumentId.Text;
             _document.Name = _txtDocumentName.Text;
@@ -560,9 +586,6 @@ namespace JsonEditor
                 var condition = conditionText.Contains(" - ") ? conditionText.Split(" - ")[0] : conditionText;
                 _currentResponse.Condition = condition;
             }
-
-            this.DialogResult = DialogResult.OK;
-            this.Close();
         }
 
         private void BtnCancel_Click(object sender, EventArgs e)

@@ -640,6 +640,15 @@ namespace JsonEditor
             
             using (var form = new NewDialogueEditorForm(_gameData, document))
             {
+                // Подписываемся на событие применения изменений
+                form.ChangesApplied += (sender, e) =>
+                {
+                    var editedDocument = form.GetDocument();
+                    // Конвертируем обратно в DialogueData
+                    ConvertDocumentToDialogueData(editedDocument, dialogue);
+                    RefreshCurrentGrid();
+                };
+
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
                     var editedDocument = form.GetDocument();

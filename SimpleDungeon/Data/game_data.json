@@ -790,7 +790,37 @@
           "requiredAmount": 4,
           "targetId": 1604,
           "currentProgress": 0,
-          "isCompleted": false
+          "isCompleted": false,
+          "spawnLocations": [
+            {
+              "LocationID": 3002,
+              "SpawnChance": 25,
+              "Quantity": 1,
+              "MaxItemsOnLocation": 1,
+              "SpawnInterval": 1
+            },
+            {
+              "LocationID": 3005,
+              "SpawnChance": 25,
+              "Quantity": 1,
+              "MaxItemsOnLocation": 1,
+              "SpawnInterval": 1
+            },
+            {
+              "LocationID": 3004,
+              "SpawnChance": 25,
+              "Quantity": 1,
+              "MaxItemsOnLocation": 1,
+              "SpawnInterval": 1
+            },
+            {
+              "LocationID": 3003,
+              "SpawnChance": 25,
+              "Quantity": 1,
+              "MaxItemsOnLocation": 1,
+              "SpawnInterval": 1
+            }
+          ]
         }
       ],
       "rewards": {
@@ -802,6 +832,11 @@
             "quantity": 1
           }
         ]
+      },
+      "dialogueNodes": {
+        "Offer": "quest_5003_offer",
+        "InProgress": "quest_5003_progress",
+        "ReadyToComplete": "quest_5003_readyToComplete"
       }
     }
   ],
@@ -886,7 +921,8 @@
       "Greeting": "Приветствую! Ищу качественные материалы для своих изделий.",
       "Merchant": {
         "Gold": 0
-      }
+      },
+      "DefaultDialogueId": "7003"
     },
     {
       "ID": 4004,
@@ -1352,7 +1388,131 @@
     },
     {
       "Id": "7003",
-      "Name": "Диалог Ремесленника"
+      "Name": "Диалог Ремесленника",
+      "Start": "default_remeslenik",
+      "Nodes": [
+        {
+          "Id": "default_remeslenik",
+          "Text": "Привет!",
+          "Type": "greeting",
+          "Choices": [
+            {
+              "Text": "Привет! Что-то ты хмурый.",
+              "NextNodeId": "quest_5003_offer",
+              "Condition": "questAvailableForNPC:5003",
+              "Action": 0
+            },
+            {
+              "Text": "Насчет твоих ящиков...",
+              "NextNodeId": "quest_5003_progress",
+              "Condition": "questInProgressForNPC:5003",
+              "Action": 0
+            },
+            {
+              "Text": "Вот твои ящики!",
+              "NextNodeId": "quest_5003_readyToComplete",
+              "Condition": "questReadyToCompleteForNPC:5003",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 4,
+                  "Parameter": "5003"
+                }
+              ],
+              "ActionSummary": "CompleteQuest (5003)"
+            },
+            {
+              "Text": "Уйти.",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 7
+                }
+              ],
+              "ActionSummary": "EndDialogue"
+            }
+          ]
+        },
+        {
+          "Id": "quest_5003_offer",
+          "Text": "А, да, именно так! Добро пожаловать в мою мастерскую. Видишь эти пустые полки? Они должны ломиться от изящных безделушек для ярмарки лорда. Но мои поставщики подвели!",
+          "Type": "quest_offer",
+          "Choices": [
+            {
+              "Text": "Чем я могу быть полезен?",
+              "NextNodeId": "quest_5003_offer_2",
+              "Condition": "questAvailableForNPC:5003",
+              "Action": 0
+            }
+          ]
+        },
+        {
+          "Id": "quest_5003_offer_2",
+          "Text": "Я отправлял четыре ящика с готовыми украшениями из столицы, но караван подвергся нападению разбойников у старой мельницы. Они, глупцы, побросали ящики, думая, что там оружие или золото. Найди их и принеси мне. Они целы и просто валяются в траве. За работу щедро заплачу!",
+          "Type": "quest_offer",
+          "Choices": [
+            {
+              "Text": "Я найду твои ящики.",
+              "Condition": "questAvailableForNPC:5003",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 3,
+                  "Parameter": "5003"
+                }
+              ],
+              "ActionSummary": "StartQuest (5003)"
+            },
+            {
+              "Text": "Мне это не интересно.",
+              "Condition": "questAvailableForNPC:5003",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 7
+                }
+              ],
+              "ActionSummary": "EndDialogue"
+            }
+          ]
+        },
+        {
+          "Id": "quest_5003_progress",
+          "Text": "Я очень жду, когда ты вернешь мне мои ящики!",
+          "Type": "quest_progress",
+          "Choices": [
+            {
+              "Text": "Уже иду...",
+              "Condition": "questInProgressForNPC:5003",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 7
+                }
+              ],
+              "ActionSummary": "EndDialogue"
+            }
+          ]
+        },
+        {
+          "Id": "quest_5003_readyToComplete",
+          "Text": "Ох! Наконец-то! Мои драгоценные ящики с драгоценностиями! Вот, можешь еще взять это ожерелье.",
+          "Type": "quest_complete",
+          "Choices": [
+            {
+              "Text": "Спасибо.",
+              "Condition": "questReadyToCompleteForNPC:5003",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 7
+                }
+              ],
+              "ActionSummary": "EndDialogue"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

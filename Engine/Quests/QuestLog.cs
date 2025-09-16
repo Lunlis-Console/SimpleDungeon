@@ -81,6 +81,13 @@ namespace Engine.Quests
             AvailableQuests.Remove(quest);
             ActiveQuests.Add(quest);
             
+            // Уведомляем QuestManager о начале квеста для спавна предметов
+            var questManager = GameServices.QuestManager;
+            if (questManager != null)
+            {
+                questManager.OnQuestStarted(quest, _player);
+            }
+            
             DebugConsole.Log($"AvailableQuests after: {AvailableQuests.Count}");
             DebugConsole.Log($"ActiveQuests after: {ActiveQuests.Count}");
             
@@ -120,6 +127,13 @@ namespace Engine.Quests
             ActiveQuests.Remove(quest);
             CompletedQuests.Add(quest);
             
+            // Уведомляем QuestManager о завершении квеста для очистки предметов
+            var questManager = GameServices.QuestManager;
+            if (questManager != null)
+            {
+                questManager.OnQuestCompleted(quest, _player);
+            }
+            
             DebugConsole.Log($"ActiveQuests after: {ActiveQuests.Count}");
             DebugConsole.Log($"CompletedQuests after: {CompletedQuests.Count}");
             
@@ -149,6 +163,13 @@ namespace Engine.Quests
                         DebugConsole.Log($"  Condition {condition.ID}: {condition.Description} - Progress: {condition.CurrentProgress}/{condition.RequiredAmount}, Completed: {condition.IsCompleted}");
                     }
                 }
+            }
+            
+            // Обрабатываем спавн предметов для активных квестов
+            var questManager = GameServices.QuestManager;
+            if (questManager != null)
+            {
+                questManager.ProcessQuestItemSpawns();
             }
         }
 
