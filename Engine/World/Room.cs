@@ -1,62 +1,76 @@
-﻿using Engine.Entities;
+using Engine.Entities;
 
 namespace Engine.World
 {
-    public class Location
+    /// <summary>
+    /// Представляет помещение внутри локации (подземелье, лабиринт, город и т.д.)
+    /// </summary>
+    public class Room
     {
         public int ID { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
+        public int ParentLocationID { get; set; } // ID родительской локации
+        
+        // Содержимое помещения (аналогично Location)
         public List<Item> ItemsHere { get; set; }
         public List<Chest> ChestsHere { get; set; }
         public List<NPC> NPCsHere { get; set; }
         public List<Monster> MonstersHere { get; set; }
-        public Location LocationToNorth { get; set; }
-        public Location LocationToEast { get; set; }
-        public Location LocationToSouth { get; set; }
-        public Location LocationToWest { get; set; }
-        public List<Monster> MonsterTamplates { get; set; }
-        public bool ScaleMonstersToPlayerLevel {  get; set; }
         public List<InventoryItem> GroundItems { get; set; } = new List<InventoryItem>();
-        public List<RoomEntrance> RoomEntrances { get; set; } = new List<RoomEntrance>();
+        
+        // Навигация между помещениями (аналогично Location)
+        public Room RoomToNorth { get; set; }
+        public Room RoomToEast { get; set; }
+        public Room RoomToSouth { get; set; }
+        public Room RoomToWest { get; set; }
+        
+        // Шаблоны монстров для спавна
+        public List<Monster> MonsterTemplates { get; set; }
+        public bool ScaleMonstersToPlayerLevel { get; set; }
+        
+        // Входы в другие помещения (если есть)
+        public List<RoomEntrance> Entrances { get; set; } = new List<RoomEntrance>();
 
-
-        public Location(int id, string name, string description, List<Monster> monsterTamplates = null,
-            bool scaleMonstersToPlayerLevel = true)
+        public Room(int id, string name, string description, int parentLocationID, 
+            List<Monster> monsterTemplates = null, bool scaleMonstersToPlayerLevel = true)
         {
             ID = id;
             Name = name;
             Description = description;
-            MonsterTamplates = monsterTamplates ?? new List<Monster>();
+            ParentLocationID = parentLocationID;
+            MonsterTemplates = monsterTemplates ?? new List<Monster>();
             ScaleMonstersToPlayerLevel = scaleMonstersToPlayerLevel;
 
             ItemsHere = new List<Item>();
             ChestsHere = new List<Chest>();
             NPCsHere = new List<NPC>();
             MonstersHere = new List<Monster>();
-            RoomEntrances = new List<RoomEntrance>();
         }
 
         public List<Monster> FindMonsters()
         {
             return MonstersHere.Where(monster => monster.CurrentHP > 0).ToList();
         }
+
         public void AddMonster(Monster monster)
         {
             MonstersHere.Add(monster);
         }
+
         public void CleanDeadMonster()
         {
             MonstersHere.RemoveAll(monster => monster.CurrentHP <= 0);
         }
+
         public void SpawnMonsters(int playerLevel)
         {
             MonstersHere.Clear();
 
-            foreach(Monster template in MonsterTamplates)
+            foreach (Monster template in MonsterTemplates)
             {
                 Monster monsterToSpawn;
-                if(ScaleMonstersToPlayerLevel)
+                if (ScaleMonstersToPlayerLevel)
                 {
                     int monsterLevel = CalculateMonsterLevel(playerLevel);
                     monsterToSpawn = new Monster(template, monsterLevel);
@@ -69,6 +83,7 @@ namespace Engine.World
                 MonstersHere.Add(monsterToSpawn);
             }
         }
+
         private int CalculateMonsterLevel(int playerLevel)
         {
             Random random = new Random();
@@ -79,7 +94,7 @@ namespace Engine.World
             return random.Next(minLevel, maxLevel + 1);
         }
 
-        // Метод для отображения предметов на локации
+        // Метод для отображения предметов на земле
         public string GetGroundItemsDescription()
         {
             if (GroundItems.Count == 0) return "";

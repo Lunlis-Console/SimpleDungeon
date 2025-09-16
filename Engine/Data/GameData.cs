@@ -30,6 +30,12 @@ namespace Engine.Data
 
         [JsonPropertyName("Dialogues")]
         public List<DialogueData> Dialogues { get; set; } = new List<DialogueData>();
+
+        [JsonPropertyName("Rooms")]
+        public List<RoomData> Rooms { get; set; } = new List<RoomData>();
+
+        [JsonPropertyName("RoomEntrances")]
+        public List<RoomEntranceData> RoomEntrances { get; set; } = new List<RoomEntranceData>();
     }
 
     public class ItemData
@@ -85,6 +91,9 @@ namespace Engine.Data
         
         // Предметы на земле
         public List<InventoryItemData> GroundItems { get; set; } = new();
+
+        // Входы в помещения
+        public List<int> RoomEntrances { get; set; } = new();
 
         public bool ScaleMonstersToPlayerLevel { get; set; }
         public int? LocationToNorth { get; set; }
@@ -254,6 +263,46 @@ namespace Engine.Data
         public int LocationID { get; set; }
         public int ItemID { get; set; }
         public int Quantity { get; set; }
+    }
+
+    public class RoomData
+    {
+        public int ID { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public int ParentLocationID { get; set; }
+
+        // Содержимое помещения
+        public List<int> NPCsHere { get; set; } = new List<int>();
+        public List<InventoryItemData> GroundItems { get; set; } = new List<InventoryItemData>();
+        public List<MonsterSpawnData> MonsterSpawns { get; set; } = new List<MonsterSpawnData>();
+        public List<int> MonsterTemplates { get; set; } = new List<int>();
+
+        // Входы в другие помещения
+        public List<int> Entrances { get; set; } = new List<int>();
+
+        // Навигация между помещениями
+        public int? RoomToNorth { get; set; }
+        public int? RoomToEast { get; set; }
+        public int? RoomToSouth { get; set; }
+        public int? RoomToWest { get; set; }
+
+        public bool ScaleMonstersToPlayerLevel { get; set; } = true;
+    }
+
+    public class RoomEntranceData
+    {
+        public int ID { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public int TargetRoomID { get; set; }
+        public int ParentLocationID { get; set; }
+        public string EntranceType { get; set; } = "entrance";
+        public bool IsLocked { get; set; } = false;
+        public string LockDescription { get; set; } = string.Empty;
+        public bool RequiresKey { get; set; } = false;
+        public int RequiredKeyID { get; set; } = 0;
+        public List<int> RequiredItemIDs { get; set; } = new List<int>();
     }
 
 }

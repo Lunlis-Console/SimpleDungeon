@@ -6,6 +6,7 @@
         NPC,
         Item,
         Chest,
-        Door
+        Door,
+        RoomEntrance
     }
 }

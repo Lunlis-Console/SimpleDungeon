@@ -11,6 +11,8 @@ namespace Engine.World
         Item ItemByID(int id);
         Monster MonsterByID(int id);
         Location LocationByID(int id);
+        Room RoomByID(int id);
+        RoomEntrance RoomEntranceByID(int id);
         Engine.Quests.EnhancedQuest QuestByID(int id);
         NPC NPCByID(int id);
         Title TitleByID(int id);
@@ -19,6 +21,8 @@ namespace Engine.World
         List<Item> GetAllItems();
         List<Monster> GetAllMonsters();
         List<Location> GetAllLocations();
+        List<Room> GetAllRooms();
+        List<RoomEntrance> GetAllRoomEntrances();
         List<Engine.Quests.EnhancedQuest> GetAllQuests();
         List<NPC> GetAllNPCs();
         List<Title> GetAllTitles();

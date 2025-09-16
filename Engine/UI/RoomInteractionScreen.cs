@@ -1,21 +1,20 @@
-﻿using Engine.Core;
+using Engine.Core;
 using Engine.Entities;
 using Engine.World;
 
 namespace Engine.UI
 {
-    public class InteractionScreen : BaseScreen
+    public class RoomInteractionScreen : BaseScreen
     {
         private readonly Player _player;
-        private readonly Location _location;
+        private readonly Room _room;
         private int _selectedIndex;
         private List<WorldEntity> _interactableEntities;
 
-
-        public InteractionScreen(Player player, Location location)
+        public RoomInteractionScreen(Player player, Room room)
         {
             _player = player;
-            _location = location;
+            _room = room;
             _selectedIndex = 0;
             _interactableEntities = GetInteractableEntities();
         }
@@ -24,7 +23,7 @@ namespace Engine.UI
         {
             ClearScreen();
 
-            RenderHeader("ВЗАИМОДЕЙСТВИЕ");
+            RenderHeader("ВЗАИМОДЕЙСТВИЕ В ПОМЕЩЕНИИ");
             RenderEntitiesList();
             RenderSelectedEntityInfo();
             RenderFooter("W/S - выбор │ E - взаимодействовать │ Q - назад");
@@ -35,26 +34,26 @@ namespace Engine.UI
             var entities = new List<WorldEntity>();
 
             // Монстры
-            var monsters = _location.FindMonsters();
+            var monsters = _room.FindMonsters();
             foreach (var monster in monsters)
             {
                 entities.Add(new WorldEntity(monster, EntityType.Monster, $"{monster.Name} [Ур. {monster.Level}]"));
             }
 
             // NPC
-            foreach (var npc in _location.NPCsHere)
+            foreach (var npc in _room.NPCsHere)
             {
                 entities.Add(new WorldEntity(npc, EntityType.NPC, npc.Name));
             }
 
             // Предметы на земле
-            foreach (var item in _location.GroundItems)
+            foreach (var item in _room.GroundItems)
             {
                 entities.Add(new WorldEntity(item, EntityType.Item, $"{item.Details.Name} x{item.Quantity}"));
             }
 
-            // Входы в помещения
-            foreach (var entrance in _location.RoomEntrances)
+            // Входы в другие помещения
+            foreach (var entrance in _room.Entrances)
             {
                 entities.Add(new WorldEntity(entrance, EntityType.RoomEntrance, entrance.GetDisplayName()));
             }
@@ -228,10 +227,7 @@ namespace Engine.UI
 
         public override void HandleInput(ConsoleKeyInfo keyInfo)
         {
-            
-
-            // Если нет сущностей — разрешаем выйти по Esc/Q/Enter (Enter — для удобства),
-            // но возвращаемся, чтобы не выполнять навигацию по пустому списку.
+            // Если нет сущностей — разрешаем выйти по Esc/Q/Enter
             if (_interactableEntities == null || _interactableEntities.Count == 0)
             {
                 switch (keyInfo.Key)
@@ -239,19 +235,15 @@ namespace Engine.UI
                     case ConsoleKey.Escape:
                     case ConsoleKey.Q:
                     case ConsoleKey.Enter:
-                        // Закрыть экран взаимодействия — возврат в мир
                         ScreenManager.PopScreen();
-                        // Обновим экран
                         ScreenManager.RequestPartialRedraw();
                         try { if (DebugConsole.Enabled && DebugConsole.IsVisible) DebugConsole.GlobalDraw(); } catch { }
                         break;
                     default:
-                        // игнорируем остальные клавиши
                         break;
                 }
                 return;
             }
-
 
             switch (keyInfo.Key)
             {
@@ -275,8 +267,6 @@ namespace Engine.UI
                     ScreenManager.PopScreen();
                     break;
             }
-
-
         }
 
         private void InteractWithSelectedEntity()
@@ -311,24 +301,15 @@ namespace Engine.UI
                 if (sel == "Осмотреть")
                 {
                     _pendingScreenToPush = new MonsterInspectScreen(monster);
-                    // ...
                     if (_pendingScreenToPush != null)
                     {
                         ScreenManager.PushScreen(_pendingScreenToPush);
                         _pendingScreenToPush = null;
-                        // После того, как вы добавили экран в стек:
-
-                        // Гарантируем, что движок знает о необходимости полной перерисовки:
                         ScreenManager.RequestFullRedraw();
                         GameServices.BufferedRenderer?.SetNeedsFullRedraw();
 
-                        // --- Диагностический принудительный рендер кадра (убрать в релизе) ---
-                        // Попробуем вызвать метод рендера у ScreenManager, если он есть.
-                        // Этот вызов ускоряет появление экрана в момент отладки.
-                        // Если у вас нет публичного метода RenderCurrentScreen, попытка будет безопасно проигнорирована.
                         try
                         {
-                            // 1) если есть метод RenderCurrentScreen(), вызовем его напрямую
                             var smType = typeof(ScreenManager);
                             var renderMethod = smType.GetMethod("RenderCurrentScreen", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
                                                ?? smType.GetMethod("Render", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
@@ -339,7 +320,6 @@ namespace Engine.UI
                             }
                             else
                             {
-                                // 2) В качестве крайней меры — попытаемся вызвать Render() у текущего скрина (если доступен)
                                 var current = smType.GetProperty("CurrentScreen", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)?.GetValue(null);
                                 if (current != null)
                                 {
@@ -350,10 +330,8 @@ namespace Engine.UI
                         }
                         catch (Exception ex)
                         {
-                            // Логируем, но не ломаем выполнение
                             DebugConsole.Log($"[diag] forced render failed: {ex.GetType().Name}: {ex.Message}");
                         }
-
                     }
                 }
                 else if (sel == "Атаковать")
@@ -371,8 +349,6 @@ namespace Engine.UI
                 DebugConsole.Log("[interact] pushed inspect screen");
             }
         }
-
-
 
         private void InteractWithNPC(NPC npc)
         {
@@ -398,7 +374,7 @@ namespace Engine.UI
                 if (selectedAction == "Подобрать")
                 {
                     _player.AddItemToInventory(item.Details, item.Quantity);
-                    _location.GroundItems.Remove(item);
+                    _room.GroundItems.Remove(item);
                     _interactableEntities = GetInteractableEntities(); // Обновляем список
                     MessageSystem.AddMessage($"Подобран: {item.Details.Name} x{item.Quantity}");
                 }
@@ -429,20 +405,18 @@ namespace Engine.UI
             int selectedIndex = 0;
             bool inMenu = true;
 
-            var renderer = GameServices.BufferedRenderer; // глобальный рендерер
+            var renderer = GameServices.BufferedRenderer;
             while (inMenu)
             {
                 bool startedFrame = false;
                 try
                 {
-                    // Откроем кадр, только если он ещё не открыт
                     if (renderer != null && !renderer.InFrame)
                     {
                         renderer.BeginFrame();
                         startedFrame = true;
                     }
 
-                    // Рисуем меню (внутри активного фрейма)
                     ClearScreen();
                     RenderHeader(title);
 
@@ -462,7 +436,6 @@ namespace Engine.UI
 
                     RenderFooter("W/S - выбор │ E - выбрать │ Q - назад");
 
-                    // Если консоль видима, нарисуем её поверх (чтобы было видно)
                     try
                     {
                         if (DebugConsole.Enabled && DebugConsole.IsVisible)
@@ -470,39 +443,32 @@ namespace Engine.UI
                             DebugConsole.GlobalDraw();
                         }
                     }
-                    catch { /* не критично */ }
+                    catch { }
                 }
                 finally
                 {
-                    // Завершаем кадр только если начали — это безопасно при централизованном рендеринге
                     if (startedFrame)
                     {
-                        try { renderer.EndFrame(); } catch { /* лог не обязателен */ }
+                        try { renderer.EndFrame(); } catch { }
                     }
                 }
 
-                // Ждём клавишу — обработка ввода происходит ВНЕ фрейма (важно для PushScreen)
                 var key = Console.ReadKey(true);
 
-                // 1) Глобальная горячая клавиша для консоли — обрабатываем прямо в меню
                 if (key.Key == ConsoleKey.F3)
                 {
                     DebugConsole.Toggle();
-                    // Перерисуем меню/экран целиком чтобы скрыть/показать следы консоли
                     ScreenManager.RequestFullRedraw();
-                    continue; // не обрабатываем дальше эту клавишу в меню
+                    continue;
                 }
 
-                // 2) Если консоль видима — передаём ввод консоли вместо меню
                 if (DebugConsole.Enabled && DebugConsole.IsVisible)
                 {
                     DebugConsole.ProcessInput(key);
-                    // Обновим консольное отображение сразу
                     try { DebugConsole.GlobalDraw(); } catch { }
-                    continue; // пропускаем обработку меню пока консоль активна
+                    continue;
                 }
 
-                // 3) Обычная обработка клавиш меню
                 switch (key.Key)
                 {
                     case ConsoleKey.W:
@@ -515,8 +481,6 @@ namespace Engine.UI
                         break;
                     case ConsoleKey.E:
                     case ConsoleKey.Enter:
-                        // вызов колбэка выбора — теперь мы **вне** фрейма, поэтому PushScreen внутри колбэка
-                        // сможет корректно вызвать RenderCurrentScreen() немедленно (если нужно)
                         try { onActionSelected(actions[selectedIndex]); } catch { }
                         inMenu = false;
                         break;
@@ -527,7 +491,6 @@ namespace Engine.UI
                 }
             }
 
-            // После выхода из меню — обновляем экран и даём шанс нарисовать консоль/экран
             ScreenManager.RequestPartialRedraw();
             try { if (DebugConsole.Enabled && DebugConsole.IsVisible) DebugConsole.GlobalDraw(); } catch { }
         }

@@ -28,6 +28,8 @@ namespace Engine.World
         private Dictionary<int, Item> _items;
         private Dictionary<int, Monster> _monsters;
         private Dictionary<int, Location> _locations;
+        private Dictionary<int, Room> _rooms;
+        private Dictionary<int, RoomEntrance> _roomEntrances;
         private Dictionary<int, Engine.Quests.EnhancedQuest> _quests;
         private Dictionary<int, NPC> _npcs;
         private Dictionary<int, Title> _titles;
@@ -89,6 +91,8 @@ namespace Engine.World
             LogFor(data.Monsters, "Monster");
             LogFor(data.NPCs, "NPC");
             LogFor(data.Locations, "Location");
+            LogFor(data.Rooms, "Room");
+            LogFor(data.RoomEntrances, "RoomEntrance");
             LogFor(data.Quests, "Quest");
             LogFor(data.Titles, "Title");
         }
@@ -274,6 +278,8 @@ namespace Engine.World
             _items = new Dictionary<int, Item>();
             _monsters = new Dictionary<int, Monster>();
             _locations = new Dictionary<int, Location>();
+            _rooms = new Dictionary<int, Room>();
+            _roomEntrances = new Dictionary<int, RoomEntrance>();
             _quests = new Dictionary<int, Engine.Quests.EnhancedQuest>();
             _npcs = new Dictionary<int, NPC>();
             _titles = new Dictionary<int, Title>();
@@ -336,10 +342,31 @@ namespace Engine.World
                     .ToDictionary(m => m.ID, m => CreateLocationFromData(m));
             }
 
-            DebugConsole.Log($"Загружено: {_titles.Count} титулов, {_locations.Count} локаций");
+            // Rooms (помещения)
+            if (_gameData.Rooms != null)
+            {
+                _rooms = _gameData.Rooms
+                    .GroupBy(r => r.ID)
+                    .Select(g => g.First())
+                    .ToDictionary(r => r.ID, r => CreateRoomFromData(r));
+            }
+
+            // Room Entrances (входы в помещения)
+            if (_gameData.RoomEntrances != null)
+            {
+                _roomEntrances = _gameData.RoomEntrances
+                    .GroupBy(re => re.ID)
+                    .Select(g => g.First())
+                    .ToDictionary(re => re.ID, re => CreateRoomEntranceFromData(re));
+            }
+
+            DebugConsole.Log($"Загружено: {_titles.Count} титулов, {_locations.Count} локаций, {_rooms.Count} помещений, {_roomEntrances.Count} входов");
 
             // Установка связей между локациями
             EstablishLocationConnections();
+            
+            // Установка связей между помещениями
+            EstablishRoomConnections();
         }
 
         private Item CreateItemFromData(ItemData itemData)
@@ -756,6 +783,19 @@ namespace Engine.World
                 }
             }
 
+            // Добавление входов в помещения
+            if (locationData.RoomEntrances != null)
+            {
+                foreach (var entranceId in locationData.RoomEntrances)
+                {
+                    var entrance = RoomEntranceByID(entranceId);
+                    if (entrance != null)
+                    {
+                        location.RoomEntrances.Add(entrance);
+                    }
+                }
+            }
+
             return location;
         }
 
@@ -780,10 +820,108 @@ namespace Engine.World
             }
         }
 
+        private void EstablishRoomConnections()
+        {
+            if (_gameData?.Rooms == null) return;
+
+            foreach (var roomData in _gameData.Rooms)
+            {
+                var room = RoomByID(roomData.ID);
+                if (room != null)
+                {
+                    room.RoomToNorth = roomData.RoomToNorth.HasValue ?
+                        RoomByID(roomData.RoomToNorth.Value) : null;
+                    room.RoomToEast = roomData.RoomToEast.HasValue ?
+                        RoomByID(roomData.RoomToEast.Value) : null;
+                    room.RoomToSouth = roomData.RoomToSouth.HasValue ?
+                        RoomByID(roomData.RoomToSouth.Value) : null;
+                    room.RoomToWest = roomData.RoomToWest.HasValue ?
+                        RoomByID(roomData.RoomToWest.Value) : null;
+                }
+            }
+        }
+
+        private Room CreateRoomFromData(RoomData roomData)
+        {
+            if (roomData == null) return null;
+
+            var room = new Room(
+                roomData.ID,
+                roomData.Name,
+                roomData.Description,
+                roomData.ParentLocationID
+            );
+
+            // Добавляем NPC в помещение
+            if (roomData.NPCsHere != null)
+            {
+                foreach (var npcId in roomData.NPCsHere)
+                {
+                    var npc = NPCByID(npcId);
+                    if (npc != null)
+                    {
+                        room.NPCsHere.Add(npc);
+                    }
+                }
+            }
+
+            // Добавляем предметы на землю
+            if (roomData.GroundItems != null)
+            {
+                foreach (var groundItem in roomData.GroundItems)
+                {
+                    var item = ItemByID(groundItem.ItemID);
+                    if (item != null)
+                    {
+                        room.GroundItems.Add(new InventoryItem(item, groundItem.Quantity));
+                    }
+                }
+            }
+
+            // Добавляем входы в другие помещения
+            if (roomData.Entrances != null)
+            {
+                foreach (var entranceId in roomData.Entrances)
+                {
+                    var entrance = RoomEntranceByID(entranceId);
+                    if (entrance != null)
+                    {
+                        room.Entrances.Add(entrance);
+                    }
+                }
+            }
+
+            return room;
+        }
+
+        private RoomEntrance CreateRoomEntranceFromData(RoomEntranceData entranceData)
+        {
+            if (entranceData == null) return null;
+
+            var entrance = new RoomEntrance(
+                entranceData.ID,
+                entranceData.Name,
+                entranceData.Description,
+                entranceData.TargetRoomID,
+                entranceData.ParentLocationID,
+                entranceData.EntranceType ?? "entrance"
+            );
+
+            entrance.IsLocked = entranceData.IsLocked;
+            entrance.LockDescription = entranceData.LockDescription ?? "";
+            entrance.RequiresKey = entranceData.RequiresKey;
+            entrance.RequiredKeyID = entranceData.RequiredKeyID;
+            entrance.RequiredItemIDs = entranceData.RequiredItemIDs ?? new List<int>();
+
+            return entrance;
+        }
+
         // Реализация методов интерфейса IWorldRepository
         public Item ItemByID(int id) => _items != null && _items.ContainsKey(id) ? _items[id] : null;
         public Monster MonsterByID(int id) => _monsters != null && _monsters.ContainsKey(id) ? _monsters[id] : null;
         public Location LocationByID(int id) => _locations != null && _locations.ContainsKey(id) ? _locations[id] : null;
+        public Room RoomByID(int id) => _rooms != null && _rooms.ContainsKey(id) ? _rooms[id] : null;
+        public RoomEntrance RoomEntranceByID(int id) => _roomEntrances != null && _roomEntrances.ContainsKey(id) ? _roomEntrances[id] : null;
         public Engine.Quests.EnhancedQuest QuestByID(int id) => _quests != null && _quests.ContainsKey(id) ? _quests[id] : null;
         public NPC NPCByID(int id) => _npcs != null && _npcs.ContainsKey(id) ? _npcs[id] : null;
         public Title TitleByID(int id) => _titles != null && _titles.ContainsKey(id) ? _titles[id] : null;
@@ -791,6 +929,8 @@ namespace Engine.World
         public List<Item> GetAllItems() => _items != null ? _items.Values.ToList() : new List<Item>();
         public List<Monster> GetAllMonsters() => _monsters != null ? _monsters.Values.ToList() : new List<Monster>();
         public List<Location> GetAllLocations() => _locations != null ? _locations.Values.ToList() : new List<Location>();
+        public List<Room> GetAllRooms() => _rooms != null ? _rooms.Values.ToList() : new List<Room>();
+        public List<RoomEntrance> GetAllRoomEntrances() => _roomEntrances != null ? _roomEntrances.Values.ToList() : new List<RoomEntrance>();
         public List<Engine.Quests.EnhancedQuest> GetAllQuests() => _quests != null ? _quests.Values.ToList() : new List<Engine.Quests.EnhancedQuest>();
         public List<NPC> GetAllNPCs() => _npcs != null ? _npcs.Values.ToList() : new List<NPC>();
         public List<Title> GetAllTitles() => _titles != null ? _titles.Values.ToList() : new List<Title>();

@@ -39,6 +39,7 @@ namespace Engine.Entities
 
         public int CurrentSpeed { get; set; }
         public Location CurrentLocation { get; set; }
+        public Room CurrentRoom { get; set; } // Текущее помещение (null если в основной локации)
         public Inventory Inventory { get; private set; }
         public Monster CurrentMonster { get; set; }
         public bool IsInCombat { get; set; }
@@ -128,6 +129,7 @@ namespace Engine.Entities
 
             // Устанавливаем текущую локацию сразу
             CurrentLocation = newLocation;
+            CurrentRoom = null; // Выходим из помещения при перемещении между локациями
 
             // Спавним монстров в новой локации
             newLocation.SpawnMonsters(Level);
@@ -143,6 +145,60 @@ namespace Engine.Entities
 
             // Если нужно — здесь можно поставить флаг перерисовки
             // RedrawNeeded = true;
+        }
+
+        /// <summary>
+        /// Перемещает игрока в помещение
+        /// </summary>
+        public void MoveToRoom(Room room)
+        {
+            if (room == null)
+                return;
+
+            CurrentRoom = room;
+
+            // Спавним монстров в помещении
+            room.SpawnMonsters(Level);
+
+            // Обновляем прогресс квестов
+            QuestLog?.UpdateQuestProgress();
+
+            // Очищаем старые сообщения
+            MessageSystem.ClearMessages();
+
+            // Добавляем сообщение о перемещении
+            MessageSystem.AddMessage($"Вы вошли в {room.Name}");
+        }
+
+        /// <summary>
+        /// Выходит из текущего помещения обратно в родительскую локацию
+        /// </summary>
+        public void ExitRoom()
+        {
+            if (CurrentRoom == null)
+                return;
+
+            var roomName = CurrentRoom.Name;
+            CurrentRoom = null;
+
+            MessageSystem.AddMessage($"Вы вышли из {roomName}");
+            MessageSystem.AddMessage($"Вы находитесь в {CurrentLocation.Name}");
+        }
+
+        /// <summary>
+        /// Проверяет, находится ли игрок в помещении
+        /// </summary>
+        public bool IsInRoom()
+        {
+            return CurrentRoom != null;
+        }
+
+        /// <summary>
+        /// Получает текущую область (локация или помещение)
+        /// </summary>
+        public object GetCurrentArea()
+        {
+            return IsInRoom() ? (object)CurrentRoom : CurrentLocation;
         }
 
 
@@ -177,6 +233,39 @@ namespace Engine.Entities
             if (CurrentLocation.LocationToSouth != null)
             {
                 MoveTo(CurrentLocation.LocationToSouth);
+            }
+        }
+
+        // Методы для перемещения между помещениями
+        public void MoveRoomNorth()
+        {
+            if (CurrentRoom?.RoomToNorth != null)
+            {
+                MoveToRoom(CurrentRoom.RoomToNorth);
+            }
+        }
+
+        public void MoveRoomEast()
+        {
+            if (CurrentRoom?.RoomToEast != null)
+            {
+                MoveToRoom(CurrentRoom.RoomToEast);
+            }
+        }
+
+        public void MoveRoomWest()
+        {
+            if (CurrentRoom?.RoomToWest != null)
+            {
+                MoveToRoom(CurrentRoom.RoomToWest);
+            }
+        }
+
+        public void MoveRoomSouth()
+        {
+            if (CurrentRoom?.RoomToSouth != null)
+            {
+                MoveToRoom(CurrentRoom.RoomToSouth);
             }
         }
         private List<object> PrepareInventoryItems()

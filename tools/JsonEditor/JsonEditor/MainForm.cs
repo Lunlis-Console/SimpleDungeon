@@ -282,6 +282,20 @@ namespace JsonEditor
                 return;
             }
             
+            // Специальная обработка для помещений
+            if (listName.ToLower() == "rooms")
+            {
+                AddNewRoom();
+                return;
+            }
+            
+            // Специальная обработка для входов в помещения
+            if (listName.ToLower() == "roomentrances")
+            {
+                AddNewRoomEntrance();
+                return;
+            }
+            
             var elemType = info.elementType;
             object newElem = null;
             try
@@ -348,6 +362,20 @@ namespace JsonEditor
         // Просто переключим фокус на PropertyGrid для редактирования
         private void EditSelectedInList(string listName)
         {
+            // Специальная обработка для помещений
+            if (listName.ToLower() == "rooms")
+            {
+                EditSelectedRoom();
+                return;
+            }
+            
+            // Специальная обработка для входов в помещения
+            if (listName.ToLower() == "roomentrances")
+            {
+                EditSelectedRoomEntrance();
+                return;
+            }
+            
             EditSelectedItem(listName);
         }
 
@@ -922,6 +950,130 @@ namespace JsonEditor
             var grid = info.grid;
             grid.Refresh();
             _statusLabel.Text = "Изменения применены";
+        }
+
+        // Методы для работы с помещениями
+        private void AddNewRoom()
+        {
+            var nextId = GetNextRoomId();
+            var newRoom = new RoomData
+            {
+                ID = nextId,
+                Name = $"Новое помещение {nextId}",
+                Description = "Описание нового помещения",
+                ParentLocationID = 0,
+                NPCsHere = new List<int>(),
+                GroundItems = new List<InventoryItemData>(),
+                MonsterSpawns = new List<MonsterSpawnData>(),
+                MonsterTemplates = new List<int>(),
+                Entrances = new List<int>(),
+                ScaleMonstersToPlayerLevel = true
+            };
+
+            using (var form = new EditRoomForm(newRoom, _gameData, true))
+            {
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    _gameData.Rooms.Add(newRoom);
+                    RefreshCurrentGrid();
+                    _statusLabel.Text = $"Добавлено новое помещение: {newRoom.Name}";
+                }
+            }
+        }
+
+        private void EditSelectedRoom()
+        {
+            if (!_lists.TryGetValue("Rooms", out var info)) return;
+            var grid = info.grid;
+            if (grid.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Выберите помещение для редактирования.");
+                return;
+            }
+
+            var idx = grid.SelectedRows[0].Index;
+            if (idx < 0 || idx >= info.list.Count) return;
+
+            var room = info.list[idx] as RoomData;
+            if (room == null) return;
+
+            using (var form = new EditRoomForm(room, _gameData, false))
+            {
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    RefreshCurrentGrid();
+                    _statusLabel.Text = $"Обновлено помещение: {room.Name}";
+                }
+            }
+        }
+
+        // Методы для работы с входами в помещения
+        private void AddNewRoomEntrance()
+        {
+            var nextId = GetNextRoomEntranceId();
+            var newEntrance = new RoomEntranceData
+            {
+                ID = nextId,
+                Name = $"Новый вход {nextId}",
+                Description = "Описание нового входа",
+                TargetRoomID = 0,
+                ParentLocationID = 0,
+                EntranceType = "entrance",
+                IsLocked = false,
+                LockDescription = "",
+                RequiresKey = false,
+                RequiredKeyID = 0,
+                RequiredItemIDs = new List<int>()
+            };
+
+            using (var form = new EditRoomEntranceForm(newEntrance, _gameData, true))
+            {
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    _gameData.RoomEntrances.Add(newEntrance);
+                    RefreshCurrentGrid();
+                    _statusLabel.Text = $"Добавлен новый вход: {newEntrance.Name}";
+                }
+            }
+        }
+
+        private void EditSelectedRoomEntrance()
+        {
+            if (!_lists.TryGetValue("RoomEntrances", out var info)) return;
+            var grid = info.grid;
+            if (grid.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Выберите вход для редактирования.");
+                return;
+            }
+
+            var idx = grid.SelectedRows[0].Index;
+            if (idx < 0 || idx >= info.list.Count) return;
+
+            var entrance = info.list[idx] as RoomEntranceData;
+            if (entrance == null) return;
+
+            using (var form = new EditRoomEntranceForm(entrance, _gameData, false))
+            {
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    RefreshCurrentGrid();
+                    _statusLabel.Text = $"Обновлен вход: {entrance.Name}";
+                }
+            }
+        }
+
+        // Вспомогательные методы для генерации ID
+        private int GetNextRoomId()
+        {
+            if (_gameData.Rooms.Count == 0) return 5001;
+            return _gameData.Rooms.Max(r => r.ID) + 1;
+        }
+
+        private int GetNextRoomEntranceId()
+        {
+            if (_gameData.RoomEntrances.Count == 0) return 6001;
+            return _gameData.RoomEntrances.Max(r => r.ID) + 1;
         }
     }
 }
