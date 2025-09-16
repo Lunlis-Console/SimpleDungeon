@@ -57,7 +57,7 @@ namespace JsonEditor
             _gameData = gameData;
             _document = document ?? new Engine.Dialogue.DialogueDocument
             {
-                Id = "new_dialogue",
+                Id = GetNextDialogueId().ToString(),
                 Name = "Новый диалог",
                 Start = "greeting",
                 Nodes = new List<Engine.Dialogue.DialogueNode>()
@@ -65,6 +65,21 @@ namespace JsonEditor
 
             InitializeComponent();
             LoadDocument();
+        }
+
+        private int GetNextDialogueId()
+        {
+            int maxId = 0;
+            
+            foreach (var dialogue in _gameData.Dialogues)
+            {
+                if (int.TryParse(dialogue.Id, out int id) && id > maxId)
+                {
+                    maxId = id;
+                }
+            }
+            
+            return maxId + 1;
         }
 
         private void InitializeComponent()

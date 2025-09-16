@@ -35,6 +35,13 @@ namespace Engine.UI
             // Включаем режим диалога для MessageSystem
             MessageSystem.EnterDialogueMode();
 
+            // Уведомляем QuestManager о начале разговора с NPC
+            var questManager = GameServices.QuestManager;
+            if (questManager != null)
+            {
+                questManager.OnNPCTalked(_npc, _player);
+            }
+
             // Попробуем инициализировать диалог из NPC
             TryInitializeDialogueFromNpc();
 

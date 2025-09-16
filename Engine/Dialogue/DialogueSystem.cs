@@ -88,6 +88,17 @@ namespace Engine.Dialogue
                             }
                             return false;
 
+                        case "questReadyToComplete":
+                            if (player == null || string.IsNullOrEmpty(val)) return false;
+                            if (int.TryParse(val, out var readyQuestIdGlobal))
+                            {
+                                var quest = player.QuestLog.GetQuest(readyQuestIdGlobal);
+                                var result = quest != null && quest.State == QuestState.ReadyToComplete;
+                                DebugConsole.Log($"questReadyToComplete:{readyQuestIdGlobal} - Quest: {quest?.Name}, State: {quest?.State}, Result: {result}");
+                                return result;
+                            }
+                            return false;
+
                     default:
                         DebugConsole.Log($"Неизвестное условие диалога: {key}");
                         return true;

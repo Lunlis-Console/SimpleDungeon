@@ -275,6 +275,13 @@ namespace JsonEditor
                 return;
             }
             
+            // Специальная обработка для диалогов
+            if (listName.ToLower() == "dialogues")
+            {
+                AddNewDialogue();
+                return;
+            }
+            
             var elemType = info.elementType;
             object newElem = null;
             try
@@ -630,6 +637,60 @@ namespace JsonEditor
                     _statusLabel.Text = "Добавлен новый квест";
                 }
             }
+        }
+
+        private void AddNewDialogue()
+        {
+            // Генерируем новый ID для диалога
+            var nextId = GetNextDialogueId();
+            
+            var newDialogue = new DialogueData
+            {
+                Id = nextId.ToString(),
+                Name = $"Новый диалог {nextId}",
+                Start = "greeting",
+                Nodes = new List<DialogueNodeData>()
+            };
+
+            // Конвертируем в DialogueDocument для редактирования
+            var document = ConvertDialogueDataToDocument(newDialogue);
+            
+            using (var form = new NewDialogueEditorForm(_gameData, document))
+            {
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    var editedDocument = form.GetDocument();
+                    // Конвертируем обратно в DialogueData
+                    ConvertDocumentToDialogueData(editedDocument, newDialogue);
+                    
+                    _gameData.Dialogues.Add(newDialogue);
+
+                    // Полностью перезагружаем DataSource
+                    if (_lists.TryGetValue("Dialogues", out var dialoguesInfo))
+                    {
+                        dialoguesInfo.grid.DataSource = null;
+                        dialoguesInfo.grid.DataSource = _gameData.Dialogues;
+                        dialoguesInfo.grid.Refresh();
+                    }
+
+                    _statusLabel.Text = "Добавлен новый диалог";
+                }
+            }
+        }
+
+        private int GetNextDialogueId()
+        {
+            int maxId = 0;
+            
+            foreach (var dialogue in _gameData.Dialogues)
+            {
+                if (int.TryParse(dialogue.Id, out int id) && id > maxId)
+                {
+                    maxId = id;
+                }
+            }
+            
+            return maxId + 1;
         }
         private void EditDialogue(DialogueData dialogue)
         {

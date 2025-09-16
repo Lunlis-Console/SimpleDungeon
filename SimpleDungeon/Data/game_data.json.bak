@@ -838,6 +838,32 @@
         "InProgress": "quest_5003_progress",
         "ReadyToComplete": "quest_5003_readyToComplete"
       }
+    },
+    {
+      "id": 5004,
+      "name": "Что с деньгами?",
+      "description": "Охотник попросил вас узнать у Зарубия по поводу долга.",
+      "questGiverId": 4004,
+      "conditions": [
+        {
+          "id": 0,
+          "type": "TalkToNPC",
+          "description": "Поговорить с купцом Зарубием",
+          "requiredAmount": 1,
+          "targetId": 4001,
+          "currentProgress": 0,
+          "isCompleted": false
+        }
+      ],
+      "rewards": {
+        "experience": 25,
+        "gold": 25
+      },
+      "dialogueNodes": {
+        "Offer": "quest_5004_offer",
+        "InProgress": "quest_5004_progress",
+        "ReadyToComplete": "quest_5004_readyToComplete"
+      }
     }
   ],
   "NPCs": [
@@ -930,7 +956,8 @@
       "Greeting": "Эй, ищешь работу? У меня есть пара заданий для смельчака.",
       "Merchant": {
         "Gold": 0
-      }
+      },
+      "DefaultDialogueId": "7004"
     },
     {
       "ID": 4005,
@@ -1233,6 +1260,19 @@
               "NextNodeId": "quest_5002_readyToComplete",
               "Condition": "questReadyToCompleteForNPC:5002",
               "Action": 0
+            },
+            {
+              "Text": "Я пришел кое-о-чем тебе напомнить, Зарубий.",
+              "NextNodeId": "quest_5004_readyToComplete",
+              "Condition": "questInProgressForNPC:5004",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 4,
+                  "Parameter": "5004"
+                }
+              ],
+              "ActionSummary": "CompleteQuest (5004)"
             }
           ]
         },
@@ -1383,6 +1423,23 @@
               "ActionSummary": "EndDialogue"
             }
           ]
+        },
+        {
+          "Id": "quest_5004_readyToComplete",
+          "Text": "Точно! Совсем забыл, что проиграл некую сумму Охотнику. Спасибо, что напомнил, вот тебе за труды.",
+          "Type": "quest_complete",
+          "Choices": [
+            {
+              "Text": "Спасибо, я пошел.",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 7
+                }
+              ],
+              "ActionSummary": "EndDialogue"
+            }
+          ]
         }
       ]
     },
@@ -1453,7 +1510,7 @@
           "Choices": [
             {
               "Text": "Я найду твои ящики.",
-              "Condition": "questAvailableForNPC:5002",
+              "Condition": "questAvailableForNPC:5003",
               "Action": 0,
               "Actions": [
                 {
@@ -1502,6 +1559,94 @@
             {
               "Text": "Спасибо.",
               "Condition": "questReadyToCompleteForNPC:5003",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 7
+                }
+              ],
+              "ActionSummary": "EndDialogue"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Id": "7004",
+      "Name": "Диалог Охотника",
+      "Start": "default_hunter",
+      "Nodes": [
+        {
+          "Id": "default_hunter",
+          "Text": "Привет, любишь охоту?",
+          "Type": "greeting",
+          "Choices": [
+            {
+              "Text": "Конечно, слышал, у тебя есть одно дело.",
+              "NextNodeId": "quest_5004_offer",
+              "Condition": "questAvailableForNPC:5004",
+              "Action": 0
+            },
+            {
+              "Text": "По поводу Зарубия...",
+              "NextNodeId": "quest_5004_progress",
+              "Condition": "questInProgressForNPC:5004",
+              "Action": 0
+            },
+            {
+              "Text": "Я пошел...",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 7
+                }
+              ],
+              "ActionSummary": "EndDialogue"
+            }
+          ]
+        },
+        {
+          "Id": "quest_5004_offer",
+          "Text": "Да, иди и поговори с купцом Зарубием, он задолжал мне неплохую сумму в кости. Напомни ему обо мне.",
+          "Type": "quest_offer",
+          "Choices": [
+            {
+              "Text": "Я сделаю это.",
+              "Condition": "questAvailableForNPC:5004",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 3,
+                  "Parameter": "5004"
+                },
+                {
+                  "Type": 7,
+                  "Parameter": "5004"
+                }
+              ],
+              "ActionSummary": "StartQuest (5004), EndDialogue (5004)"
+            },
+            {
+              "Text": "Я не буду этого делать.",
+              "Condition": "questAvailableForNPC:5004",
+              "Action": 0,
+              "Actions": [
+                {
+                  "Type": 7
+                }
+              ],
+              "ActionSummary": "EndDialogue"
+            }
+          ]
+        },
+        {
+          "Id": "quest_5004_progress",
+          "Text": "Ну что там еще? Просто иди и напомни ему, что он должен мне денег! Я же не прошу тебя избить его, а? С этим и ребенок справится!",
+          "Type": "quest_progress",
+          "Choices": [
+            {
+              "Text": "Понял я, иду...",
+              "Condition": "questInProgressForNPC:5004",
               "Action": 0,
               "Actions": [
                 {
