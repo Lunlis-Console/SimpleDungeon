@@ -15,5 +15,15 @@
         Stuff,
         Quest
     }
+
+    public enum ItemCategory
+    {
+        All,           // Все
+        Weapons,       // Оружие
+        Armor,         // Броня (включая амулеты и кольца)
+        Books,         // Книги
+        QuestItems,    // Квестовые предметы
+        Other          // Прочее
+    }
 }
 

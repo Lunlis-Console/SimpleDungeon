@@ -10,14 +10,18 @@ namespace Engine.UI
     {
         private readonly Player _player;
         private int _selectedIndex;
+        private List<object> _allItems;
         private List<object> _displayItems;
         private object _lastSelectedItem; // Для отслеживания изменений
+        private ItemCategory _currentCategory;
 
         public InventoryScreen(Player player)
         {
             _player = player;
             _selectedIndex = 0;
-            _displayItems = InventoryUI.PrepareInventoryItems(player);
+            _currentCategory = ItemCategory.All;
+            _allItems = InventoryUI.PrepareInventoryItems(player);
+            _displayItems = ItemCategoryHelper.FilterItemsByCategory(_allItems, _currentCategory);
             _lastSelectedItem = null;
         }
 
@@ -36,16 +40,22 @@ namespace Engine.UI
         public override void Render()
         {
             ClearScreen();
-            RenderHeader("ИНВЕНТАРЬ");
+            RenderHeader($"ИНВЕНТАРЬ - {ItemCategoryHelper.GetCategoryDisplayName(_currentCategory)}");
             RenderInventoryItems();
             RenderItemInfo(); // Новая область для информации о предмете
-            RenderFooter("W/S - выбор │ E - действие │ Q - назад");
+            RenderFooter("W/S - выбор │ A/D - категории │ E - действие │ Q - назад");
         }
 
         private void RenderInventoryItems()
         {
             int startY = 4;
             int maxItems = Console.WindowHeight - 10; // Уменьшили высоту списка
+
+            if (_displayItems.Count == 0)
+            {
+                _renderer.Write(2, startY, "В этой категории нет предметов", ConsoleColor.DarkGray);
+                return;
+            }
 
             for (int i = 0; i < Math.Min(_displayItems.Count, maxItems); i++)
             {
@@ -210,14 +220,28 @@ namespace Engine.UI
             {
                 case ConsoleKey.W:
                 case ConsoleKey.UpArrow:
-                    _selectedIndex = Math.Max(0, _selectedIndex - 1);
-                    RequestPartialRedraw(); // Запрашиваем частичную перерисовку
+                    if (_displayItems.Count > 0)
+                    {
+                        _selectedIndex = Math.Max(0, _selectedIndex - 1);
+                        RequestPartialRedraw(); // Запрашиваем частичную перерисовку
+                    }
                     break;
 
                 case ConsoleKey.S:
                 case ConsoleKey.DownArrow:
-                    _selectedIndex = Math.Min(_displayItems.Count - 1, _selectedIndex + 1);
-                    RequestPartialRedraw(); // Запрашиваем частичную перерисовку
+                    if (_displayItems.Count > 0)
+                    {
+                        _selectedIndex = Math.Min(_displayItems.Count - 1, _selectedIndex + 1);
+                        RequestPartialRedraw(); // Запрашиваем частичную перерисовку
+                    }
+                    break;
+
+                case ConsoleKey.A:
+                    SwitchToPreviousCategory();
+                    break;
+
+                case ConsoleKey.D:
+                    SwitchToNextCategory();
                     break;
 
                 case ConsoleKey.E:
@@ -234,8 +258,33 @@ namespace Engine.UI
         }
         public void RefreshInventoryList()
         {
-            _displayItems = InventoryUI.PrepareInventoryItems(_player);
-            _selectedIndex = Math.Min(_selectedIndex, _displayItems.Count - 1);
+            _allItems = InventoryUI.PrepareInventoryItems(_player);
+            _displayItems = ItemCategoryHelper.FilterItemsByCategory(_allItems, _currentCategory);
+            _selectedIndex = _displayItems.Count > 0 ? Math.Min(_selectedIndex, _displayItems.Count - 1) : 0;
+            RequestRedraw();
+        }
+
+        private void SwitchToNextCategory()
+        {
+            var categories = Enum.GetValues<ItemCategory>();
+            int currentIndex = Array.IndexOf(categories, _currentCategory);
+            int nextIndex = (currentIndex + 1) % categories.Length;
+            _currentCategory = categories[nextIndex];
+            
+            _displayItems = ItemCategoryHelper.FilterItemsByCategory(_allItems, _currentCategory);
+            _selectedIndex = _displayItems.Count > 0 ? Math.Min(_selectedIndex, _displayItems.Count - 1) : 0;
+            RequestRedraw();
+        }
+
+        private void SwitchToPreviousCategory()
+        {
+            var categories = Enum.GetValues<ItemCategory>();
+            int currentIndex = Array.IndexOf(categories, _currentCategory);
+            int prevIndex = (currentIndex - 1 + categories.Length) % categories.Length;
+            _currentCategory = categories[prevIndex];
+            
+            _displayItems = ItemCategoryHelper.FilterItemsByCategory(_allItems, _currentCategory);
+            _selectedIndex = _displayItems.Count > 0 ? Math.Min(_selectedIndex, _displayItems.Count - 1) : 0;
             RequestRedraw();
         }
 
@@ -289,7 +338,7 @@ namespace Engine.UI
         }
         private void HandleItemSelection()
         {
-            if (_selectedIndex < 0 || _selectedIndex >= _displayItems.Count)
+            if (_displayItems.Count == 0 || _selectedIndex < 0 || _selectedIndex >= _displayItems.Count)
                 return;
 
             var selectedItem = _displayItems[_selectedIndex];
