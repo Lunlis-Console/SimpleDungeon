@@ -27,7 +27,16 @@ namespace Engine.UI
             RenderAreaInfo();
             RenderCreatures();
             RenderGroundItems();
+            RenderRoomEntrances();
             RenderNavigation();
+        }
+
+        public override void Update()
+        {
+            // Обновляем состояние при каждом обновлении экрана
+            _currentLocation = _player.CurrentLocation;
+            _currentRoom = _player.CurrentRoom;
+            base.Update();
         }
 
         private void RenderAreaInfo()
@@ -147,6 +156,26 @@ namespace Engine.UI
             }
         }
 
+        private void RenderRoomEntrances()
+        {
+            // Отображаем входы в помещения только если мы в основной локации (не в помещении)
+            if (_currentRoom != null) return;
+
+            int rightColumn = Console.WindowWidth / 2 + 2;
+            int y = 6; // Начинаем с той же позиции, что и монстры/жители
+
+            if (_currentLocation.RoomEntrances.Count > 0)
+            {
+                _renderer.Write(rightColumn, y, "Входы в помещения:", ConsoleColor.Cyan);
+                y++;
+                foreach (var entrance in _currentLocation.RoomEntrances)
+                {
+                    _renderer.Write(rightColumn + 2, y, $"• {entrance.GetDisplayName()}", ConsoleColor.Yellow);
+                    y++;
+                }
+            }
+        }
+
         private void RenderNavigation()
         {
             RenderFooter("WASD - движение │ I - инвентарь │ C - персонаж │ J - журнал │ E - взаимодействие │ ESC - меню", 0);
@@ -196,8 +225,8 @@ namespace Engine.UI
             _renderer.Write(compassX + 3, compassY, "│", ConsoleColor.DarkGray);
             _renderer.Write(compassX + 3, compassY + 2, "│", ConsoleColor.DarkGray);
 
-            // Если в помещении, показываем кнопку выхода
-            if (_currentRoom != null)
+            // Если в помещении, показываем кнопку выхода только в корневом помещении
+            if (_currentRoom != null && _currentRoom == _player.RootRoom)
             {
                 _renderer.Write(compassX - 15, compassY + 1, "Q - Выйти", ConsoleColor.Cyan);
             }
@@ -239,7 +268,7 @@ namespace Engine.UI
                     break;
 
                 case ConsoleKey.Q:
-                    if (_currentRoom != null)
+                    if (_currentRoom != null && _currentRoom == _player.RootRoom)
                     {
                         ExitRoom();
                         RequestPartialRedraw();
@@ -311,7 +340,6 @@ namespace Engine.UI
             _player.MoveTo(newLocation);
             _currentLocation = newLocation;
             _currentRoom = null; // Выходим из помещения при перемещении между локациями
-            MessageSystem.AddMessage($"Вы переместились в {newLocation.Name}");
             ScreenManager.RequestPartialRedraw();
         }
 
@@ -325,7 +353,6 @@ namespace Engine.UI
 
             _player.MoveToRoom(newRoom);
             _currentRoom = newRoom;
-            MessageSystem.AddMessage($"Вы переместились в {newRoom.Name}");
             ScreenManager.RequestPartialRedraw();
         }
 

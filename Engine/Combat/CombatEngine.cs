@@ -314,7 +314,7 @@ namespace Engine.Combat
             if (tempDef > 0) dmg = Math.Max(0, dmg - tempDef);
 
             int pHp = GetIntSafe(Player, new[] { "CurrentHP" });
-            pHp -= dmg;
+            pHp = Math.Max(0, pHp - dmg);
             SetIntSafe(Player, "CurrentHP", pHp);
 
             AddToCombatLog($"{GetName(Monster)} атакует {GetName(Player)} и наносит {dmg} урона.");
@@ -405,7 +405,7 @@ namespace Engine.Combat
 
             int dmg = Math.Max(1, pAtk - mDef);
             int mHp = GetIntSafe(Monster, new[] { "CurrentHP" });
-            mHp -= dmg;
+            mHp = Math.Max(0, mHp - dmg);
             SetIntSafe(Monster, "CurrentHP", mHp);
 
             AddToCombatLog($"{GetName(Player)} атакует {GetName(Monster)} и наносит {dmg} урона.");
@@ -428,7 +428,7 @@ namespace Engine.Combat
             if (power == 0) power = GetIntSafe(Player, new[] { "Agility" }) * 2;
             int mHp = GetIntSafe(Monster, new[] { "CurrentHP" });
             int dmg = Math.Max(1, power);
-            mHp -= dmg;
+            mHp = Math.Max(0, mHp - dmg);
             SetIntSafe(Monster, "CurrentHP", mHp);
 
             AddToCombatLog($"{GetName(Player)} использует заклинание и наносит {dmg} магического урона по {GetName(Monster)}.");

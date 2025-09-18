@@ -40,6 +40,7 @@ namespace Engine.Entities
         public int CurrentSpeed { get; set; }
         public Location CurrentLocation { get; set; }
         public Room CurrentRoom { get; set; } // Текущее помещение (null если в основной локации)
+        public Room RootRoom { get; set; } // Корневое помещение (в которое игрок вошел через вход)
         public Inventory Inventory { get; private set; }
         public Monster CurrentMonster { get; set; }
         public bool IsInCombat { get; set; }
@@ -155,6 +156,12 @@ namespace Engine.Entities
             if (room == null)
                 return;
 
+            // Если игрок не в помещении, то это первый вход - устанавливаем корневое помещение
+            if (CurrentRoom == null)
+            {
+                RootRoom = room;
+            }
+
             CurrentRoom = room;
 
             // Спавним монстров в помещении
@@ -180,6 +187,7 @@ namespace Engine.Entities
 
             var roomName = CurrentRoom.Name;
             CurrentRoom = null;
+            RootRoom = null; // Сбрасываем корневое помещение при выходе
 
             MessageSystem.AddMessage($"Вы вышли из {roomName}");
             MessageSystem.AddMessage($"Вы находитесь в {CurrentLocation.Name}");
@@ -575,8 +583,8 @@ namespace Engine.Entities
                 BaseAttack += 2;
                 BaseDefence += 2;
 
-                Console.WriteLine($"Поздравляем! Вы достигли {Level} уровня!");
-                Console.WriteLine("Ваши параметры увеличились!");
+                MessageSystem.AddMessage($"Поздравляем! Вы достигли {Level} уровня!");
+                MessageSystem.AddMessage("Ваши параметры увеличились!");
             }
         }
 

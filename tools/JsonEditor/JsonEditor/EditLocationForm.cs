@@ -21,6 +21,7 @@ namespace JsonEditor
         private DataGridView gridNPCs;
         private DataGridView gridMonsters;
         private DataGridView gridGroundItems;
+        private DataGridView gridRoomEntrances;
 
         private ComboBox comboNorth;
         private ComboBox comboEast;
@@ -43,7 +44,7 @@ namespace JsonEditor
         {
             this.Text = "Редактирование локации";
             this.Width = 700;
-            this.Height = 800; // Увеличиваем высоту для новой секции
+            this.Height = 900; // Увеличиваем высоту для новой секции входов в помещения
             this.StartPosition = FormStartPosition.CenterParent;
 
             var lblID = new Label { Text = "ID:", Left = 10, Top = 14, Width = 60 };
@@ -97,20 +98,43 @@ namespace JsonEditor
                 AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
             };
 
-            var lblNorth = new Label { Text = "Север:", Left = 10, Top = 540, Width = 80 };
-            comboNorth = new ComboBox { Left = 100, Top = 536, Width = 200, DropDownStyle = ComboBoxStyle.DropDownList };
+            var lblRoomEntrances = new Label { Text = "Входы в помещения:", Left = 10, Top = 560, Width = 120 };
+            gridRoomEntrances = new DataGridView
+            {
+                Left = 100,
+                Top = 540,
+                Width = 460,
+                Height = 120,
+                AllowUserToAddRows = false,
+                AllowUserToDeleteRows = false,
+                RowHeadersVisible = false,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+            };
 
-            var lblEast = new Label { Text = "Восток:", Left = 320, Top = 540, Width = 80 };
-            comboEast = new ComboBox { Left = 400, Top = 536, Width = 260, DropDownStyle = ComboBoxStyle.DropDownList };
+            // Кнопки для управления входами в помещения
+            var btnAddEntrance = new Button { Text = "Добавить", Left = 570, Top = 540, Width = 80, Height = 25 };
+            var btnEditEntrance = new Button { Text = "Редактировать", Left = 570, Top = 570, Width = 80, Height = 25 };
+            var btnRemoveEntrance = new Button { Text = "Удалить", Left = 570, Top = 600, Width = 80, Height = 25 };
 
-            var lblSouth = new Label { Text = "Юг:", Left = 10, Top = 580, Width = 80 };
-            comboSouth = new ComboBox { Left = 100, Top = 576, Width = 200, DropDownStyle = ComboBoxStyle.DropDownList };
+            btnAddEntrance.Click += (s, e) => AddRoomEntrance();
+            btnEditEntrance.Click += (s, e) => EditRoomEntrance();
+            btnRemoveEntrance.Click += (s, e) => RemoveRoomEntrance();
 
-            var lblWest = new Label { Text = "Запад:", Left = 320, Top = 580, Width = 80 };
-            comboWest = new ComboBox { Left = 400, Top = 576, Width = 260, DropDownStyle = ComboBoxStyle.DropDownList };
+            var lblNorth = new Label { Text = "Север:", Left = 10, Top = 680, Width = 80 };
+            comboNorth = new ComboBox { Left = 100, Top = 676, Width = 200, DropDownStyle = ComboBoxStyle.DropDownList };
 
-            btnOk = new Button { Text = "OK", Left = 480, Top = 620, Width = 80 };
-            btnCancel = new Button { Text = "Отмена", Left = 580, Top = 620, Width = 80 };
+            var lblEast = new Label { Text = "Восток:", Left = 320, Top = 680, Width = 80 };
+            comboEast = new ComboBox { Left = 400, Top = 676, Width = 260, DropDownStyle = ComboBoxStyle.DropDownList };
+
+            var lblSouth = new Label { Text = "Юг:", Left = 10, Top = 720, Width = 80 };
+            comboSouth = new ComboBox { Left = 100, Top = 716, Width = 200, DropDownStyle = ComboBoxStyle.DropDownList };
+
+            var lblWest = new Label { Text = "Запад:", Left = 320, Top = 720, Width = 80 };
+            comboWest = new ComboBox { Left = 400, Top = 716, Width = 260, DropDownStyle = ComboBoxStyle.DropDownList };
+
+            btnOk = new Button { Text = "OK", Left = 480, Top = 760, Width = 80 };
+            btnCancel = new Button { Text = "Отмена", Left = 580, Top = 760, Width = 80 };
 
             btnOk.Click += BtnOk_Click;
             btnCancel.Click += (s, e) => { this.DialogResult = DialogResult.Cancel; this.Close(); };
@@ -127,6 +151,11 @@ namespace JsonEditor
             this.Controls.Add(gridMonsters);
             this.Controls.Add(lblGroundItems);
             this.Controls.Add(gridGroundItems);
+            this.Controls.Add(lblRoomEntrances);
+            this.Controls.Add(gridRoomEntrances);
+            this.Controls.Add(btnAddEntrance);
+            this.Controls.Add(btnEditEntrance);
+            this.Controls.Add(btnRemoveEntrance);
             this.Controls.Add(lblNorth);
             this.Controls.Add(comboNorth);
             this.Controls.Add(lblEast);
@@ -167,10 +196,20 @@ namespace JsonEditor
             var colCountItem = new DataGridViewTextBoxColumn { Name = "Count", HeaderText = "Кол-во", FillWeight = 20 };
             gridGroundItems.Columns.AddRange(new DataGridViewColumn[] { colSelItem, colIdItem, colNameItem, colCountItem });
 
+            // Room Entrances grid columns: Selected, ID, Name, Target Room, Type
+            gridRoomEntrances.Columns.Clear();
+            var colSelEntrance = new DataGridViewCheckBoxColumn { Name = "Selected", HeaderText = "Вкл.", Width = 40 };
+            var colIdEntrance = new DataGridViewTextBoxColumn { Name = "ID", HeaderText = "ID", ReadOnly = true, FillWeight = 15 };
+            var colNameEntrance = new DataGridViewTextBoxColumn { Name = "Name", HeaderText = "Название", ReadOnly = true, FillWeight = 35 };
+            var colTargetRoomEntrance = new DataGridViewTextBoxColumn { Name = "TargetRoom", HeaderText = "Целевое помещение", ReadOnly = true, FillWeight = 30 };
+            var colTypeEntrance = new DataGridViewTextBoxColumn { Name = "Type", HeaderText = "Тип", ReadOnly = true, FillWeight = 20 };
+            gridRoomEntrances.Columns.AddRange(new DataGridViewColumn[] { colSelEntrance, colIdEntrance, colNameEntrance, colTargetRoomEntrance, colTypeEntrance });
+
             // Удобные настройки
             gridNPCs.AllowUserToResizeRows = false;
             gridMonsters.AllowUserToResizeRows = false;
             gridGroundItems.AllowUserToResizeRows = false;
+            gridRoomEntrances.AllowUserToResizeRows = false;
         }
 
         private void LoadData()
@@ -240,6 +279,23 @@ namespace JsonEditor
                 }
 
                 gridGroundItems.Rows.Add(selected, item.ID, item.Name, count);
+            }
+
+            // Room Entrances: fill grid rows
+            gridRoomEntrances.Rows.Clear();
+            foreach (var entrance in _gameData.RoomEntrances)
+            {
+                bool selected = _location.RoomEntrances.Contains(entrance.ID);
+                
+                // Найти название целевого помещения
+                string targetRoomName = "Неизвестно";
+                var targetRoom = _gameData.Rooms.FirstOrDefault(r => r.ID == entrance.TargetRoomID);
+                if (targetRoom != null)
+                {
+                    targetRoomName = $"{targetRoom.Name} (ID: {targetRoom.ID})";
+                }
+
+                gridRoomEntrances.Rows.Add(selected, entrance.ID, entrance.Name, targetRoomName, entrance.EntranceType);
             }
 
             // Локации для переходов
@@ -452,9 +508,30 @@ namespace JsonEditor
                 selectedItemsMap[id] = cnt;
             }
 
+            // Набор выбранных входов в помещения
+            var selectedEntrances = new List<int>();
+            foreach (DataGridViewRow row in gridRoomEntrances.Rows)
+            {
+                try
+                {
+                    bool sel = Convert.ToBoolean(row.Cells["Selected"].Value);
+                    if (!sel) continue;
+                }
+                catch
+                {
+                    continue;
+                }
+
+                if (!int.TryParse(Convert.ToString(row.Cells["ID"].Value), out int id)) continue;
+                selectedEntrances.Add(id);
+            }
+
             // Сохраняем старую совместимую структуру (список ID)
             _location.NPCsHere = selectedNpcMap.Keys.ToList();
             _location.MonsterTemplates = selectedMonMap.Keys.ToList();
+
+            // Сохраняем входы в помещения
+            _location.RoomEntrances = selectedEntrances;
 
             // Попытка записать новые структуры, если они есть (через reflection)
             TrySetNpcSpawnsOnLocation(selectedNpcMap);
@@ -574,5 +651,101 @@ namespace JsonEditor
         }
 
         public LocationData GetLocation() => _location;
+
+        private void AddRoomEntrance()
+        {
+            var newEntrance = new RoomEntranceData
+            {
+                ID = GetNextEntranceId(),
+                Name = "Новый вход",
+                Description = "Описание входа",
+                TargetRoomID = 0,
+                ParentLocationID = _location.ID,
+                EntranceType = "entrance",
+                IsLocked = false,
+                LockDescription = "",
+                RequiresKey = false,
+                RequiredKeyID = 0,
+                RequiredItemIDs = new List<int>()
+            };
+
+            using (var form = new EditRoomEntranceForm(newEntrance, _gameData, true))
+            {
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    _gameData.RoomEntrances.Add(newEntrance);
+                    LoadData(); // Перезагружаем данные для обновления сетки
+                }
+            }
+        }
+
+        private void EditRoomEntrance()
+        {
+            if (gridRoomEntrances.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Выберите вход для редактирования.", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var selectedRow = gridRoomEntrances.SelectedRows[0];
+            if (!int.TryParse(Convert.ToString(selectedRow.Cells["ID"].Value), out int entranceId))
+            {
+                MessageBox.Show("Ошибка получения ID входа.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            var entrance = _gameData.RoomEntrances.FirstOrDefault(e => e.ID == entranceId);
+            if (entrance == null)
+            {
+                MessageBox.Show("Вход не найден.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            using (var form = new EditRoomEntranceForm(entrance, _gameData, false))
+            {
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    LoadData(); // Перезагружаем данные для обновления сетки
+                }
+            }
+        }
+
+        private void RemoveRoomEntrance()
+        {
+            if (gridRoomEntrances.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Выберите вход для удаления.", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var selectedRow = gridRoomEntrances.SelectedRows[0];
+            if (!int.TryParse(Convert.ToString(selectedRow.Cells["ID"].Value), out int entranceId))
+            {
+                MessageBox.Show("Ошибка получения ID входа.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            var entrance = _gameData.RoomEntrances.FirstOrDefault(e => e.ID == entranceId);
+            if (entrance == null)
+            {
+                MessageBox.Show("Вход не найден.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            var result = MessageBox.Show($"Вы уверены, что хотите удалить вход '{entrance.Name}'?", 
+                "Подтверждение удаления", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            
+            if (result == DialogResult.Yes)
+            {
+                _gameData.RoomEntrances.Remove(entrance);
+                LoadData(); // Перезагружаем данные для обновления сетки
+            }
+        }
+
+        private int GetNextEntranceId()
+        {
+            if (_gameData.RoomEntrances.Count == 0) return 6001;
+            return _gameData.RoomEntrances.Max(e => e.ID) + 1;
+        }
     }
 }

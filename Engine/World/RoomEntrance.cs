@@ -109,10 +109,10 @@ namespace Engine.World
 
             // Перемещаем игрока в помещение
             player.MoveToRoom(targetRoom);
-            Engine.Core.MessageSystem.AddMessage($"Вы вошли в {targetRoom.Name}");
             
-            // Обновляем экран
-            ScreenManager.RequestPartialRedraw();
+            // Закрываем экран взаимодействия и возвращаемся к игровому миру
+            ScreenManager.PopScreen();
+            ScreenManager.RequestFullRedraw();
         }
 
         private void TryToUnlock(Player player)

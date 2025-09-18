@@ -624,6 +624,9 @@
         2003,
         2007
       ],
+      "RoomEntrances": [
+        6001
+      ],
       "ScaleMonstersToPlayerLevel": true,
       "LocationToSouth": 3001
     },
@@ -1264,7 +1267,7 @@
             {
               "Text": "Я пришел кое-о-чем тебе напомнить, Зарубий.",
               "NextNodeId": "quest_5004_readyToComplete",
-              "Condition": "questInProgressForNPC:5004",
+              "Condition": "questReadyToComplete:5004",
               "Action": 0,
               "Actions": [
                 {
@@ -1434,10 +1437,14 @@
               "Action": 0,
               "Actions": [
                 {
+                  "Type": 4,
+                  "Parameter": "5004"
+                },
+                {
                   "Type": 7
                 }
               ],
-              "ActionSummary": "EndDialogue"
+              "ActionSummary": "CompleteQuest (5004), EndDialogue"
             }
           ]
         }
@@ -1658,6 +1665,76 @@
           ]
         }
       ]
+    }
+  ],
+  "Rooms": [
+    {
+      "ID": 5001,
+      "Name": "Пещера крыс",
+      "Description": "Темная и сырая пещера, полная крыс. Стены покрыты мхом, а воздух пропитан запахом гнили.",
+      "ParentLocationID": 3002,
+      "MonsterSpawns": [
+        {
+          "MonsterTemplateID": 2003,
+          "Level": 1,
+          "SpawnWeight": 1,
+          "Count": 2
+        }
+      ],
+      "MonsterTemplates": [
+        2003
+      ],
+      "RoomToEast": 5002,
+      "ScaleMonstersToPlayerLevel": true
+    },
+    {
+      "ID": 5002,
+      "Name": "Глубокий зал",
+      "Description": "Просторный зал с высокими потолками. В центре стоит древний алтарь, покрытый пылью веков.",
+      "ParentLocationID": 3002,
+      "GroundItems": [
+        {
+          "ItemID": 1102,
+          "Quantity": 1
+        }
+      ],
+      "MonsterSpawns": [
+        {
+          "MonsterTemplateID": 2007,
+          "Level": 2,
+          "SpawnWeight": 1,
+          "Count": 1
+        }
+      ],
+      "MonsterTemplates": [
+        2007
+      ],
+      "RoomToWest": 5001,
+      "ScaleMonstersToPlayerLevel": true
+    },
+    {
+      "ID": 5003,
+      "Name": "Пещерная река",
+      "Description": "Здесь влажно и в темноте слышно журчание воды.",
+      "ParentLocationID": 3002,
+      "MonsterTemplates": [
+        2003
+      ],
+      "RoomToWest": 5002,
+      "ScaleMonstersToPlayerLevel": true
+    }
+  ],
+  "RoomEntrances": [
+    {
+      "ID": 6001,
+      "Name": "Вход в пещеру",
+      "Description": "Темный проход, ведущий вглубь скалы. Отсюда доносится писк крыс.",
+      "TargetRoomID": 5001,
+      "ParentLocationID": 3002,
+      "EntranceType": "cave",
+      "IsLocked": false,
+      "RequiresKey": false,
+      "RequiredKeyID": 0
     }
   ]
 }
