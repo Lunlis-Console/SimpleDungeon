@@ -3,6 +3,7 @@ using Engine.Entities;
 using Engine.Saving;
 using Engine.World;
 using Engine.Dialogue;
+using Engine.Data;
 
 namespace Engine.Factories
 {
@@ -158,6 +159,66 @@ namespace Engine.Factories
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Создает сундук из данных
+        /// </summary>
+        public Chest CreateChest(ChestData chestData)
+        {
+            if (chestData == null) return null;
+
+            try
+            {
+                var chest = new Chest(
+                    chestData.ID,
+                    chestData.Name,
+                    chestData.NamePlural,
+                    chestData.Price,
+                    chestData.Description,
+                    chestData.IsLocked,
+                    chestData.IsTrapped,
+                    chestData.RequiresKey,
+                    chestData.RequiredKeyID,
+                    chestData.RequiredItemIDs,
+                    chestData.MaxCapacity
+                );
+
+                // Добавляем начальное содержимое
+                foreach (var itemData in chestData.InitialContents)
+                {
+                    var item = _worldRepository.ItemByID(itemData.ItemID);
+                    if (item != null)
+                    {
+                        chest.AddItem(item, itemData.Quantity);
+                    }
+                }
+
+                return chest;
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.Log($"GameFactory.CreateChest error: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Создает сундук по ID
+        /// </summary>
+        public Chest CreateChestById(int chestId)
+        {
+            try
+            {
+                var gameData = _worldRepository.GetGameData();
+                var chestData = gameData?.Chests?.FirstOrDefault(c => c.ID == chestId);
+                return CreateChest(chestData);
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.Log($"GameFactory.CreateChestById error: {ex.Message}");
+                return null;
+            }
         }
     }
 }

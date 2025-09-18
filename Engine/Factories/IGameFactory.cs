@@ -1,5 +1,6 @@
 ﻿using Engine.Entities;
 using Engine.Saving;
+using Engine.Data;
 
 namespace Engine.Factories
 {
@@ -19,5 +20,15 @@ namespace Engine.Factories
         /// Прямое создание по числовому ID (возвращает InventoryItem или null).
         /// </summary>
         InventoryItem CreateInventoryItemById(int id, int qty = 1);
+
+        /// <summary>
+        /// Создает сундук из данных
+        /// </summary>
+        Chest CreateChest(ChestData chestData);
+
+        /// <summary>
+        /// Создает сундук по ID
+        /// </summary>
+        Chest CreateChestById(int chestId);
     }
 }

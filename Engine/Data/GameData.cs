@@ -36,6 +36,9 @@ namespace Engine.Data
 
         [JsonPropertyName("RoomEntrances")]
         public List<RoomEntranceData> RoomEntrances { get; set; } = new List<RoomEntranceData>();
+
+        [JsonPropertyName("Chests")]
+        public List<ChestData> Chests { get; set; } = new List<ChestData>();
     }
 
     public class ItemData
@@ -94,6 +97,9 @@ namespace Engine.Data
 
         // Входы в помещения
         public List<int> RoomEntrances { get; set; } = new();
+
+        // Сундуки на локации
+        public List<int> Chests { get; set; } = new();
 
         public bool ScaleMonstersToPlayerLevel { get; set; }
         public int? LocationToNorth { get; set; }
@@ -281,6 +287,9 @@ namespace Engine.Data
         // Входы в другие помещения
         public List<int> Entrances { get; set; } = new List<int>();
 
+        // Сундуки в помещении
+        public List<int> Chests { get; set; } = new List<int>();
+
         // Навигация между помещениями
         public int? RoomToNorth { get; set; }
         public int? RoomToEast { get; set; }
@@ -303,6 +312,27 @@ namespace Engine.Data
         public bool RequiresKey { get; set; } = false;
         public int RequiredKeyID { get; set; } = 0;
         public List<int> RequiredItemIDs { get; set; } = new List<int>();
+    }
+
+    public class ChestData
+    {
+        public int ID { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string NamePlural { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public int Price { get; set; } = 0;
+        
+        // Свойства сундука
+        public bool IsLocked { get; set; } = false;
+        public bool IsTrapped { get; set; } = false;
+        public bool RequiresKey { get; set; } = false;
+        public int RequiredKeyID { get; set; } = 0;
+        public List<int> RequiredItemIDs { get; set; } = new List<int>();
+        public string LockDescription { get; set; } = "Сундук заперт.";
+        public int MaxCapacity { get; set; } = 20;
+        
+        // Начальное содержимое сундука
+        public List<InventoryItemData> InitialContents { get; set; } = new List<InventoryItemData>();
     }
 
 }

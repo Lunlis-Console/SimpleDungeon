@@ -627,6 +627,9 @@
       "RoomEntrances": [
         6001
       ],
+      "Chests": [
+        7001
+      ],
       "ScaleMonstersToPlayerLevel": true,
       "LocationToSouth": 3001
     },
@@ -1698,6 +1701,9 @@
           "Quantity": 1
         }
       ],
+      "Chests": [
+        7002
+      ],
       "MonsterSpawns": [
         {
           "MonsterTemplateID": 2007,
@@ -1721,6 +1727,9 @@
       "MonsterTemplates": [
         2003
       ],
+      "Chests": [
+        7003
+      ],
       "RoomToWest": 5002,
       "ScaleMonstersToPlayerLevel": true
     }
@@ -1736,6 +1745,76 @@
       "IsLocked": false,
       "RequiresKey": false,
       "RequiredKeyID": 0
+    }
+  ],
+  "Chests": [
+    {
+      "ID": 7001,
+      "Name": "Деревянный сундук",
+      "NamePlural": "Деревянные сундуки",
+      "Description": "Простой деревянный сундук с железными петлями.",
+      "Price": 0,
+      "IsLocked": false,
+      "IsTrapped": false,
+      "RequiresKey": false,
+      "RequiredKeyID": 0,
+      "RequiredItemIDs": [],
+      "LockDescription": "Сундук заперт.",
+      "MaxCapacity": 10,
+      "InitialContents": [
+        {
+          "ItemID": 1001,
+          "Quantity": 3
+        },
+        {
+          "ItemID": 1002,
+          "Quantity": 1
+        }
+      ]
+    },
+    {
+      "ID": 7002,
+      "Name": "Запертый сундук",
+      "NamePlural": "Запертые сундуки",
+      "Description": "Прочный металлический сундук с надежным замком.",
+      "Price": 0,
+      "IsLocked": true,
+      "IsTrapped": false,
+      "RequiresKey": true,
+      "RequiredKeyID": 0,
+      "RequiredItemIDs": [],
+      "LockDescription": "Сундук надежно заперт. Требуется ключ.",
+      "MaxCapacity": 15,
+      "InitialContents": [
+        {
+          "ItemID": 1101,
+          "Quantity": 1
+        },
+        {
+          "ItemID": 1002,
+          "Quantity": 2
+        }
+      ]
+    },
+    {
+      "ID": 7003,
+      "Name": "Ловушка-сундук",
+      "NamePlural": "Ловушка-сундуки",
+      "Description": "Подозрительно выглядящий сундук с тонкими щелями по бокам.",
+      "Price": 0,
+      "IsLocked": false,
+      "IsTrapped": true,
+      "RequiresKey": false,
+      "RequiredKeyID": 0,
+      "RequiredItemIDs": [],
+      "LockDescription": "Сундук заперт.",
+      "MaxCapacity": 8,
+      "InitialContents": [
+        {
+          "ItemID": 1002,
+          "Quantity": 5
+        }
+      ]
     }
   ]
 }

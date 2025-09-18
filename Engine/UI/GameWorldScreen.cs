@@ -27,6 +27,7 @@ namespace Engine.UI
             RenderAreaInfo();
             RenderCreatures();
             RenderGroundItems();
+            RenderChests();
             RenderRoomEntrances();
             RenderNavigation();
         }
@@ -151,6 +152,34 @@ namespace Engine.UI
                 foreach (var item in groundItems)
                 {
                     _renderer.Write(4, y, $"• {item.Details.Name} x{item.Quantity}");
+                    y++;
+                }
+            }
+        }
+
+        private void RenderChests()
+        {
+            int y = Console.WindowHeight - 15; // Позиция между предметами и навигацией
+            
+            List<Chest> chests;
+            if (_currentRoom != null)
+            {
+                chests = _currentRoom.ChestsHere;
+            }
+            else
+            {
+                chests = _currentLocation.ChestsHere;
+            }
+
+            if (chests.Count > 0)
+            {
+                _renderer.Write(2, y, "Сундуки:");
+                y++;
+                foreach (var chest in chests)
+                {
+                    string status = chest.IsLocked ? " [ЗАПЕРТ]" : " [ОТКРЫТ]";
+                    string trap = chest.IsTrapped ? " [ЛОВУШКА]" : "";
+                    _renderer.Write(4, y, $"• {chest.Name}{status}{trap}");
                     y++;
                 }
             }

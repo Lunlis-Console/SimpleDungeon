@@ -13,7 +13,8 @@
         Ring,
         Amulet,
         Stuff,
-        Quest
+        Quest,
+        Container
     }
 
     public enum ItemCategory

@@ -303,6 +303,13 @@ namespace JsonEditor
                 return;
             }
             
+            // Специальная обработка для сундуков
+            if (listName.ToLower() == "chests")
+            {
+                AddNewChest();
+                return;
+            }
+            
             var elemType = info.elementType;
             object newElem = null;
             try
@@ -559,6 +566,10 @@ namespace JsonEditor
 
                 case "rooms":
                     EditRoom(selectedItem as RoomData);
+                    break;
+
+                case "chests":
+                    EditChest(selectedItem as ChestData);
                     break;
 
                 default:
@@ -1109,6 +1120,67 @@ namespace JsonEditor
         {
             if (_gameData.RoomEntrances.Count == 0) return 6001;
             return _gameData.RoomEntrances.Max(r => r.ID) + 1;
+        }
+
+        private void EditChest(ChestData chest)
+        {
+            if (chest == null) return;
+
+            using (var form = new EditChestForm(_gameData, chest))
+            {
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    var editedChest = form.GetChestData();
+                    CopyProperties(editedChest, chest);
+                    RefreshCurrentGrid();
+                    _statusLabel.Text = $"Обновлен сундук: {chest.Name}";
+                }
+            }
+        }
+
+        private int GetNextChestId()
+        {
+            if (_gameData.Chests.Count == 0) return 7001;
+            return _gameData.Chests.Max(c => c.ID) + 1;
+        }
+
+        private void AddNewChest()
+        {
+            var newChest = new ChestData
+            {
+                ID = GetNextChestId(),
+                Name = "Новый сундук",
+                NamePlural = "Новые сундуки",
+                Description = "Описание сундука",
+                Price = 0,
+                IsLocked = false,
+                IsTrapped = false,
+                RequiresKey = false,
+                RequiredKeyID = 0,
+                RequiredItemIDs = new List<int>(),
+                LockDescription = "Сундук заперт.",
+                MaxCapacity = 20,
+                InitialContents = new List<InventoryItemData>()
+            };
+
+            using (var form = new EditChestForm(_gameData, newChest))
+            {
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    var editedChest = form.GetChestData();
+                    _gameData.Chests.Add(editedChest);
+
+                    // Обновляем грид
+                    if (_lists.TryGetValue("Chests", out var chestsInfo))
+                    {
+                        chestsInfo.grid.DataSource = null;
+                        chestsInfo.grid.DataSource = _gameData.Chests;
+                        chestsInfo.grid.Refresh();
+                    }
+
+                    _statusLabel.Text = $"Добавлен новый сундук: {editedChest.Name}";
+                }
+            }
         }
 
         /// <summary>

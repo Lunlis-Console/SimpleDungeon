@@ -796,6 +796,19 @@ namespace Engine.World
                 }
             }
 
+            // Добавление сундуков
+            if (locationData.Chests != null)
+            {
+                foreach (var chestId in locationData.Chests)
+                {
+                    var chest = CreateChestFromData(chestId);
+                    if (chest != null)
+                    {
+                        location.ChestsHere.Add(chest);
+                    }
+                }
+            }
+
             return location;
         }
 
@@ -957,6 +970,49 @@ namespace Engine.World
             entrance.RequiredItemIDs = entranceData.RequiredItemIDs ?? new List<int>();
 
             return entrance;
+        }
+
+        private Chest CreateChestFromData(int chestId)
+        {
+            try
+            {
+                var chestData = _gameData?.Chests?.FirstOrDefault(c => c.ID == chestId);
+                if (chestData == null) return null;
+
+                var chest = new Chest(
+                    chestData.ID,
+                    chestData.Name,
+                    chestData.NamePlural,
+                    chestData.Price,
+                    chestData.Description,
+                    chestData.IsLocked,
+                    chestData.IsTrapped,
+                    chestData.RequiresKey,
+                    chestData.RequiredKeyID,
+                    chestData.RequiredItemIDs,
+                    chestData.MaxCapacity
+                );
+
+                // Добавляем начальное содержимое
+                if (chestData.InitialContents != null)
+                {
+                    foreach (var itemData in chestData.InitialContents)
+                    {
+                        var item = ItemByID(itemData.ItemID);
+                        if (item != null)
+                        {
+                            chest.AddItem(item, itemData.Quantity);
+                        }
+                    }
+                }
+
+                return chest;
+            }
+            catch (Exception ex)
+            {
+                DebugConsole.Log($"CreateChestFromData error: {ex.Message}");
+                return null;
+            }
         }
 
         // Реализация методов интерфейса IWorldRepository

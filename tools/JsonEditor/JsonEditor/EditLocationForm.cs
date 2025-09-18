@@ -22,6 +22,7 @@ namespace JsonEditor
         private DataGridView gridMonsters;
         private DataGridView gridGroundItems;
         private DataGridView gridRoomEntrances;
+        private DataGridView gridChests;
 
         private ComboBox comboNorth;
         private ComboBox comboEast;
@@ -44,7 +45,7 @@ namespace JsonEditor
         {
             this.Text = "Редактирование локации";
             this.Width = 700;
-            this.Height = 900; // Увеличиваем высоту для новой секции входов в помещения
+            this.Height = 1000; // Увеличиваем высоту для новой секции сундуков
             this.StartPosition = FormStartPosition.CenterParent;
 
             var lblID = new Label { Text = "ID:", Left = 10, Top = 14, Width = 60 };
@@ -121,20 +122,44 @@ namespace JsonEditor
             btnEditEntrance.Click += (s, e) => EditRoomEntrance();
             btnRemoveEntrance.Click += (s, e) => RemoveRoomEntrance();
 
-            var lblNorth = new Label { Text = "Север:", Left = 10, Top = 680, Width = 80 };
-            comboNorth = new ComboBox { Left = 100, Top = 676, Width = 200, DropDownStyle = ComboBoxStyle.DropDownList };
+            // Сундуки
+            var lblChests = new Label { Text = "Сундуки:", Left = 10, Top = 680, Width = 120 };
+            gridChests = new DataGridView
+            {
+                Left = 100,
+                Top = 660,
+                Width = 460,
+                Height = 120,
+                AllowUserToAddRows = false,
+                AllowUserToDeleteRows = false,
+                RowHeadersVisible = false,
+                SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+            };
 
-            var lblEast = new Label { Text = "Восток:", Left = 320, Top = 680, Width = 80 };
-            comboEast = new ComboBox { Left = 400, Top = 676, Width = 260, DropDownStyle = ComboBoxStyle.DropDownList };
+            // Кнопки для управления сундуками
+            var btnAddChest = new Button { Text = "Добавить", Left = 570, Top = 660, Width = 80, Height = 25 };
+            var btnEditChest = new Button { Text = "Редактировать", Left = 570, Top = 690, Width = 80, Height = 25 };
+            var btnRemoveChest = new Button { Text = "Удалить", Left = 570, Top = 720, Width = 80, Height = 25 };
 
-            var lblSouth = new Label { Text = "Юг:", Left = 10, Top = 720, Width = 80 };
-            comboSouth = new ComboBox { Left = 100, Top = 716, Width = 200, DropDownStyle = ComboBoxStyle.DropDownList };
+            btnAddChest.Click += (s, e) => AddChest();
+            btnEditChest.Click += (s, e) => EditChest();
+            btnRemoveChest.Click += (s, e) => RemoveChest();
 
-            var lblWest = new Label { Text = "Запад:", Left = 320, Top = 720, Width = 80 };
-            comboWest = new ComboBox { Left = 400, Top = 716, Width = 260, DropDownStyle = ComboBoxStyle.DropDownList };
+            var lblNorth = new Label { Text = "Север:", Left = 10, Top = 800, Width = 80 };
+            comboNorth = new ComboBox { Left = 100, Top = 796, Width = 200, DropDownStyle = ComboBoxStyle.DropDownList };
 
-            btnOk = new Button { Text = "OK", Left = 480, Top = 760, Width = 80 };
-            btnCancel = new Button { Text = "Отмена", Left = 580, Top = 760, Width = 80 };
+            var lblEast = new Label { Text = "Восток:", Left = 320, Top = 800, Width = 80 };
+            comboEast = new ComboBox { Left = 400, Top = 796, Width = 260, DropDownStyle = ComboBoxStyle.DropDownList };
+
+            var lblSouth = new Label { Text = "Юг:", Left = 10, Top = 840, Width = 80 };
+            comboSouth = new ComboBox { Left = 100, Top = 836, Width = 200, DropDownStyle = ComboBoxStyle.DropDownList };
+
+            var lblWest = new Label { Text = "Запад:", Left = 320, Top = 840, Width = 80 };
+            comboWest = new ComboBox { Left = 400, Top = 836, Width = 260, DropDownStyle = ComboBoxStyle.DropDownList };
+
+            btnOk = new Button { Text = "OK", Left = 480, Top = 880, Width = 80 };
+            btnCancel = new Button { Text = "Отмена", Left = 580, Top = 880, Width = 80 };
 
             btnOk.Click += BtnOk_Click;
             btnCancel.Click += (s, e) => { this.DialogResult = DialogResult.Cancel; this.Close(); };
@@ -156,6 +181,11 @@ namespace JsonEditor
             this.Controls.Add(btnAddEntrance);
             this.Controls.Add(btnEditEntrance);
             this.Controls.Add(btnRemoveEntrance);
+            this.Controls.Add(lblChests);
+            this.Controls.Add(gridChests);
+            this.Controls.Add(btnAddChest);
+            this.Controls.Add(btnEditChest);
+            this.Controls.Add(btnRemoveChest);
             this.Controls.Add(lblNorth);
             this.Controls.Add(comboNorth);
             this.Controls.Add(lblEast);
@@ -205,11 +235,20 @@ namespace JsonEditor
             var colTypeEntrance = new DataGridViewTextBoxColumn { Name = "Type", HeaderText = "Тип", ReadOnly = true, FillWeight = 20 };
             gridRoomEntrances.Columns.AddRange(new DataGridViewColumn[] { colSelEntrance, colIdEntrance, colNameEntrance, colTargetRoomEntrance, colTypeEntrance });
 
+            // Chests grid columns: Selected, ID, Name, Status
+            gridChests.Columns.Clear();
+            var colSelChest = new DataGridViewCheckBoxColumn { Name = "Selected", HeaderText = "Вкл.", Width = 40 };
+            var colIdChest = new DataGridViewTextBoxColumn { Name = "ID", HeaderText = "ID", ReadOnly = true, FillWeight = 20 };
+            var colNameChest = new DataGridViewTextBoxColumn { Name = "Name", HeaderText = "Название", ReadOnly = true, FillWeight = 50 };
+            var colStatusChest = new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Статус", ReadOnly = true, FillWeight = 30 };
+            gridChests.Columns.AddRange(new DataGridViewColumn[] { colSelChest, colIdChest, colNameChest, colStatusChest });
+
             // Удобные настройки
             gridNPCs.AllowUserToResizeRows = false;
             gridMonsters.AllowUserToResizeRows = false;
             gridGroundItems.AllowUserToResizeRows = false;
             gridRoomEntrances.AllowUserToResizeRows = false;
+            gridChests.AllowUserToResizeRows = false;
         }
 
         private void LoadData()
@@ -296,6 +335,20 @@ namespace JsonEditor
                 }
 
                 gridRoomEntrances.Rows.Add(selected, entrance.ID, entrance.Name, targetRoomName, entrance.EntranceType);
+            }
+
+            // Chests: fill grid rows
+            gridChests.Rows.Clear();
+            foreach (var chest in _gameData.Chests)
+            {
+                bool selected = _location.Chests.Contains(chest.ID);
+                
+                string status = "";
+                if (chest.IsLocked) status += "ЗАПЕРТ ";
+                if (chest.IsTrapped) status += "ЛОВУШКА ";
+                if (string.IsNullOrEmpty(status)) status = "ОТКРЫТ";
+                
+                gridChests.Rows.Add(selected, chest.ID, chest.Name, status.Trim());
             }
 
             // Локации для переходов
@@ -533,6 +586,25 @@ namespace JsonEditor
             // Сохраняем входы в помещения
             _location.RoomEntrances = selectedEntrances;
 
+            // Сохраняем сундуки
+            var selectedChests = new List<int>();
+            foreach (DataGridViewRow row in gridChests.Rows)
+            {
+                try
+                {
+                    bool sel = Convert.ToBoolean(row.Cells["Selected"].Value);
+                    if (!sel) continue;
+                }
+                catch
+                {
+                    continue;
+                }
+
+                if (!int.TryParse(Convert.ToString(row.Cells["ID"].Value), out int id)) continue;
+                selectedChests.Add(id);
+            }
+            _location.Chests = selectedChests;
+
             // Попытка записать новые структуры, если они есть (через reflection)
             TrySetNpcSpawnsOnLocation(selectedNpcMap);
             TrySetMonsterSpawnsOnLocation(selectedMonMap);
@@ -746,6 +818,86 @@ namespace JsonEditor
         {
             if (_gameData.RoomEntrances.Count == 0) return 6001;
             return _gameData.RoomEntrances.Max(e => e.ID) + 1;
+        }
+
+        // Методы для работы с сундуками
+        private void AddChest()
+        {
+            using (var form = new ChestSelectionForm(_gameData))
+            {
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    var selectedChestId = form.GetSelectedChestId();
+                    if (selectedChestId > 0)
+                    {
+                        _location.Chests.Add(selectedChestId);
+                        LoadData(); // Перезагружаем данные для обновления сетки
+                    }
+                }
+            }
+        }
+
+        private void EditChest()
+        {
+            if (gridChests.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Выберите сундук для редактирования.", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var selectedRow = gridChests.SelectedRows[0];
+            if (!int.TryParse(Convert.ToString(selectedRow.Cells["ID"].Value), out int chestId))
+            {
+                MessageBox.Show("Ошибка получения ID сундука.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            var chest = _gameData.Chests.FirstOrDefault(c => c.ID == chestId);
+            if (chest == null)
+            {
+                MessageBox.Show("Сундук не найден.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            using (var form = new EditChestForm(_gameData, chest))
+            {
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    LoadData(); // Перезагружаем данные для обновления сетки
+                }
+            }
+        }
+
+        private void RemoveChest()
+        {
+            if (gridChests.SelectedRows.Count == 0)
+            {
+                MessageBox.Show("Выберите сундук для удаления.", "Информация", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var selectedRow = gridChests.SelectedRows[0];
+            if (!int.TryParse(Convert.ToString(selectedRow.Cells["ID"].Value), out int chestId))
+            {
+                MessageBox.Show("Ошибка получения ID сундука.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            var chest = _gameData.Chests.FirstOrDefault(c => c.ID == chestId);
+            if (chest == null)
+            {
+                MessageBox.Show("Сундук не найден.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            var result = MessageBox.Show($"Вы уверены, что хотите удалить сундук '{chest.Name}' из локации?", 
+                "Подтверждение удаления", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            
+            if (result == DialogResult.Yes)
+            {
+                _location.Chests.Remove(chestId);
+                LoadData(); // Перезагружаем данные для обновления сетки
+            }
         }
     }
 }

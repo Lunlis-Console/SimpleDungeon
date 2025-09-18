@@ -53,6 +53,12 @@ namespace Engine.UI
                 entities.Add(new WorldEntity(item, EntityType.Item, $"{item.Details.Name} x{item.Quantity}"));
             }
 
+            // Сундуки
+            foreach (var chest in _location.ChestsHere)
+            {
+                entities.Add(new WorldEntity(chest, EntityType.Chest, chest.Name));
+            }
+
             // Входы в помещения
             foreach (var entrance in _location.RoomEntrances)
             {
@@ -124,6 +130,9 @@ namespace Engine.UI
                     break;
                 case EntityType.RoomEntrance:
                     RenderRoomEntranceInfo((RoomEntrance)selectedEntity.Entity, rightColumn, ref y);
+                    break;
+                case EntityType.Chest:
+                    RenderChestInfo((Chest)selectedEntity.Entity, rightColumn, ref y);
                     break;
             }
         }
@@ -296,6 +305,9 @@ namespace Engine.UI
                     break;
                 case EntityType.RoomEntrance:
                     InteractWithRoomEntrance((RoomEntrance)entity.Entity);
+                    break;
+                case EntityType.Chest:
+                    InteractWithChest((Chest)entity.Entity);
                     break;
             }
         }
@@ -530,6 +542,62 @@ namespace Engine.UI
             // После выхода из меню — обновляем экран и даём шанс нарисовать консоль/экран
             ScreenManager.RequestPartialRedraw();
             try { if (DebugConsole.Enabled && DebugConsole.IsVisible) DebugConsole.GlobalDraw(); } catch { }
+        }
+
+        private void RenderChestInfo(Chest chest, int x, ref int y)
+        {
+            _renderer.Write(x, y, $"Описание: {chest.Description}");
+            y += 2;
+
+            if (chest.IsLocked)
+            {
+                _renderer.Write(x, y, "Статус: Заперт", ConsoleColor.Red);
+                y++;
+                if (!string.IsNullOrEmpty(chest.LockDescription))
+                {
+                    _renderer.Write(x, y, chest.LockDescription);
+                    y++;
+                }
+                y++;
+            }
+            else
+            {
+                _renderer.Write(x, y, "Статус: Открыт", ConsoleColor.Green);
+                y += 2;
+            }
+
+            if (chest.IsTrapped)
+            {
+                _renderer.Write(x, y, "Ловушка: Да", ConsoleColor.Yellow);
+                y++;
+            }
+
+            _renderer.Write(x, y, $"Вместимость: {chest.Inventory.Items.Count}/{chest.MaxCapacity}");
+            y += 2;
+
+            _renderer.Write(x, y, "Доступные действия:", ConsoleColor.Cyan);
+            y++;
+            var actions = chest.GetAvailableActions(_player);
+            foreach (var action in actions)
+            {
+                _renderer.Write(x, y, $"• {action}");
+                y++;
+            }
+        }
+
+        private void InteractWithChest(Chest chest)
+        {
+            var actions = chest.GetAvailableActions(_player);
+            actions.Add("Назад");
+
+            ShowActionMenu($"Взаимодействие с {chest.Name}", actions, (selectedAction) =>
+            {
+                if (selectedAction != "Назад")
+                {
+                    chest.ExecuteAction(_player, selectedAction);
+                    ScreenManager.RequestPartialRedraw();
+                }
+            });
         }
     }
 }
