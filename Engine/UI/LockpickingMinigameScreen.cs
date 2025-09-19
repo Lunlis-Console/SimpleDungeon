@@ -11,26 +11,41 @@ namespace Engine.UI
         private readonly LockpickComponent _lockpickComponent;
         private readonly InventoryItem _lockpickItem;
         
-        // Параметры мини-игры
-        private int _lockpickPosition = 50; // Позиция отмычки (0-100)
-        private int _lockPosition = 50; // Позиция замка (0-100)
-        private int _sweetSpotStart = 40; // Начало "сладкой зоны"
-        private int _sweetSpotEnd = 60; // Конец "сладкой зоны"
-        private int _lockpickSpeed = 2; // Скорость движения отмычки
-        private int _lockSpeed = 1; // Скорость движения замка
+        // Параметры новой мини-игры
+        private int _sliderPosition = 50; // Позиция ползунка (0-100)
+        private int _sliderSpeed = 3; // Скорость движения ползунка
+        
+        // Невидимая зона взлома
+        private int _lockZoneStart = 40; // Начало зоны взлома
+        private int _lockZoneEnd = 60; // Конец зоны взлома
+        
+        // Шкала прогресса взлома
+        private float _progressFill = 0f; // Текущий прогресс (0.0-1.0)
+        private float _progressSpeed = 0.02f; // Скорость заполнения при правильной позиции
+        private float _progressDecaySpeed = 0.05f; // Скорость обнуления при отпускании
+        
+        // Состояние зажатия пробела
+        private bool _isSpacePressed = false;
         
         // Состояние игры
-        private int _attempts = 0;
-        private int _maxAttempts = 3;
         private bool _gameWon = false;
         private bool _gameLost = false;
-        private int _lockDirection = 1; // Направление движения замка (1 или -1)
-        private int _lockMoveTimer = 0; // Таймер для движения замка
+        private bool _lockpickBroken = false;
+        
+        // Параметры поломки отмычки
+        private float _lockpickStress = 0f; // Напряжение отмычки (0.0-1.0)
+        private float _stressIncreaseRate = 0.01f; // Скорость увеличения напряжения
+        private float _stressDecreaseRate = 0.005f; // Скорость уменьшения напряжения
+        
+        // Новая механика взлома
+        private float _progressAcceleration = 0.001f; // Ускорение заполнения прогресса
+        private float _currentProgressSpeed = 0f; // Текущая скорость заполнения
+        private float _maxProgressSpeed = 0.05f; // Максимальная скорость заполнения
+        private float _breakThreshold = 0.10f; // Порог поломки для неправильной позиции (10%)
         
         // Визуальные параметры
-        private const int LOCKPICK_WIDTH = 20;
-        private const int LOCK_WIDTH = 30;
-        private const int SWEET_SPOT_WIDTH = 10;
+        private const int SLIDER_BAR_WIDTH = 60;
+        private const int PROGRESS_BAR_WIDTH = 40;
 
         public LockpickingMinigameScreen(Chest chest, Player player, LockpickComponent lockpickComponent, InventoryItem lockpickItem)
         {
@@ -48,60 +63,145 @@ namespace Engine.UI
             var difficulty = _chest.LockDifficulty;
             var playerSkill = _player.Skills.Lockpicking.Level;
             
-            // Размер "сладкой зоны" зависит от сложности замка и навыка игрока
-            int baseSweetSpotSize = difficulty switch
+            // Размер невидимой зоны взлома зависит от сложности замка и навыка игрока
+            int baseZoneSize = difficulty switch
             {
-                LockDifficulty.Simple => 20,
-                LockDifficulty.Average => 15,
-                LockDifficulty.Complex => 10,
+                LockDifficulty.Simple => 25,
+                LockDifficulty.Average => 18,
+                LockDifficulty.Complex => 12,
                 LockDifficulty.Master => 8,
                 LockDifficulty.Legendary => 5,
-                _ => 20
+                _ => 25
             };
             
-            // Уменьшаем размер зоны в зависимости от навыка игрока
-            int skillBonus = Math.Min(playerSkill / 10, 10); // Максимум +10 от навыка
-            int finalSweetSpotSize = Math.Max(baseSweetSpotSize - skillBonus, 5);
+            // Увеличиваем размер зоны в зависимости от навыка игрока
+            int skillBonus = Math.Min(playerSkill / 15, 8); // Максимум +8 от навыка
+            int finalZoneSize = Math.Max(baseZoneSize + skillBonus, 5);
             
-            // Устанавливаем "сладкую зону" в случайном месте
+            // Устанавливаем зону взлома в случайном месте
             Random random = new Random();
-            int sweetSpotCenter = random.Next(20, 80);
-            _sweetSpotStart = Math.Max(0, sweetSpotCenter - finalSweetSpotSize / 2);
-            _sweetSpotEnd = Math.Min(100, sweetSpotCenter + finalSweetSpotSize / 2);
+            int zoneCenter = random.Next(15, 85);
+            _lockZoneStart = Math.Max(0, zoneCenter - finalZoneSize / 2);
+            _lockZoneEnd = Math.Min(100, zoneCenter + finalZoneSize / 2);
             
-            // Скорость замка зависит от сложности
-            _lockSpeed = difficulty switch
+            // Скорость заполнения прогресса зависит от сложности
+            _progressSpeed = difficulty switch
             {
-                LockDifficulty.Simple => 1,
-                LockDifficulty.Average => 2,
-                LockDifficulty.Complex => 3,
-                LockDifficulty.Master => 4,
-                LockDifficulty.Legendary => 5,
-                _ => 1
+                LockDifficulty.Simple => 0.03f,
+                LockDifficulty.Average => 0.025f,
+                LockDifficulty.Complex => 0.02f,
+                LockDifficulty.Master => 0.015f,
+                LockDifficulty.Legendary => 0.01f,
+                _ => 0.03f
             };
             
-            // Максимальное количество попыток зависит от навыка
-            _maxAttempts = Math.Max(1, 5 - playerSkill / 20);
+            // Скорость увеличения напряжения отмычки зависит от сложности
+            _stressIncreaseRate = difficulty switch
+            {
+                LockDifficulty.Simple => 0.008f,
+                LockDifficulty.Average => 0.01f,
+                LockDifficulty.Complex => 0.012f,
+                LockDifficulty.Master => 0.015f,
+                LockDifficulty.Legendary => 0.018f,
+                _ => 0.008f
+            };
         }
 
         public override void Update()
         {
             if (_gameWon || _gameLost) return;
             
-            // Автоматическое движение замка
-            _lockMoveTimer++;
-            if (_lockMoveTimer >= 10) // Движение каждые 10 кадров
+            // Если пробел зажат, обновляем прогресс и напряжение отмычки
+            if (_isSpacePressed)
             {
-                _lockPosition += _lockDirection * _lockSpeed;
-                
-                // Отражение от краев
-                if (_lockPosition <= 0 || _lockPosition >= 100)
+                UpdateProgressAndStress();
+            }
+            else
+            {
+                // Если пробел отпущен, прогресс обнуляется
+                if (_progressFill > 0)
                 {
-                    _lockDirection *= -1;
-                    _lockPosition = Math.Max(0, Math.Min(100, _lockPosition));
+                    _progressFill = Math.Max(0, _progressFill - _progressDecaySpeed);
                 }
                 
-                _lockMoveTimer = 0;
+                // Сбрасываем скорость заполнения
+                _currentProgressSpeed = 0f;
+                
+                // Напряжение отмычки постепенно уменьшается
+                if (_lockpickStress > 0)
+                {
+                    _lockpickStress = Math.Max(0, _lockpickStress - _stressDecreaseRate);
+                }
+            }
+            
+            // Проверяем условия победы и поражения
+            CheckGameConditions();
+        }
+        
+        private void UpdateProgressAndStress()
+        {
+            bool inLockZone = IsInLockZone();
+            bool nearLockZone = IsNearLockZone();
+            
+            if (inLockZone)
+            {
+                // В правильной зоне - полоса заполняется до 100%
+                _currentProgressSpeed = Math.Min(_maxProgressSpeed, _currentProgressSpeed + _progressAcceleration);
+                _progressFill = Math.Min(1.0f, _progressFill + _currentProgressSpeed);
+                
+                // Минимальное напряжение отмычки
+                _lockpickStress = Math.Min(1.0f, _lockpickStress + _stressIncreaseRate * 0.1f);
+            }
+            else if (nearLockZone)
+            {
+                // Рядом с зоной - полоса заполняется медленнее, но больше чем на 5%
+                _currentProgressSpeed = Math.Min(_maxProgressSpeed * 0.7f, _currentProgressSpeed + _progressAcceleration * 0.5f);
+                _progressFill = Math.Min(1.0f, _progressFill + _currentProgressSpeed);
+                
+                // Умеренное напряжение отмычки
+                _lockpickStress = Math.Min(1.0f, _lockpickStress + _stressIncreaseRate * 0.5f);
+                
+                // Проверяем, не достигли ли порога поломки
+                if (_progressFill >= 0.3f) // Рядом с зоной можно заполнить до 30%
+                {
+                    _lockpickBroken = true;
+                    _gameLost = true;
+                }
+            }
+            else
+            {
+                // Вне зоны - полоса заполняется только на 5%, затем отмычка ломается
+                _currentProgressSpeed = Math.Min(_maxProgressSpeed * 0.3f, _currentProgressSpeed + _progressAcceleration * 0.2f);
+                _progressFill = Math.Min(_breakThreshold, _progressFill + _currentProgressSpeed);
+                
+                // Быстрое увеличение напряжения отмычки
+                _lockpickStress = Math.Min(1.0f, _lockpickStress + _stressIncreaseRate * 1.5f);
+                
+                // Проверяем, не достигли ли порога поломки
+                if (_progressFill >= _breakThreshold)
+                {
+                    _lockpickBroken = true;
+                    _gameLost = true;
+                }
+            }
+        }
+        
+        private void CheckGameConditions()
+        {
+            // Проверяем победу
+            if (_progressFill >= 1.0f)
+            {
+                _gameWon = true;
+                return;
+            }
+            
+            // Проверяем поломку отмычки
+            if (_lockpickStress >= 1.0f)
+            {
+                _lockpickBroken = true;
+                _gameLost = true;
+                BreakLockpick();
+                return;
             }
         }
 
@@ -112,105 +212,105 @@ namespace Engine.UI
 
             renderer.BeginFrame();
 
-            // Заголовок
-            renderer.Write(2, 1, "=== ВЗЛОМ ЗАМКА ===", ConsoleColor.Yellow);
-            renderer.Write(2, 2, $"Сундук: {_chest.Name}", ConsoleColor.Gray);
-            renderer.Write(2, 3, $"Сложность: {LockDifficultyHelper.GetDifficultyDescription(_chest.LockDifficulty)}", ConsoleColor.Gray);
-            renderer.Write(2, 4, $"Попытки: {_attempts}/{_maxAttempts}", ConsoleColor.Gray);
-
-            // Рисуем замок
-            RenderLock(renderer, 2, 6);
+            // Центрируем элементы по горизонтали
+            int centerX = Console.WindowWidth / 2;
+            int centerY = Console.WindowHeight / 2;
             
-            // Рисуем отмычку
-            RenderLockpick(renderer, 2, 8);
+            // Основная полоса с ползунком (в центре экрана)
+            RenderSliderBar(renderer, centerX, centerY - 1);
+            
+            // Шкала прогресса взлома (рядом с полосой ползунка)
+            RenderProgressBar(renderer, centerX, centerY + 1);
             
             // Статус игры
             if (_gameWon)
             {
-                renderer.Write(2, 12, "✓ УСПЕХ! Замок взломан!", ConsoleColor.Green);
-                renderer.Write(2, 13, "Нажмите любую клавишу для продолжения...", ConsoleColor.Gray);
+                string successText = "УСПЕХ! Замок взломан!";
+                string continueText = "Нажмите любую клавишу для продолжения...";
+                renderer.Write(centerX - successText.Length / 2, centerY + 3, successText, ConsoleColor.Green);
+                renderer.Write(centerX - continueText.Length / 2, centerY + 4, continueText, ConsoleColor.Gray);
             }
             else if (_gameLost)
             {
-                renderer.Write(2, 12, "✗ НЕУДАЧА! Попытки исчерпаны.", ConsoleColor.Red);
-                renderer.Write(2, 13, "Нажмите любую клавишу для продолжения...", ConsoleColor.Gray);
-            }
-            else
-            {
-                // Инструкции
-                renderer.Write(2, 12, "Управление:", ConsoleColor.Cyan);
-                renderer.Write(2, 13, "A/D - движение отмычки", ConsoleColor.Gray);
-                renderer.Write(2, 14, "ПРОБЕЛ - попытка взлома", ConsoleColor.Gray);
-                renderer.Write(2, 15, "ESC - отмена", ConsoleColor.Gray);
-                
-                // Статус
-                if (IsInSweetSpot())
+                if (_lockpickBroken)
                 {
-                    renderer.Write(2, 17, "✓ Отмычка в правильной позиции!", ConsoleColor.Green);
-                    renderer.Write(2, 18, "Нажмите ПРОБЕЛ для попытки взлома", ConsoleColor.Yellow);
+                    string brokenText = "ОТМЫЧКА СЛОМАНА!";
+                    string continueText = "Нажмите любую клавишу для продолжения...";
+                    renderer.Write(centerX - brokenText.Length / 2, centerY + 3, brokenText, ConsoleColor.Red);
+                    renderer.Write(centerX - continueText.Length / 2, centerY + 4, continueText, ConsoleColor.Gray);
                 }
                 else
                 {
-                    renderer.Write(2, 17, "✗ Отмычка не в правильной позиции", ConsoleColor.Red);
-                    int distance = Math.Min(Math.Abs(_lockpickPosition - _sweetSpotStart), Math.Abs(_lockpickPosition - _sweetSpotEnd));
-                    renderer.Write(2, 18, $"Расстояние до зоны: {distance}", ConsoleColor.Gray);
+                    string failText = "НЕУДАЧА!";
+                    string continueText = "Нажмите любую клавишу для продолжения...";
+                    renderer.Write(centerX - failText.Length / 2, centerY + 3, failText, ConsoleColor.Red);
+                    renderer.Write(centerX - continueText.Length / 2, centerY + 4, continueText, ConsoleColor.Gray);
                 }
-                
-                // Информация о замке
-                renderer.Write(2, 20, $"Позиция замка: {_lockPosition}", ConsoleColor.Gray);
-                renderer.Write(2, 21, $"Сладкая зона: {_sweetSpotStart}-{_sweetSpotEnd}", ConsoleColor.Gray);
+            }
+            else
+            {
+                // Минимальные инструкции
+                string instruction1 = "A/D - движение ползунка";
+                string instruction2 = "ПРОБЕЛ - начать/остановить взлом";
+                string instruction3 = "ESC - отмена";
+                renderer.Write(centerX - instruction1.Length / 2, centerY + 3, instruction1, ConsoleColor.Gray);
+                renderer.Write(centerX - instruction2.Length / 2, centerY + 4, instruction2, ConsoleColor.Gray);
+                renderer.Write(centerX - instruction3.Length / 2, centerY + 5, instruction3, ConsoleColor.Gray);
             }
 
             renderer.EndFrame();
         }
 
-        private void RenderLock(EnhancedBufferedRenderer renderer, int x, int y)
+        private void RenderSliderBar(EnhancedBufferedRenderer renderer, int centerX, int y)
         {
-            // Рисуем замок
-            renderer.Write(x, y, "Замок:", ConsoleColor.Cyan);
-            y++;
+            // Рисуем полосу
+            string sliderBar = new string('─', SLIDER_BAR_WIDTH);
+            int startX = centerX - SLIDER_BAR_WIDTH / 2;
+            renderer.Write(startX, y, sliderBar, ConsoleColor.DarkGray);
             
-            // Рисуем шкалу замка
-            string lockBar = new string('█', LOCK_WIDTH);
-            renderer.Write(x, y, lockBar, ConsoleColor.DarkGray);
+            // Рисуем ползунок
+            int sliderX = startX + (_sliderPosition * SLIDER_BAR_WIDTH / 100);
+            renderer.Write(sliderX, y, "▲", ConsoleColor.Blue);
+        }
+
+        private void RenderProgressBar(EnhancedBufferedRenderer renderer, int centerX, int y)
+        {
+            // Рисуем фон шкалы
+            string progressBarBg = new string('█', PROGRESS_BAR_WIDTH);
+            int startX = centerX - PROGRESS_BAR_WIDTH / 2;
+            renderer.Write(startX, y, progressBarBg, ConsoleColor.DarkGray);
             
-            // Рисуем "сладкую зону"
-            int sweetSpotX = x + (_sweetSpotStart * LOCK_WIDTH / 100);
-            int sweetSpotLength = ((_sweetSpotEnd - _sweetSpotStart) * LOCK_WIDTH / 100);
-            if (sweetSpotLength > 0)
+            // Рисуем заполненную часть
+            int filledWidth = (int)(_progressFill * PROGRESS_BAR_WIDTH);
+            if (filledWidth > 0)
             {
-                string sweetSpot = new string('█', sweetSpotLength);
-                renderer.Write(sweetSpotX, y, sweetSpot, ConsoleColor.Green);
+                string progressBarFill = new string('█', filledWidth);
+                ConsoleColor fillColor = _progressFill >= 1.0f ? ConsoleColor.Green : ConsoleColor.Yellow;
+                renderer.Write(startX, y, progressBarFill, fillColor);
             }
-            
-            // Рисуем позицию замка
-            int lockX = x + (_lockPosition * LOCK_WIDTH / 100);
-            renderer.Write(lockX, y, "▲", ConsoleColor.Yellow);
         }
 
-        private void RenderLockpick(EnhancedBufferedRenderer renderer, int x, int y)
+        private bool IsInLockZone()
         {
-            // Рисуем отмычку
-            renderer.Write(x, y, "Отмычка:", ConsoleColor.Cyan);
-            y++;
-            
-            // Рисуем шкалу отмычки
-            string lockpickBar = new string('█', LOCKPICK_WIDTH);
-            renderer.Write(x, y, lockpickBar, ConsoleColor.DarkGray);
-            
-            // Рисуем позицию отмычки
-            int lockpickX = x + (_lockpickPosition * LOCKPICK_WIDTH / 100);
-            renderer.Write(lockpickX, y, "▼", ConsoleColor.Blue);
+            return _sliderPosition >= _lockZoneStart && _sliderPosition <= _lockZoneEnd;
         }
-
-        private bool IsInSweetSpot()
+        
+        private bool IsNearLockZone()
         {
-            return _lockpickPosition >= _sweetSpotStart && _lockpickPosition <= _sweetSpotEnd;
+            int tolerance = 5; // Зона рядом с основной зоной
+            return (_sliderPosition >= _lockZoneStart - tolerance && _sliderPosition <= _lockZoneEnd + tolerance) && !IsInLockZone();
         }
 
         public override void HandleInput(ConsoleKeyInfo keyInfo)
         {
-            if (_gameWon || _gameLost)
+            if (_gameWon)
+            {
+                // При победе любая клавиша открывает сундук
+                CompleteLockpicking();
+                return;
+            }
+            
+            if (_gameLost)
             {
                 // Игра завершена, любая клавиша закрывает экран
                 ScreenManager.PopScreen();
@@ -220,96 +320,60 @@ namespace Engine.UI
             switch (keyInfo.Key)
             {
                 case ConsoleKey.A:
-                    MoveLockpick(-_lockpickSpeed);
+                    MoveSlider(-_sliderSpeed);
                     break;
                 case ConsoleKey.D:
-                    MoveLockpick(_lockpickSpeed);
+                    MoveSlider(_sliderSpeed);
                     break;
                 case ConsoleKey.Spacebar:
-                    AttemptPick();
+                    // Пробел - переключатель взлома
+                    _isSpacePressed = !_isSpacePressed;
                     break;
                 case ConsoleKey.Escape:
                     ScreenManager.PopScreen();
                     return;
             }
         }
-
-        private void MoveLockpick(int delta)
+        
+        private void MoveSlider(int delta)
         {
-            _lockpickPosition = Math.Max(0, Math.Min(100, _lockpickPosition + delta));
+            _sliderPosition = Math.Max(0, Math.Min(100, _sliderPosition + delta));
         }
-
-        private void AttemptPick()
+        
+        private void CompleteLockpicking()
         {
-            _attempts++;
+            // Успешный взлом замка
+            _chest.IsLocked = false;
             
-            // Проверяем, находится ли отмычка в "сладкой зоне"
-            bool inSweetSpot = IsInSweetSpot();
+            // Используем отмычку
+            _lockpickComponent.Use();
             
-            if (inSweetSpot)
+            // Даем опыт
+            int experienceGained = CalculateExperienceGain(_chest.LockDifficulty);
+            _player.Skills.GainExperience("lockpicking", experienceGained);
+            
+            MessageSystem.AddMessage($"Вы успешно взломали {_chest.Name}!");
+            MessageSystem.AddMessage($"Получено опыта взлома: {experienceGained}");
+            
+            // Проверяем, сломалась ли отмычка
+            if (_lockpickComponent.IsBroken)
             {
-                // Успех!
-                _gameWon = true;
-                _chest.IsLocked = false;
-                
-                // Используем отмычку
-                _lockpickComponent.Use();
-                
-                // Даем опыт
-                int experienceGained = CalculateExperienceGain(_chest.LockDifficulty);
-                _player.Skills.GainExperience("lockpicking", experienceGained);
-                
-                MessageSystem.AddMessage($"Вы успешно взломали {_chest.Name}!");
-                MessageSystem.AddMessage($"Получено опыта взлома: {experienceGained}");
-                
-                // Проверяем, сломалась ли отмычка
-                if (_lockpickComponent.IsBroken)
-                {
-                    MessageSystem.AddMessage($"{_lockpickItem.Details.Name} сломалась!");
-                    _player.Inventory.RemoveItem(_lockpickItem, 1);
-                }
-                
-                // Открываем сундук
-                _chest.OpenChest(_player);
+                MessageSystem.AddMessage($"{_lockpickItem.Details.Name} сломалась!");
+                _player.Inventory.RemoveItem(_lockpickItem, 1);
             }
-            else
-            {
-                // Неудача
-                MessageSystem.AddMessage($"Попытка неудачна! Осталось попыток: {_maxAttempts - _attempts}");
-                
-                // Используем отмычку
-                _lockpickComponent.Use();
-                
-                // Даем небольшой опыт
-                _player.Skills.GainExperience("lockpicking", 1);
-                
-                // Проверяем, сломалась ли отмычка
-                if (_lockpickComponent.IsBroken)
-                {
-                    MessageSystem.AddMessage($"{_lockpickItem.Details.Name} сломалась!");
-                    _player.Inventory.RemoveItem(_lockpickItem, 1);
-                    _gameLost = true;
-                    return;
-                }
-                
-                if (_attempts >= _maxAttempts)
-                {
-                    _gameLost = true;
-                    MessageSystem.AddMessage($"Взлом не удался. Попытки исчерпаны.");
-                }
-                else
-                {
-                    // Случайно меняем позицию замка и "сладкой зоны"
-                    Random random = new Random();
-                    _lockPosition = random.Next(0, 100);
-                    
-                    // Немного смещаем "сладкую зону"
-                    int sweetSpotCenter = random.Next(20, 80);
-                    int sweetSpotSize = _sweetSpotEnd - _sweetSpotStart;
-                    _sweetSpotStart = Math.Max(0, sweetSpotCenter - sweetSpotSize / 2);
-                    _sweetSpotEnd = Math.Min(100, sweetSpotCenter + sweetSpotSize / 2);
-                }
-            }
+            
+            // Закрываем экран взлома замков
+            ScreenManager.PopScreen();
+            
+            // Открываем сундук
+            _chest.OpenChest(_player);
+        }
+        
+        private void BreakLockpick()
+        {
+            // Отмычка сломалась
+            MessageSystem.AddMessage($"{_lockpickItem.Details.Name} сломалась от напряжения!");
+            _player.Inventory.RemoveItem(_lockpickItem, 1);
         }
 
         private int CalculateExperienceGain(LockDifficulty difficulty)
