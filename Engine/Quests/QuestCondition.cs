@@ -98,11 +98,11 @@ namespace Engine.Quests
             {
                 int oldProgress = CurrentProgress;
                 CurrentProgress = Math.Min(CurrentProgress + 1, RequiredAmount);
-                DebugConsole.Log($"KillMonstersCondition.UpdateProgress: Monster {MonsterID} killed. Progress: {oldProgress} -> {CurrentProgress}/{RequiredAmount}");
+                DebugConsole.Log($"KillMonstersCondition.UpdateProgress: Монстр {MonsterID} убит. Прогресс: {oldProgress} -> {CurrentProgress}/{RequiredAmount}");
             }
             else
             {
-                DebugConsole.Log($"KillMonstersCondition.UpdateProgress: Context is not Monster or wrong ID. Context: {context?.GetType().Name}, MonsterID: {MonsterID}");
+                DebugConsole.Log($"KillMonstersCondition.UpdateProgress: Контекст не является Monster или неправильный ID. Контекст: {context?.GetType().Name}, MonsterID: {MonsterID}");
             }
         }
 
@@ -142,7 +142,7 @@ namespace Engine.Quests
             if (player.CurrentLocation.ID == LocationID && CurrentProgress == 0)
             {
                 CurrentProgress = 1;
-                DebugConsole.Log($"VisitLocationCondition.UpdateProgress: Player visited location {LocationID}. Progress: 0 -> {CurrentProgress}/{RequiredAmount}");
+                DebugConsole.Log($"VisitLocationCondition.UpdateProgress: Игрок посетил локацию {LocationID}. Прогресс: 0 -> {CurrentProgress}/{RequiredAmount}");
             }
         }
 

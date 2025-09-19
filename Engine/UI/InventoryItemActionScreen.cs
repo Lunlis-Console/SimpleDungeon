@@ -377,7 +377,7 @@ namespace Engine.UI
                 var runtimeType = inventoryItem.Details?.GetType().FullName ?? "<null>";
                 var id = inventoryItem.Details?.ID ?? -1;
                 var itemType = inventoryItem.Details?.Type.ToString() ?? "<null>";
-                DebugConsole.Log($"DEBUG: isConsumable={isConsumable}, isEquipment={isEquipment}, alreadyEquipped={_isAlreadyEquipped} | runtimeType={runtimeType} | ID={id} | Type={itemType}");
+                DebugConsole.Log($"ОТЛАДКА: isConsumable={isConsumable}, isEquipment={isEquipment}, alreadyEquipped={_isAlreadyEquipped} | runtimeType={runtimeType} | ID={id} | Type={itemType}");
 
                 // Действия
                 if (isConsumable)

@@ -17,24 +17,24 @@ namespace Engine.Tools
         /// </summary>
         public static void ValidateQuestNPCConnections(QuestLog questLog, IWorldRepository worldRepository)
         {
-            DebugConsole.Log("=== QUEST-NPC VALIDATION ===");
+            DebugConsole.Log("=== ВАЛИДАЦИЯ КВЕСТ-NPC ===");
             
             // Проверяем все доступные квесты
-            DebugConsole.Log($"Available Quests ({questLog.AvailableQuests.Count}):");
+            DebugConsole.Log($"Доступные квесты ({questLog.AvailableQuests.Count}):");
             foreach (var quest in questLog.AvailableQuests)
             {
                 ValidateQuestNPCConnection(quest, worldRepository);
             }
             
             // Проверяем все активные квесты
-            DebugConsole.Log($"Active Quests ({questLog.ActiveQuests.Count}):");
+            DebugConsole.Log($"Активные квесты ({questLog.ActiveQuests.Count}):");
             foreach (var quest in questLog.ActiveQuests)
             {
                 ValidateQuestNPCConnection(quest, worldRepository);
             }
             
             // Проверяем все завершенные квесты
-            DebugConsole.Log($"Completed Quests ({questLog.CompletedQuests.Count}):");
+            DebugConsole.Log($"Завершенные квесты ({questLog.CompletedQuests.Count}):");
             foreach (var quest in questLog.CompletedQuests)
             {
                 ValidateQuestNPCConnection(quest, worldRepository);

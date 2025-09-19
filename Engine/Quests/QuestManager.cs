@@ -27,13 +27,13 @@ namespace Engine.Quests
         /// </summary>
         private void InitializeQuests()
         {
-            DebugConsole.Log($"QuestManager.InitializeQuests: Starting initialization of {_allQuests.Count} quests");
+            DebugConsole.Log($"QuestManager.InitializeQuests: Начинаем инициализацию {_allQuests.Count} квестов");
             
             foreach (var quest in _allQuests)
             {
                 try
                 {
-                    DebugConsole.Log($"Initializing quest: {quest.Name} (ID: {quest.ID}, State: {quest.State}, QuestGiverID: {quest.QuestGiverID})");
+                    DebugConsole.Log($"Инициализация квеста: {quest.Name} (ID: {quest.ID}, Состояние: {quest.State}, ID квестодателя: {quest.QuestGiverID})");
                     
                     // Связываем квестодателя
                     quest.QuestGiver = _worldRepository.NPCByID(quest.QuestGiverID);
@@ -41,50 +41,50 @@ namespace Engine.Quests
                     // Валидация: проверяем, что NPC существует
                     if (quest.QuestGiver == null)
                     {
-                        DebugConsole.Log($"WARNING: Quest {quest.ID} ({quest.Name}) has QuestGiverID {quest.QuestGiverID} but NPC not found!");
+                        DebugConsole.Log($"ПРЕДУПРЕЖДЕНИЕ: Квест {quest.ID} ({quest.Name}) имеет QuestGiverID {quest.QuestGiverID}, но NPC не найден!");
                     }
                     else
                     {
-                        DebugConsole.Log($"Quest {quest.ID} linked to NPC {quest.QuestGiver.ID} ({quest.QuestGiver.Name})");
+                        DebugConsole.Log($"Квест {quest.ID} связан с NPC {quest.QuestGiver.ID} ({quest.QuestGiver.Name})");
                     }
                     
                     // Инициализируем условия квеста
-                    DebugConsole.Log($"QuestManager.InitializeQuests: Initializing conditions for quest {quest.ID}");
+                    DebugConsole.Log($"QuestManager.InitializeQuests: Инициализация условий для квеста {quest.ID}");
                     quest.InitializeConditions();
-                    DebugConsole.Log($"QuestManager.InitializeQuests: Conditions initialized for quest {quest.ID}");
+                    DebugConsole.Log($"QuestManager.InitializeQuests: Условия инициализированы для квеста {quest.ID}");
                     
                     // Инициализируем предметы-награды
-                    DebugConsole.Log($"QuestManager.InitializeQuests: Initializing rewards for quest {quest.ID}");
+                    DebugConsole.Log($"QuestManager.InitializeQuests: Инициализация наград для квеста {quest.ID}");
                     foreach (var rewardItem in quest.Rewards.Items)
                     {
                         rewardItem.ItemDetails = _worldRepository.ItemByID(rewardItem.ItemID);
                     }
-                    DebugConsole.Log($"QuestManager.InitializeQuests: Rewards initialized for quest {quest.ID}");
+                    DebugConsole.Log($"QuestManager.InitializeQuests: Награды инициализированы для квеста {quest.ID}");
 
                     // Добавляем в доступные квесты
-                    DebugConsole.Log($"QuestManager.InitializeQuests: About to add quest {quest.ID} to AvailableQuests");
+                    DebugConsole.Log($"QuestManager.InitializeQuests: Собираемся добавить квест {quest.ID} в AvailableQuests");
                     _questLog.AddAvailableQuest(quest);
-                    DebugConsole.Log($"QuestManager.InitializeQuests: Added quest {quest.ID} to AvailableQuests. Final state: {quest.State}");
+                    DebugConsole.Log($"QuestManager.InitializeQuests: Квест {quest.ID} добавлен в AvailableQuests. Финальное состояние: {quest.State}");
                 }
                 catch (Exception ex)
                 {
-                    DebugConsole.Log($"ERROR: Failed to initialize quest {quest.ID}: {ex.Message}");
-                    DebugConsole.Log($"Stack trace: {ex.StackTrace}");
+                    DebugConsole.Log($"ОШИБКА: Не удалось инициализировать квест {quest.ID}: {ex.Message}");
+                    DebugConsole.Log($"Трассировка стека: {ex.StackTrace}");
                 }
             }
             
             // Валидация всех связей квест-NPC
-            DebugConsole.Log("Running quest-NPC validation...");
+            DebugConsole.Log("Запуск валидации квест-NPC...");
             try
             {
                 Engine.Tools.QuestNPCValidator.ValidateQuestNPCConnections(_questLog, _worldRepository);
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"ERROR: Quest-NPC validation failed: {ex.Message}");
+                DebugConsole.Log($"ОШИБКА: Валидация квест-NPC не удалась: {ex.Message}");
             }
             
-            DebugConsole.Log($"QuestManager.InitializeQuests: Completed initialization");
+            DebugConsole.Log($"QuestManager.InitializeQuests: Инициализация завершена");
         }
 
         /// <summary>
@@ -124,11 +124,11 @@ namespace Engine.Quests
         /// </summary>
         public void SetAllQuests(List<EnhancedQuest> quests)
         {
-            DebugConsole.Log($"QuestManager.SetAllQuests: Setting {quests?.Count ?? 0} quests");
-            DebugConsole.Log($"QuestManager.SetAllQuests: _questLog is null: {_questLog == null}");
+            DebugConsole.Log($"QuestManager.SetAllQuests: Устанавливаем {quests?.Count ?? 0} квестов");
+            DebugConsole.Log($"QuestManager.SetAllQuests: _questLog равен null: {_questLog == null}");
             
             _allQuests = quests ?? new List<EnhancedQuest>();
-            DebugConsole.Log($"QuestManager.SetAllQuests: _allQuests count: {_allQuests.Count}");
+            DebugConsole.Log($"QuestManager.SetAllQuests: количество _allQuests: {_allQuests.Count}");
             
             InitializeQuests();
             DebugConsole.Log($"Установлено {_allQuests.Count} квестов из GameData");
@@ -139,10 +139,10 @@ namespace Engine.Quests
         /// </summary>
         public QuestDialogueManager GetQuestDialogueManager()
         {
-            DebugConsole.Log($"QuestManager.GetQuestDialogueManager: _questLog is null: {_questLog == null}");
+            DebugConsole.Log($"QuestManager.GetQuestDialogueManager: _questLog равен null: {_questLog == null}");
             if (_questLog == null)
             {
-                DebugConsole.Log("QuestManager.GetQuestDialogueManager: _questLog is null, returning null");
+                DebugConsole.Log("QuestManager.GetQuestDialogueManager: _questLog равен null, возвращаем null");
                 return null;
             }
             return new QuestDialogueManager(_questLog);
@@ -202,7 +202,7 @@ namespace Engine.Quests
         /// </summary>
         public void OnQuestStarted(EnhancedQuest quest, Player player)
         {
-            DebugConsole.Log($"QuestManager.OnQuestStarted: Quest {quest.ID} started");
+            DebugConsole.Log($"QuestManager.OnQuestStarted: Квест {quest.ID} начат");
             
             // Обрабатываем спавн предметов для условий собирания
             var collectConditions = quest.GetRuntimeConditions()
@@ -211,7 +211,7 @@ namespace Engine.Quests
             
             foreach (var condition in collectConditions)
             {
-                DebugConsole.Log($"QuestManager.OnQuestStarted: Force spawning items for condition {condition.ID}");
+                DebugConsole.Log($"QuestManager.OnQuestStarted: Принудительный спавн предметов для условия {condition.ID}");
                 QuestItemSpawnManager.Instance.ForceSpawnQuestItems(condition);
             }
         }
@@ -221,7 +221,7 @@ namespace Engine.Quests
         /// </summary>
         public void OnQuestCompleted(EnhancedQuest quest, Player player)
         {
-            DebugConsole.Log($"QuestManager.OnQuestCompleted: Quest {quest.ID} completed");
+            DebugConsole.Log($"QuestManager.OnQuestCompleted: Квест {quest.ID} завершен");
             
             // Очищаем предметы квеста с локаций и из инвентаря игрока
             var collectConditions = quest.GetRuntimeConditions()
@@ -230,7 +230,7 @@ namespace Engine.Quests
             
             foreach (var condition in collectConditions)
             {
-                DebugConsole.Log($"QuestManager.OnQuestCompleted: Cleaning up items for condition {condition.ID}");
+                DebugConsole.Log($"QuestManager.OnQuestCompleted: Очистка предметов для условия {condition.ID}");
                 
                 // Удаляем предметы квеста с локаций
                 QuestItemSpawnManager.Instance.CleanupQuestItems(condition);

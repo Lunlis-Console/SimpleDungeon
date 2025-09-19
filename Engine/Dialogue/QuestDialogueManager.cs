@@ -25,11 +25,11 @@ namespace Engine.Dialogue
         /// </summary>
         public string InjectQuestNodesForNPC(int npcId, DialogueDocument dialogue, bool autoOverrideStart = false)
         {
-            DebugConsole.Log($"InjectQuestNodesForNPC called for NPC {npcId}, autoOverrideStart={autoOverrideStart}");
+            DebugConsole.Log($"InjectQuestNodesForNPC вызван для NPC {npcId}, autoOverrideStart={autoOverrideStart}");
             
             if (dialogue == null || dialogue.Nodes == null)
             {
-                DebugConsole.Log("InjectQuestNodesForNPC: dialogue or nodes is null");
+                DebugConsole.Log("InjectQuestNodesForNPC: диалог или узлы равны null");
                 return null;
             }
 
@@ -37,7 +37,7 @@ namespace Engine.Dialogue
             var startNode = dialogue.Nodes.FirstOrDefault(n => n.Id == dialogue.Start);
             if (startNode == null)
             {
-                DebugConsole.Log($"InjectQuestNodesForNPC: start node '{dialogue.Start}' not found");
+                DebugConsole.Log($"InjectQuestNodesForNPC: стартовый узел '{dialogue.Start}' не найден");
                 return null;
             }
 
@@ -46,7 +46,7 @@ namespace Engine.Dialogue
             var activeQuests = _questLog.GetActiveQuestsForNPC(npcId);
             var completedQuests = _questLog.GetCompletedQuestsForNPC(npcId);
 
-            DebugConsole.Log($"NPC {npcId} quests - Available: {availableQuests.Count}, Active: {activeQuests.Count}, Completed: {completedQuests.Count}");
+            DebugConsole.Log($"NPC {npcId} квесты - Доступные: {availableQuests.Count}, Активные: {activeQuests.Count}, Завершенные: {completedQuests.Count}");
 
             string forcedStartNode = null;
             bool hasQuestNodes = false;
@@ -75,7 +75,7 @@ namespace Engine.Dialogue
                     if (autoOverrideStart)
                     {
                         forcedStartNode = quest.DialogueNodes.ReadyToComplete;
-                        DebugConsole.Log($"Auto-override: forcing start to {forcedStartNode} for quest {quest.ID}");
+                        DebugConsole.Log($"Авто-переопределение: принудительно устанавливаем старт на {forcedStartNode} для квеста {quest.ID}");
                     }
                 }
                 else if (quest.State == QuestState.InProgress && !string.IsNullOrEmpty(quest.DialogueNodes.InProgress))
@@ -102,7 +102,7 @@ namespace Engine.Dialogue
                 CreateQuestMenuNode(dialogue);
             }
 
-            DebugConsole.Log($"InjectQuestNodesForNPC completed. Forced start: {forcedStartNode}");
+            DebugConsole.Log($"InjectQuestNodesForNPC завершён. Принудительный старт: {forcedStartNode}");
             return forcedStartNode;
         }
 
@@ -112,7 +112,7 @@ namespace Engine.Dialogue
         [Obsolete("Use InjectQuestNodesForNPC instead")]
         public string GetDialogueNodeForNPC(int npcID, DialogueDocument dialogue)
         {
-            DebugConsole.Log($"GetDialogueNodeForNPC called for NPC {npcID}");
+            DebugConsole.Log($"GetDialogueNodeForNPC вызван для NPC {npcID}");
             
             // Отладочная информация о состоянии всех квестов
             DebugConsole.Log($"=== QUEST STATE DEBUG for NPC {npcID} ===");
@@ -172,7 +172,7 @@ namespace Engine.Dialogue
                         }
                         else
                         {
-                            DebugConsole.Log($"Node {quest.DialogueNodes.ReadyToComplete} not found in dialogue, available nodes: {string.Join(", ", dialogue.Nodes?.Select(n => n.Id) ?? new string[0])}");
+                            DebugConsole.Log($"Узел {quest.DialogueNodes.ReadyToComplete} не найден в диалоге, доступные узлы: {string.Join(", ", dialogue.Nodes?.Select(n => n.Id) ?? new string[0])}");
                         }
                     }
                     else
@@ -197,7 +197,7 @@ namespace Engine.Dialogue
                         }
                         else
                         {
-                            DebugConsole.Log($"Node {quest.DialogueNodes.InProgress} not found in dialogue, available nodes: {string.Join(", ", dialogue.Nodes?.Select(n => n.Id) ?? new string[0])}");
+                            DebugConsole.Log($"Узел {quest.DialogueNodes.InProgress} не найден в диалоге, доступные узлы: {string.Join(", ", dialogue.Nodes?.Select(n => n.Id) ?? new string[0])}");
                         }
                     }
                     else
@@ -215,7 +215,7 @@ namespace Engine.Dialogue
                 var quest = completedQuests.First();
                 if (!string.IsNullOrEmpty(quest.DialogueNodes.Completed))
                 {
-                    DebugConsole.Log($"Returning completed node: {quest.DialogueNodes.Completed}");
+                    DebugConsole.Log($"Возвращаем узел завершения: {quest.DialogueNodes.Completed}");
                     return quest.DialogueNodes.Completed;
                 }
             }

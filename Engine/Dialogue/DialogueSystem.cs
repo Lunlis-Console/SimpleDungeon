@@ -65,7 +65,7 @@ namespace Engine.Dialogue
                         {
                             var quest = player.QuestLog.GetQuest(availableQuestId);
                             var result = quest != null && quest.State == QuestState.NotStarted && quest.QuestGiverID == npc.ID;
-                            DebugConsole.Log($"questAvailableForNPC:{availableQuestId} - Quest: {quest?.Name}, State: {quest?.State}, QuestGiver: {quest?.QuestGiverID}, NPC: {npc.ID}, Result: {result}");
+                            DebugConsole.Log($"квестДоступенДляNPC:{availableQuestId} - Квест: {quest?.Name}, Состояние: {quest?.State}, Квестодатель: {quest?.QuestGiverID}, NPC: {npc.ID}, Результат: {result}");
                             return result;
                         }
                         return false;
@@ -94,7 +94,7 @@ namespace Engine.Dialogue
                             {
                                 var quest = player.QuestLog.GetQuest(readyQuestIdGlobal);
                                 var result = quest != null && quest.State == QuestState.ReadyToComplete;
-                                DebugConsole.Log($"questReadyToComplete:{readyQuestIdGlobal} - Quest: {quest?.Name}, State: {quest?.State}, Result: {result}");
+                                DebugConsole.Log($"квестГотовКЗавершению:{readyQuestIdGlobal} - Квест: {quest?.Name}, Состояние: {quest?.State}, Результат: {result}");
                                 return result;
                             }
                             return false;

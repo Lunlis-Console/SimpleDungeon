@@ -80,7 +80,7 @@ namespace Engine.UI
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"DialogueScreen.ResolveTraderFromNpc: failed to construct Merchant: {ex.Message}");
+                DebugConsole.Log($"DialogueScreen.ResolveTraderFromNpc: не удалось создать Merchant: {ex.Message}");
             }
 
             return null;
@@ -92,7 +92,7 @@ namespace Engine.UI
             var trader = ResolveTraderFromNpc();
             if (trader == null)
             {
-                DebugConsole.Log("DialogueScreen.OpenTrade: NPC is not a trader");
+                DebugConsole.Log("DialogueScreen.OpenTrade: NPC не является торговцем");
                 return;
             }
 
@@ -103,7 +103,7 @@ namespace Engine.UI
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"DialogueScreen.OpenTrade: failed to open TradeScreen: {ex.Message}");
+                DebugConsole.Log($"DialogueScreen.OpenTrade: не удалось открыть TradeScreen: {ex.Message}");
             }
         }
 

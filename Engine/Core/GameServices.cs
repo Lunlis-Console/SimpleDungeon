@@ -132,7 +132,7 @@ namespace Engine.Core
                         if (nameProp != null) return nameProp.GetValue(x)?.ToString() ?? "<no-name>";
                         return x.ToString();
                     });
-                    DebugConsole.Log($"Duplicate {typeName} ID={id}: {string.Join(", ", names)}");
+                    DebugConsole.Log($"Дубликат {typeName} ID={id}: {string.Join(", ", names)}");
                 }
             }
 
@@ -191,7 +191,7 @@ namespace Engine.Core
                 {
                     if (CurrentPlayer == null)
                     {
-                        DebugConsole.Log("QuestManager: CurrentPlayer is null, cannot initialize");
+                        DebugConsole.Log("QuestManager: Текущий игрок равен null, инициализация невозможна");
                         return null;
                     }
                     
@@ -208,7 +208,7 @@ namespace Engine.Core
                         // Отладочные сообщения для проверки DialogueNodes
                         foreach (var quest in gameData.Quests)
                         {
-                            DebugConsole.Log($"Quest {quest.ID} DialogueNodes: {quest.DialogueNodes?.ToString() ?? "null"}");
+                            DebugConsole.Log($"Квест {quest.ID} DialogueNodes: {quest.DialogueNodes?.ToString() ?? "null"}");
                         }
                     }
                 }
@@ -234,11 +234,11 @@ namespace Engine.Core
                 Console.CursorVisible = true;
                 Console.Clear();
 
-                DebugConsole.Log("Game services shutdown completed");
+                DebugConsole.Log("Завершение игровых сервисов завершено");
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"Error during shutdown: {ex.Message}");
+                DebugConsole.Log($"Ошибка при завершении: {ex.Message}");
             }
         }
     }

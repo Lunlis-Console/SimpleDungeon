@@ -306,10 +306,10 @@ namespace Engine.UI
 
         private void InteractWithMonster(Monster monster)
         {
-            DebugConsole.Log("[interact] opening menu");
+            DebugConsole.Log("[взаимодействие] открытие меню");
             ShowActionMenu($"Взаимодействие с {monster.Name}", new List<string> { "Атаковать", "Осмотреть", "Назад" }, (sel) =>
             {
-                DebugConsole.Log("[interact] selected: " + sel);
+                DebugConsole.Log("[взаимодействие] выбрано: " + sel);
                 if (sel == "Осмотреть")
                 {
                     _pendingScreenToPush = new MonsterInspectScreen(monster);
@@ -342,7 +342,7 @@ namespace Engine.UI
                         }
                         catch (Exception ex)
                         {
-                            DebugConsole.Log($"[diag] forced render failed: {ex.GetType().Name}: {ex.Message}");
+                            DebugConsole.Log($"[диалог] принудительная отрисовка не удалась: {ex.GetType().Name}: {ex.Message}");
                         }
                     }
                 }
@@ -352,13 +352,13 @@ namespace Engine.UI
                 }
             });
 
-            DebugConsole.Log("[interact] menu closed, pending: " + (_pendingScreenToPush != null));
+            DebugConsole.Log("[взаимодействие] меню закрыто, ожидает: " + (_pendingScreenToPush != null));
             if (_pendingScreenToPush != null)
             {
                 ScreenManager.PushScreen(_pendingScreenToPush);
                 _pendingScreenToPush = null;
                 ScreenManager.RequestFullRedraw();
-                DebugConsole.Log("[interact] pushed inspect screen");
+                DebugConsole.Log("[взаимодействие] отправлен экран осмотра");
             }
         }
 

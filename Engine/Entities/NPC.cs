@@ -60,7 +60,7 @@ namespace Engine.Entities
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"NPC.Talk: Failed to create DialogueScreen: {ex.Message}");
+                DebugConsole.Log($"NPC.Talk: Не удалось создать DialogueScreen: {ex.Message}");
                 // Fallback к простому приветствию
                 DebugConsole.Log($"{Name}: {Greeting ?? "Привет!"}");
             }
@@ -83,14 +83,14 @@ namespace Engine.Entities
             {
                 if (_worldRepository == null)
                 {
-                    DebugConsole.Log("NPC.ConvertToDialogueDocument: WorldRepository is null");
+                    DebugConsole.Log("NPC.ConvertToDialogueDocument: WorldRepository равен null");
                     return CreateDefaultDialogueDocument();
                 }
 
                 var gameData = _worldRepository.GetGameData();
                 if (gameData?.Dialogues == null)
                 {
-                    DebugConsole.Log("NPC.ConvertToDialogueDocument: GameData or Dialogues is null");
+                    DebugConsole.Log("NPC.ConvertToDialogueDocument: GameData или Dialogues равен null");
                     return CreateDefaultDialogueDocument();
                 }
 
@@ -98,7 +98,7 @@ namespace Engine.Entities
                 var dialogueData = gameData.Dialogues.FirstOrDefault(d => d.Id == this.DefaultDialogueId);
                 if (dialogueData == null)
                 {
-                    DebugConsole.Log($"NPC.ConvertToDialogueDocument: No dialogue found for NPC {this.ID} with dialogue ID {this.DefaultDialogueId}");
+                    DebugConsole.Log($"NPC.ConvertToDialogueDocument: Диалог не найден для NPC {this.ID} с ID диалога {this.DefaultDialogueId}");
                     return CreateDefaultDialogueDocument();
                 }
 
@@ -168,7 +168,7 @@ namespace Engine.Entities
                     }
                 }
 
-                DebugConsole.Log($"NPC.ConvertToDialogueDocument: Successfully converted dialogue for NPC {this.ID}");
+                DebugConsole.Log($"NPC.ConvertToDialogueDocument: Диалог успешно конвертирован для NPC {this.ID}");
                 
                 // Инжектируем квестовые узлы через QuestDialogueManager
                 try
@@ -180,7 +180,7 @@ namespace Engine.Entities
                         if (questDialogueManager != null)
                         {
                             questDialogueManager.InjectQuestNodesForNPC(this.ID, document);
-                            DebugConsole.Log($"QuestDialogueManager: Injected quest nodes for NPC {this.ID}");
+                            DebugConsole.Log($"QuestDialogueManager: Инжектированы квестовые узлы для NPC {this.ID}");
                             
                             // Дополнительная диагностика для квестов
                             var worldRepo = GameServices.WorldRepository;
@@ -190,34 +190,34 @@ namespace Engine.Entities
                                 if (allGameData?.Quests != null)
                                 {
                                     var questsForNPC = allGameData.Quests.Where(q => q.QuestGiverID == this.ID).ToList();
-                                    DebugConsole.Log($"NPC {this.ID}: Found {questsForNPC.Count} quests in GameData");
+                                    DebugConsole.Log($"NPC {this.ID}: Найдено {questsForNPC.Count} квестов в GameData");
                                     foreach (var quest in questsForNPC)
                                     {
-                                        DebugConsole.Log($"  Quest {quest.ID}: {quest.Name}, State: {quest.State}");
+                                        DebugConsole.Log($"  Квест {quest.ID}: {quest.Name}, Состояние: {quest.State}");
                                     }
                                 }
                             }
                         }
                         else
                         {
-                            DebugConsole.Log($"QuestDialogueManager: GetQuestDialogueManager returned null for NPC {this.ID}");
+                            DebugConsole.Log($"QuestDialogueManager: GetQuestDialogueManager вернул null для NPC {this.ID}");
                         }
                     }
                     else
                     {
-                        DebugConsole.Log($"QuestDialogueManager: QuestManager is null for NPC {this.ID}");
+                        DebugConsole.Log($"QuestDialogueManager: QuestManager равен null для NPC {this.ID}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    DebugConsole.Log($"QuestDialogueManager: Error injecting quest nodes for NPC {this.ID}: {ex.Message}");
+                    DebugConsole.Log($"QuestDialogueManager: Ошибка инжекции квестовых узлов для NPC {this.ID}: {ex.Message}");
                 }
                 
                 return document;
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"NPC.ConvertToDialogueDocument failed: {ex.Message}");
+                DebugConsole.Log($"NPC.ConvertToDialogueDocument не удался: {ex.Message}");
                 return CreateDefaultDialogueDocument();
             }
         }
@@ -278,13 +278,13 @@ namespace Engine.Entities
                     if (questDialogueManager != null)
                     {
                         questDialogueManager.InjectQuestNodesForNPC(this.ID, document);
-                        DebugConsole.Log($"QuestDialogueManager: Injected quest nodes for NPC {this.ID} (default dialogue)");
+                        DebugConsole.Log($"QuestDialogueManager: Инжектированы квестовые узлы для NPC {this.ID} (диалог по умолчанию)");
                     }
                 }
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"QuestDialogueManager: Error injecting quest nodes for NPC {this.ID} (default dialogue): {ex.Message}");
+                DebugConsole.Log($"QuestDialogueManager: Ошибка инжекции квестовых узлов для NPC {this.ID} (диалог по умолчанию): {ex.Message}");
             }
             
             return document;

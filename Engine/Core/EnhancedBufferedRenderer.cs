@@ -111,7 +111,7 @@ namespace Engine.Core
                     // Проверяем изменение размера окна
                     if (Console.WindowWidth != _width || Console.WindowHeight != _height)
                     {
-                        DebugConsole.Log($"[renderer] Window resized: {Console.WindowWidth}x{Console.WindowHeight}");
+                        DebugConsole.Log($"[отрисовщик] Размер окна изменён: {Console.WindowWidth}x{Console.WindowHeight}");
                         ResizeBuffers();
                         _needsFullRedraw = true;
                     }
@@ -122,7 +122,7 @@ namespace Engine.Core
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"BeginFrame error {ex.Message}");
+                DebugConsole.Log($"Ошибка BeginFrame: {ex.Message}");
                 throw;
             }
 
@@ -221,7 +221,7 @@ namespace Engine.Core
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"Render error: {ex.Message}");
+                DebugConsole.Log($"Ошибка отрисовки: {ex.Message}");
                 _needsFullRedraw = true;
             }
         }
@@ -287,14 +287,14 @@ namespace Engine.Core
                 }
                 catch (Exception ex)
                 {
-                    DebugConsole.Log($"RenderFull copy error: {ex.Message}");
+                    DebugConsole.Log($"Ошибка копирования RenderFull: {ex.Message}");
                 }
 
                 _needsFullRedraw = false;
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"RenderFull error: {ex.Message}");
+                DebugConsole.Log($"Ошибка RenderFull: {ex.Message}");
                 _needsFullRedraw = true;
             }
         }
@@ -368,7 +368,7 @@ namespace Engine.Core
         {
             if (Console.WindowWidth != _width || Console.WindowHeight != _height)
             {
-                DebugConsole.Log($"[renderer] Window resize detected: {Console.WindowWidth}x{Console.WindowHeight}");
+                DebugConsole.Log($"[отрисовщик] Обнаружено изменение размера окна: {Console.WindowWidth}x{Console.WindowHeight}");
                 ResizeBuffers();
                 _windowResized = true;
                 return true;

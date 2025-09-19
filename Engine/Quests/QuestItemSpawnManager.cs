@@ -22,7 +22,7 @@ namespace Engine.Quests
         /// </summary>
         public void InitializeQuestItemSpawns(List<EnhancedQuest> activeQuests)
         {
-            DebugConsole.Log($"QuestItemSpawnManager.InitializeQuestItemSpawns: Processing {activeQuests.Count} active quests");
+            DebugConsole.Log($"QuestItemSpawnManager.InitializeQuestItemSpawns: Обрабатываем {activeQuests.Count} активных квестов");
             
             foreach (var quest in activeQuests)
             {
@@ -47,7 +47,7 @@ namespace Engine.Quests
             if (condition.SpawnLocations == null || !condition.SpawnLocations.Any())
                 return;
 
-            DebugConsole.Log($"QuestItemSpawnManager.ProcessQuestItemSpawn: Processing condition {condition.ID} for item {condition.ItemID}");
+            DebugConsole.Log($"QuestItemSpawnManager.ProcessQuestItemSpawn: Обрабатываем условие {condition.ID} для предмета {condition.ItemID}");
 
             foreach (var spawnData in condition.SpawnLocations)
             {
@@ -68,7 +68,7 @@ namespace Engine.Quests
                 var location = GameServices.WorldRepository.LocationByID(spawnData.LocationID);
                 if (location == null)
                 {
-                    DebugConsole.Log($"QuestItemSpawnManager.ProcessQuestItemSpawn: Location {spawnData.LocationID} not found");
+                    DebugConsole.Log($"QuestItemSpawnManager.ProcessQuestItemSpawn: Локация {spawnData.LocationID} не найдена");
                     continue;
                 }
 
@@ -79,7 +79,7 @@ namespace Engine.Quests
 
                 if (currentItemCount >= spawnData.MaxItemsOnLocation)
                 {
-                    DebugConsole.Log($"QuestItemSpawnManager.ProcessQuestItemSpawn: Max items ({spawnData.MaxItemsOnLocation}) already on location {spawnData.LocationID}");
+                    DebugConsole.Log($"QuestItemSpawnManager.ProcessQuestItemSpawn: Максимальное количество предметов ({spawnData.MaxItemsOnLocation}) уже на локации {spawnData.LocationID}");
                     continue;
                 }
 

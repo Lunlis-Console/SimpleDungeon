@@ -45,7 +45,7 @@ namespace Engine.Quests
 
         public EnhancedQuest()
         {
-            DebugConsole.Log("EnhancedQuest constructor called");
+            DebugConsole.Log("Вызван конструктор EnhancedQuest");
             DialogueNodes = new QuestDialogueNodes();
         }
 
@@ -79,17 +79,17 @@ namespace Engine.Quests
         /// </summary>
         public void InitializeConditions()
         {
-            DebugConsole.Log($"EnhancedQuest.InitializeConditions: Quest {ID} ({Name}), Conditions count: {Conditions?.Count ?? 0}");
+            DebugConsole.Log($"EnhancedQuest.InitializeConditions: Квест {ID} ({Name}), Количество условий: {Conditions?.Count ?? 0}");
             
             if (Conditions == null)
             {
                 _runtimeConditions = new List<QuestCondition>();
-                DebugConsole.Log($"EnhancedQuest.InitializeConditions: Quest {ID} - No conditions, created empty list");
+                DebugConsole.Log($"EnhancedQuest.InitializeConditions: Квест {ID} - Нет условий, создан пустой список");
             }
             else
             {
                 _runtimeConditions = Conditions.Select(c => c.ToQuestCondition()).ToList();
-                DebugConsole.Log($"EnhancedQuest.InitializeConditions: Quest {ID} - Created {_runtimeConditions.Count} runtime conditions");
+                DebugConsole.Log($"EnhancedQuest.InitializeConditions: Квест {ID} - Создано {_runtimeConditions.Count} условий времени выполнения");
                 
                 // Сбрасываем прогресс всех условий при инициализации, если квест еще не начат
                 if (State == QuestState.NotStarted)

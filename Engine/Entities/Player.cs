@@ -368,11 +368,11 @@ namespace Engine.Entities
 
         public bool EquipItem(InventoryItem item)
         {
-            DebugConsole.Log($"DEBUG: Player.EquipItem called for ID={item?.Details?.ID ?? -1}, Name={item?.Details?.Name ?? "<null>"}");
+            DebugConsole.Log($"ОТЛАДКА: Player.EquipItem вызван для ID={item?.Details?.ID ?? -1}, Name={item?.Details?.Name ?? "<null>"}");
 
             if (item == null)
             {
-                DebugConsole.Log("DEBUG: Equip failed — inventory item is null.");
+                DebugConsole.Log("ОТЛАДКА: Экипировка не удалась — предмет инвентаря равен null.");
                 return false;
             }
 
@@ -383,7 +383,7 @@ namespace Engine.Entities
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"ERROR: Exception in Inventory.EquipItem: {ex.Message}");
+                DebugConsole.Log($"ОШИБКА: Исключение в Inventory.EquipItem: {ex.Message}");
                 DebugConsole.Log(ex.Message);
                 result = false;
             }
@@ -397,7 +397,7 @@ namespace Engine.Entities
                 MessageSystem.AddMessage("Это не предмет экипировки или слот занят!");
             }
 
-            DebugConsole.Log($"DEBUG: Player.EquipItem returning {result}");
+            DebugConsole.Log($"ОТЛАДКА: Player.EquipItem возвращает {result}");
             return result;
         }
 

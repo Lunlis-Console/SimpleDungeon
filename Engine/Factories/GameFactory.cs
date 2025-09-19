@@ -97,7 +97,7 @@ namespace Engine.Factories
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"GameFactory.CreateInventoryItem error: {ex.Message}");
+                DebugConsole.Log($"Ошибка GameFactory.CreateInventoryItem: {ex.Message}");
             }
 
             return null;
@@ -116,7 +116,7 @@ namespace Engine.Factories
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"GameFactory.CreateInventoryItemById error: {ex.Message}");
+                DebugConsole.Log($"Ошибка GameFactory.CreateInventoryItemById: {ex.Message}");
                 return null;
             }
         }
@@ -155,7 +155,7 @@ namespace Engine.Factories
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"GameFactory.CreateInventoryItemByName error: {ex.Message}");
+                DebugConsole.Log($"Ошибка GameFactory.CreateInventoryItemByName: {ex.Message}");
             }
 
             return null;
@@ -200,7 +200,7 @@ namespace Engine.Factories
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"GameFactory.CreateChest error: {ex.Message}");
+                DebugConsole.Log($"Ошибка GameFactory.CreateChest: {ex.Message}");
                 return null;
             }
         }

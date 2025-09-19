@@ -503,12 +503,12 @@ namespace Engine.Combat
                     if (questManager != null)
                     {
                         questManager.OnMonsterKilled(Monster, Player);
-                        DebugConsole.Log($"CombatEngine: Notified QuestManager about monster kill: {GetName(Monster)}");
+                        DebugConsole.Log($"CombatEngine: Уведомлен QuestManager об убийстве монстра: {GetName(Monster)}");
                     }
                 }
                 catch (Exception ex)
                 {
-                    DebugConsole.Log($"CombatEngine: Error notifying QuestManager: {ex.Message}");
+                    DebugConsole.Log($"CombatEngine: Ошибка уведомления QuestManager: {ex.Message}");
                 }
             }
             else if (pHp <= 0)

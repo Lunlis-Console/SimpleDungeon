@@ -171,7 +171,7 @@ namespace Engine.UI
                 // Проверяем, не достигли ли порога поломки
                 if (_progressFill >= 0.3f && !_lockpickBroken) // Рядом с зоной можно заполнить до 30%
                 {
-                    DebugConsole.Log($"[UpdateProgressAndStress] Lockpick broken by progress threshold (near zone): {_progressFill:F2}");
+                    DebugConsole.Log($"[UpdateProgressAndStress] Отмычка сломана порогом прогресса (близкая зона): {_progressFill:F2}");
                     _gameLost = true;
                     BreakLockpick();
                     return; // Останавливаем выполнение метода
@@ -189,7 +189,7 @@ namespace Engine.UI
                 // Проверяем, не достигли ли порога поломки
                 if (_progressFill >= _breakThreshold && !_lockpickBroken)
                 {
-                    DebugConsole.Log($"[UpdateProgressAndStress] Lockpick broken by progress threshold (outside zone): {_progressFill:F2}");
+                    DebugConsole.Log($"[UpdateProgressAndStress] Отмычка сломана порогом прогресса (вне зоны): {_progressFill:F2}");
                     _gameLost = true;
                     BreakLockpick();
                     return; // Останавливаем выполнение метода
@@ -212,7 +212,7 @@ namespace Engine.UI
             // Проверяем поломку отмычки
             if (_lockpickStress >= 1.0f && !_lockpickBroken)
             {
-                DebugConsole.Log($"[CheckGameConditions] Lockpick broken by stress threshold: {_lockpickStress:F2}");
+                DebugConsole.Log($"[CheckGameConditions] Отмычка сломана порогом стресса: {_lockpickStress:F2}");
                 _gameLost = true;
                 BreakLockpick();
                 return;
@@ -379,7 +379,7 @@ namespace Engine.UI
                 
                 if (lockpickInInventory != null)
                 {
-                    DebugConsole.Log($"[CompleteLockpicking] Found broken lockpick in inventory, removing it");
+                    DebugConsole.Log($"[CompleteLockpicking] Найдена сломанная отмычка в инвентаре, удаляем её");
                     _player.Inventory.RemoveItem(lockpickInInventory, 1);
                 }
                 else

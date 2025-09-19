@@ -14,7 +14,7 @@ public static class ScreenManager
     public static void PushScreen(BaseScreen screen)
     {
         _screenStack.Push(screen);
-        DebugConsole.Log($"[screenmanager] PushScreen: {screen?.GetType().Name}");
+        DebugConsole.Log($"[менеджер экранов] PushScreen: {screen?.GetType().Name}");
         RequestFullRedraw();
 
         // Попробуем немедленно показать экран, если рендерер сейчас НЕ в кадре.
@@ -26,20 +26,20 @@ public static class ScreenManager
             var renderer = GameServices.BufferedRenderer;
             if (renderer == null)
             {
-                DebugConsole.Log("[screenmanager] PushScreen: BufferedRenderer is null, deferring render");
+                DebugConsole.Log("[менеджер экранов] PushScreen: BufferedRenderer равен null, откладываем отрисовку");
                 return;
             }
 
             if (renderer.InFrame)
             {
                 // Мы уже внутри кадра — текущий кадр завершится нормально и учтёт флажки _needsRedraw.
-                DebugConsole.Log("[screenmanager] PushScreen: renderer is currently InFrame — deferred immediate render");
+                DebugConsole.Log("[менеджер экранов] PushScreen: отрисовщик сейчас InFrame — отложена немедленная отрисовка");
                 return;
             }
 
             // Безопасно вызвать немедленный рендер — RenderCurrentScreen начнёт кадр и отрисует новый экран
             RenderCurrentScreen();
-            DebugConsole.Log("[screenmanager] PushScreen: immediate render executed");
+            DebugConsole.Log("[менеджер экранов] PushScreen: немедленная отрисовка выполнена");
         }
         catch (Exception ex)
         {

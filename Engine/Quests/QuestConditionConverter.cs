@@ -41,7 +41,7 @@ namespace Engine.Quests
 
         public override QuestCondition ReadJson(JsonReader reader, Type objectType, QuestCondition existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
-            DebugConsole.Log("QuestConditionConverter called!");
+            DebugConsole.Log("QuestConditionConverter вызван!");
 
             var jObject = JObject.Load(reader);
 

@@ -83,7 +83,7 @@ namespace Engine.World
                         if (nameProp != null) return nameProp.GetValue(x)?.ToString() ?? "<no-name>";
                         return x.ToString();
                     });
-                    DebugConsole.Log($"Duplicate {typeName} ID={id}: {string.Join(", ", names)}");
+                    DebugConsole.Log($"Дубликат {typeName} ID={id}: {string.Join(", ", names)}");
                 }
             }
 
@@ -101,11 +101,11 @@ namespace Engine.World
         {
             try
             {
-                DebugConsole.Log($"[LoadFromJson] START. Path: {jsonFilePath}");
+                DebugConsole.Log($"[LoadFromJson] НАЧАЛО. Путь: {jsonFilePath}");
 
                 if (!File.Exists(jsonFilePath))
                 {
-                    DebugConsole.Log($"[LoadFromJson] File not found: {jsonFilePath}");
+                    DebugConsole.Log($"[LoadFromJson] Файл не найден: {jsonFilePath}");
                     throw new FileNotFoundException($"JSON файл не найден: {jsonFilePath}");
                 }
 
@@ -133,17 +133,17 @@ namespace Engine.World
                 {
                     _gameData = JsonSerializer.Deserialize<GameData>(json, _jsonOptions) ?? new GameData();
                     DebugConsole.Log("[LoadFromJson] JSON десериализован успешно");
-                    DebugConsole.Log($"[LoadFromJson] Counts: Items={_gameData?.Items?.Count ?? 0}, Monsters={_gameData?.Monsters?.Count ?? 0}, NPCs={_gameData?.NPCs?.Count ?? 0}, Quests={_gameData?.Quests?.Count ?? 0}, Locations={_gameData?.Locations?.Count ?? 0}");
+                    DebugConsole.Log($"[LoadFromJson] Количество: Предметы={_gameData?.Items?.Count ?? 0}, Монстры={_gameData?.Monsters?.Count ?? 0}, NPC={_gameData?.NPCs?.Count ?? 0}, Квесты={_gameData?.Quests?.Count ?? 0}, Локации={_gameData?.Locations?.Count ?? 0}");
                 }
                 catch (JsonException jex)
                 {
-                    DebugConsole.Log($"[LoadFromJson] JsonException: {jex.Message} at {jex.BytePositionInLine}");
+                    DebugConsole.Log($"[LoadFromJson] JsonException: {jex.Message} в позиции {jex.BytePositionInLine}");
                     throw;
                 }
 
                 // Валидация уникальности ID
                 var errors = UniqueIdHelper.ValidateUniqueIds(_gameData);
-                DebugConsole.Log($"[LoadFromJson] UniqueIdHelper returned {errors.Count} errors");
+                DebugConsole.Log($"[LoadFromJson] UniqueIdHelper вернул {errors.Count} ошибок");
 
                 if (errors.Any())
                 {
@@ -151,47 +151,47 @@ namespace Engine.World
                     DebugConsole.Log("[LoadFromJson] ПОДРОБНЫЕ ДУБЛИ (если есть):");
                     LogDuplicatesVerbose(_gameData);
 
-                    DebugConsole.Log("[LoadFromJson] Errors: " + string.Join(" | ", errors));
+                    DebugConsole.Log("[LoadFromJson] Ошибки: " + string.Join(" | ", errors));
 
 #if DEBUG
-                    DebugConsole.Log("[LoadFromJson] DEBUG mode: attempting auto-fix of duplicates...");
+                    DebugConsole.Log("[LoadFromJson] Режим ОТЛАДКИ: попытка автоматического исправления дубликатов...");
 
                     var mappingPerType = UniqueIdHelper.FixDuplicateIds(_gameData);
-                    DebugConsole.Log("[LoadFromJson] Auto-fixed mapping:\n" + FormatMapping(mappingPerType));
+                    DebugConsole.Log("[LoadFromJson] Автоматически исправленное сопоставление:\n" + FormatMapping(mappingPerType));
 
                     // Создаем бэкап и записываем исправленный файл
                     try
                     {
                         var bak = jsonFilePath + ".bak";
                         File.Copy(jsonFilePath, bak, overwrite: true);
-                        DebugConsole.Log($"[LoadFromJson] Backup created: {bak}");
+                        DebugConsole.Log($"[LoadFromJson] Создан бэкап: {bak}");
 
                         var newJson = JsonSerializer.Serialize(_gameData, _jsonOptions);
                         File.WriteAllText(jsonFilePath, newJson);
-                        DebugConsole.Log($"[LoadFromJson] Fixed GameData saved to: {jsonFilePath}");
+                        DebugConsole.Log($"[LoadFromJson] Исправленные GameData сохранены в: {jsonFilePath}");
                     }
                     catch (Exception ex)
                     {
-                        DebugConsole.Log($"[LoadFromJson] Failed to save fixed GameData: {ex.Message}");
+                        DebugConsole.Log($"[LoadFromJson] Не удалось сохранить исправленные GameData: {ex.Message}");
                     }
 #else
             // В релизе — fail fast, чтобы не запускать игру с неконсистентными данными
-            DebugConsole.Log("[LoadFromJson] RELEASE mode: throwing due to duplicate IDs");
+            DebugConsole.Log("[LoadFromJson] Режим РЕЛИЗА: выбрасываем исключение из-за дублирующихся ID");
             Console.WriteLine("[LoadFromJson] RELEASE mode: throwing due to duplicate IDs");
             throw new Exception("Duplicate IDs found in game data. Please fix data using the editor.");
 #endif
                 }
                 else
                 {
-                    DebugConsole.Log("[LoadFromJson] UniqueIdHelper found no duplicates");
+                    DebugConsole.Log("[LoadFromJson] UniqueIdHelper не нашел дубликатов");
                 }
 
                 // Продолжаем инициализацию runtime-структур
                 try
                 {
-                    DebugConsole.Log("[LoadFromJson] Calling InitializeFromGameData...");
+                    DebugConsole.Log("[LoadFromJson] Вызов InitializeFromGameData...");
                     InitializeFromGameData();
-                    DebugConsole.Log("[LoadFromJson] InitializeFromGameData completed");
+                    DebugConsole.Log("[LoadFromJson] InitializeFromGameData завершен");
                     SaveMigratedGameData(_gameData, jsonFilePath);
                 }
                 catch (Exception ex)
@@ -200,11 +200,11 @@ namespace Engine.World
                     throw;
                 }
 
-                DebugConsole.Log("[LoadFromJson] END");
+                DebugConsole.Log("[LoadFromJson] КОНЕЦ");
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"[LoadFromJson] Unhandled exception: {ex.Message}");
+                DebugConsole.Log($"[LoadFromJson] Необработанное исключение: {ex.Message}");
                 throw;
             }
         }
@@ -221,7 +221,7 @@ namespace Engine.World
                 if (!File.Exists(backupPath))
                 {
                     File.Copy(path, backupPath, overwrite: false);
-                    DebugConsole.Log($"[LoadFromJson] Backup saved to {backupPath}");
+                    DebugConsole.Log($"[LoadFromJson] Бэкап сохранен в {backupPath}");
                 }
 
                 // Используем существующие опции сериализации если они есть (_jsonOptions),
@@ -239,11 +239,11 @@ namespace Engine.World
                 string outJson = JsonSerializer.Serialize(gameData, optionsToUse);
                 File.WriteAllText(path, outJson);
 
-                DebugConsole.Log($"[LoadFromJson] Migrated game_data.json saved to {path}");
+                DebugConsole.Log($"[LoadFromJson] Мигрированный game_data.json сохранен в {path}");
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"[LoadFromJson] Failed to save migrated game_data.json: {ex.Message}");
+                DebugConsole.Log($"[LoadFromJson] Не удалось сохранить мигрированный game_data.json: {ex.Message}");
             }
         }
 
@@ -396,13 +396,13 @@ namespace Engine.World
                 };
 
                 itemData.Components.Add(migratedEquip);
-                DebugConsole.Log($"[CreateItemFromData] Migrated legacy bonuses -> EquipComponent for Item ID={itemData.ID}");
+                DebugConsole.Log($"[CreateItemFromData] Мигрированы устаревшие бонусы -> EquipComponent для предмета ID={itemData.ID}");
             }
 
             if ((itemData.Components.Count == 0) && itemData.AmountToHeal.HasValue && itemData.AmountToHeal.Value != 0)
             {
                 itemData.Components.Add(new HealComponent { HealAmount = itemData.AmountToHeal.Value });
-                DebugConsole.Log($"[CreateItemFromData] Migrated AmountToHeal -> HealComponent for Item ID={itemData.ID}");
+                DebugConsole.Log($"[CreateItemFromData] Мигрировано AmountToHeal -> HealComponent для предмета ID={itemData.ID}");
             }
 
             // --- 2) Если после миграции есть компоненты — обрабатываем их в приоритетном порядке ---
@@ -412,7 +412,7 @@ namespace Engine.World
                 var equipComp = itemData.Components.OfType<EquipComponent>().FirstOrDefault();
                 if (equipComp != null)
                 {
-                    DebugConsole.Log($"[CreateItemFromData] Creating Equipment from EquipComponent for Item ID={itemData.ID} ({itemData.Name})");
+                    DebugConsole.Log($"[CreateItemFromData] Создание Equipment из EquipComponent для предмета ID={itemData.ID} ({itemData.Name})");
                     return new Equipment(
                         itemData.ID,
                         string.IsNullOrWhiteSpace(itemData.NamePlural) ? itemData.Name : itemData.NamePlural, // namePlural param in constructor
@@ -431,7 +431,7 @@ namespace Engine.World
                 var healComp = itemData.Components.OfType<HealComponent>().FirstOrDefault();
                 if (healComp != null)
                 {
-                    DebugConsole.Log($"[CreateItemFromData] Creating HealingItem from HealComponent for Item ID={itemData.ID} ({itemData.Name})");
+                    DebugConsole.Log($"[CreateItemFromData] Создание HealingItem из HealComponent для предмета ID={itemData.ID} ({itemData.Name})");
                     return new HealingItem(
                         itemData.ID,
                         itemData.Name,
@@ -464,7 +464,7 @@ namespace Engine.World
                             lockpickComp.DifficultyReduction,
                             lockpickComp.IsConsumable
                         );
-                        DebugConsole.Log($"[CreateItemFromData] Created LockpickComponent: Bonus={newLockpick.LockpickBonus}, Durability={newLockpick.Durability}/{newLockpick.MaxDurability}, IsBroken={newLockpick.IsBroken}");
+                        DebugConsole.Log($"[CreateItemFromData] Создан LockpickComponent: Бонус={newLockpick.LockpickBonus}, Прочность={newLockpick.Durability}/{newLockpick.MaxDurability}, Сломан={newLockpick.IsBroken}");
                         compItem.Components.Add(newLockpick);
                     }
                     else
@@ -475,7 +475,7 @@ namespace Engine.World
                     }
                 }
 
-                DebugConsole.Log($"[CreateItemFromData] Created CompositeItem with {itemData.Components.Count} components for Item ID={itemData.ID}");
+                DebugConsole.Log($"[CreateItemFromData] Создан CompositeItem с {itemData.Components.Count} компонентами для предмета ID={itemData.ID}");
                 return compItem;
             }
 
@@ -606,7 +606,7 @@ namespace Engine.World
                 if (!string.IsNullOrWhiteSpace(dialogueId))
                 {
                     // Диалог теперь загружается динамически в NPC.GetDialogueDocument()
-                    DebugConsole.Log($"NPC {npc.ID} configured with dialogue ID: {dialogueId}");
+                    DebugConsole.Log($"NPC {npc.ID} настроен с ID диалога: {dialogueId}");
                 }
 
 
@@ -620,18 +620,18 @@ namespace Engine.World
         /// </summary>
         private string DetermineStartNodeId(Engine.Data.DialogueData data)
         {
-            DebugConsole.Log($"DetermineStartNodeId called for dialogue {data.Id}");
+            DebugConsole.Log($"DetermineStartNodeId вызван для диалога {data.Id}");
             
             // Если есть явно указанный стартовый узел, используем его
             if (!string.IsNullOrEmpty(data.Start))
             {
-                DebugConsole.Log($"Dialogue has explicit start node: {data.Start}");
+                DebugConsole.Log($"Диалог имеет явный стартовый узел: {data.Start}");
                 return data.Start;
             }
 
             // Fallback: возвращаем первый узел в списке
             var fallbackNodeId = data.Nodes.Count > 0 ? data.Nodes[0].Id : null;
-            DebugConsole.Log($"Using fallback node: '{fallbackNodeId}'");
+            DebugConsole.Log($"Используем резервный узел: '{fallbackNodeId}'");
             return fallbackNodeId;
         }
 
@@ -1031,7 +1031,7 @@ namespace Engine.World
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"CreateChestFromData error: {ex.Message}");
+                DebugConsole.Log($"Ошибка CreateChestFromData: {ex.Message}");
                 return null;
             }
         }

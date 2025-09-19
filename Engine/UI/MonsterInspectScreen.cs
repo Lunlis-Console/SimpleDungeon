@@ -95,7 +95,7 @@ namespace Engine.UI
                                             }
                                             else
                                             {
-                                                DebugConsole.Log($"[inspect->menu] selected: {sel}");
+                                                DebugConsole.Log($"[осмотр->меню] выбрано: {sel}");
                                             }
                                         };
 
@@ -154,7 +154,7 @@ namespace Engine.UI
                     }
                     catch (Exception ex)
                     {
-                        DebugConsole.Log($"[inspect->menu] reopen attempt failed: {ex.GetType().Name}: {ex.Message}");
+                        DebugConsole.Log($"[осмотр->меню] попытка повторного открытия не удалась: {ex.GetType().Name}: {ex.Message}");
                     }
 
                     return;

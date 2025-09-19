@@ -51,7 +51,7 @@ namespace Engine.InventorySystem
 
             if (Items == null)
             {
-                DebugConsole.Log("Items list was null, initializing");
+                DebugConsole.Log("Список предметов был null, инициализируем");
                 Items = new List<InventoryItem>();
             }
 
@@ -89,28 +89,28 @@ namespace Engine.InventorySystem
 
         public void RemoveItem(InventoryItem item, int quantity = 1)
         {
-            DebugConsole.Log($"[RemoveItem] Attempting to remove item: {item?.Details?.Name ?? "null"}, quantity: {quantity}");
-            DebugConsole.Log($"[RemoveItem] Current inventory items count: {Items.Count}");
+            DebugConsole.Log($"[RemoveItem] Попытка удалить предмет: {item?.Details?.Name ?? "null"}, количество: {quantity}");
+            DebugConsole.Log($"[RemoveItem] Текущее количество предметов в инвентаре: {Items.Count}");
             
             // Проверяем, что предмет существует в инвентаре
             if (item == null || !Items.Contains(item))
             {
-                DebugConsole.Log($"[RemoveItem] Item not found in inventory. Item: {item?.Details?.Name ?? "null"}");
+                DebugConsole.Log($"[RemoveItem] Предмет не найден в инвентаре. Предмет: {item?.Details?.Name ?? "null"}");
                 return;
             }
 
-            DebugConsole.Log($"[RemoveItem] Item found in inventory, current quantity: {item.Quantity}");
+            DebugConsole.Log($"[RemoveItem] Предмет найден в инвентаре, текущее количество: {item.Quantity}");
             
             item.Quantity -= quantity;
-            DebugConsole.Log($"[RemoveItem] Item quantity after reduction: {item.Quantity}");
+            DebugConsole.Log($"[RemoveItem] Количество предмета после уменьшения: {item.Quantity}");
             
             if (item.Quantity <= 0)
             {
-                DebugConsole.Log($"[RemoveItem] Removing item from inventory completely");
+                DebugConsole.Log($"[RemoveItem] Полное удаление предмета из инвентаря");
                 Items.Remove(item);
             }
 
-            DebugConsole.Log($"[RemoveItem] Final inventory items count: {Items.Count}");
+            DebugConsole.Log($"[RemoveItem] Финальное количество предметов в инвентаре: {Items.Count}");
             OnInventoryChanged?.Invoke();
         }
 

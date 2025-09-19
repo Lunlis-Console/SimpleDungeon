@@ -53,7 +53,7 @@ namespace Engine.UI
             }
             catch (Exception ex)
             {
-                DebugConsole.Log($"Main menu render error: {ex.Message}");
+                DebugConsole.Log($"Ошибка отрисовки главного меню: {ex.Message}");
                 try { _renderer.EndFrame(); } catch { }
             }
         }
@@ -163,7 +163,7 @@ namespace Engine.UI
                 
                 // Добавляем отмычку с отладочной информацией
                 var lockpickItem = GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_BASIC_LOCKPICK);
-                DebugConsole.Log($"[MainMenuScreen] Lockpick item from repository: {lockpickItem != null}");
+                DebugConsole.Log($"[MainMenuScreen] Предмет отмычки из репозитория: {lockpickItem != null}");
                 if (lockpickItem != null)
                 {
                     DebugConsole.Log($"[MainMenuScreen] Lockpick details: {lockpickItem.Name} (ID: {lockpickItem.ID}, Type: {lockpickItem.Type})");

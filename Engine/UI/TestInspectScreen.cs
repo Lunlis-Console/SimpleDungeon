@@ -15,7 +15,7 @@ namespace Engine.UI
         public TestInspectScreen(object monster)
         {
             _monster = monster;
-            DebugConsole.Log("[TestInspectScreen] ctor called for " + (_monster?.GetType().Name ?? "<null>"));
+            DebugConsole.Log("[TestInspectScreen] конструктор вызван для " + (_monster?.GetType().Name ?? "<null>"));
         }
 
         public override void Update()
@@ -34,7 +34,7 @@ namespace Engine.UI
 
         public override void Render()
         {
-            DebugConsole.Log("[TestInspectScreen] Render called (tick=" + _ticks + ")");
+            DebugConsole.Log("[TestInspectScreen] Render вызван (тик=" + _ticks + ")");
             var r = GameServices.BufferedRenderer;
             if (r != null)
             {
