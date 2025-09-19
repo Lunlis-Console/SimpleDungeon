@@ -50,16 +50,35 @@ namespace Engine.Core
             {
                 if (_worldRepository == null)
                 {
-                    string jsonPath = Path.Combine("Data", "game_data.json");
-                    string fullPath = Path.GetFullPath(jsonPath);
+                    // Пробуем несколько возможных путей к файлу game_data.json
+                    string[] possiblePaths = {
+                        Path.Combine("Data", "game_data.json"),
+                        Path.Combine("SimpleDungeon", "Data", "game_data.json"),
+                        Path.Combine("..", "SimpleDungeon", "Data", "game_data.json")
+                    };
 
-                    DebugConsole.Log($"Путь к JSON: {fullPath}");
-                    DebugConsole.Log($"Файл существует: {File.Exists(fullPath)}");
-                    DebugConsole.Log($"Директория существует: {Directory.Exists(Path.GetDirectoryName(fullPath))}");
-
-                    if (!File.Exists(fullPath))
+                    string fullPath = null;
+                    foreach (var jsonPath in possiblePaths)
                     {
-                        throw new FileNotFoundException($"JSON файл не найден: {fullPath}");
+                        string testPath = Path.GetFullPath(jsonPath);
+                        DebugConsole.Log($"Проверяем путь: {testPath}");
+                        if (File.Exists(testPath))
+                        {
+                            fullPath = testPath;
+                            DebugConsole.Log($"Найден файл: {fullPath}");
+                            break;
+                        }
+                    }
+
+                    if (fullPath == null)
+                    {
+                        DebugConsole.Log($"Файл game_data.json не найден ни по одному из путей:");
+                        foreach (var jsonPath in possiblePaths)
+                        {
+                            string testPath = Path.GetFullPath(jsonPath);
+                            DebugConsole.Log($"  - {testPath} (существует: {File.Exists(testPath)})");
+                        }
+                        throw new FileNotFoundException($"JSON файл game_data.json не найден ни по одному из возможных путей");
                     }
 
                     _worldRepository = new JsonWorldRepository(fullPath);

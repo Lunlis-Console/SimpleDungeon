@@ -2,9 +2,9 @@
   "Items": [
     {
       "ID": 1001,
-      "Name": "Крысиное мясо",
-      "NamePlural": "Крысиное мясо",
-      "Type": 0,
+      "Name": "\u041A\u0440\u044B\u0441\u0438\u043D\u043E\u0435 \u043C\u044F\u0441\u043E",
+      "NamePlural": "\u041A\u0440\u044B\u0441\u0438\u043D\u043E\u0435 \u043C\u044F\u0441\u043E",
+      "Type": "consumable",
       "Price": 5,
       "Description": "Data/Descriptions/rat_meat.txt",
       "AmountToHeal": 5,
@@ -17,9 +17,11 @@
     },
     {
       "ID": 1002,
-      "Name": "Слабое зелье лечения",
-      "Type": 0,
+      "Name": "\u0421\u043B\u0430\u0431\u043E\u0435 \u0437\u0435\u043B\u044C\u0435 \u043B\u0435\u0447\u0435\u043D\u0438\u044F",
+      "NamePlural": "",
+      "Type": "consumable",
       "Price": 10,
+      "Description": "",
       "AmountToHeal": 25,
       "Components": [
         {
@@ -30,9 +32,11 @@
     },
     {
       "ID": 1101,
-      "Name": "Ржавый меч",
-      "Type": 1,
+      "Name": "\u0420\u0436\u0430\u0432\u044B\u0439 \u043C\u0435\u0447",
+      "NamePlural": "",
+      "Type": "oneHandedWeapon",
       "Price": 10,
+      "Description": "",
       "AttackBonus": 10,
       "DefenceBonus": 0,
       "AgilityBonus": 10,
@@ -50,9 +54,11 @@
     },
     {
       "ID": 1102,
-      "Name": "Железный меч",
-      "Type": 1,
+      "Name": "\u0416\u0435\u043B\u0435\u0437\u043D\u044B\u0439 \u043C\u0435\u0447",
+      "NamePlural": "",
+      "Type": "oneHandedWeapon",
       "Price": 10,
+      "Description": "",
       "AttackBonus": 50,
       "DefenceBonus": 0,
       "AgilityBonus": 10,
@@ -70,9 +76,11 @@
     },
     {
       "ID": 1103,
-      "Name": "Железный двуручник",
-      "Type": 2,
+      "Name": "\u0416\u0435\u043B\u0435\u0437\u043D\u044B\u0439 \u0434\u0432\u0443\u0440\u0443\u0447\u043D\u0438\u043A",
+      "NamePlural": "",
+      "Type": "twoHandedWeapon",
       "Price": 100,
+      "Description": "",
       "AttackBonus": 25,
       "DefenceBonus": 0,
       "AgilityBonus": 10,
@@ -90,9 +98,11 @@
     },
     {
       "ID": 1201,
-      "Name": "Кожаный шлем",
-      "Type": 3,
+      "Name": "\u041A\u043E\u0436\u0430\u043D\u044B\u0439 \u0448\u043B\u0435\u043C",
+      "NamePlural": "",
+      "Type": "helmet",
       "Price": 10,
+      "Description": "",
       "AttackBonus": 0,
       "DefenceBonus": 1,
       "AgilityBonus": 0,
@@ -110,9 +120,11 @@
     },
     {
       "ID": 1202,
-      "Name": "Кожаная броня",
-      "Type": 4,
+      "Name": "\u041A\u043E\u0436\u0430\u043D\u0430\u044F \u0431\u0440\u043E\u043D\u044F",
+      "NamePlural": "",
+      "Type": "armor",
       "Price": 10,
+      "Description": "",
       "AttackBonus": 0,
       "DefenceBonus": 2,
       "AgilityBonus": 0,
@@ -130,9 +142,11 @@
     },
     {
       "ID": 1203,
-      "Name": "Кожаные перчатки",
-      "Type": 5,
+      "Name": "\u041A\u043E\u0436\u0430\u043D\u044B\u0435 \u043F\u0435\u0440\u0447\u0430\u0442\u043A\u0438",
+      "NamePlural": "",
+      "Type": "gloves",
       "Price": 10,
+      "Description": "",
       "AttackBonus": 0,
       "DefenceBonus": 1,
       "AgilityBonus": 0,
@@ -150,9 +164,11 @@
     },
     {
       "ID": 1204,
-      "Name": "Кожаные сапоги",
-      "Type": 6,
+      "Name": "\u041A\u043E\u0436\u0430\u043D\u044B\u0435 \u0441\u0430\u043F\u043E\u0433\u0438",
+      "NamePlural": "",
+      "Type": "boots",
       "Price": 10,
+      "Description": "",
       "AttackBonus": 0,
       "DefenceBonus": 1,
       "AgilityBonus": 0,
@@ -170,9 +186,11 @@
     },
     {
       "ID": 1205,
-      "Name": "Железный шлем",
-      "Type": 3,
+      "Name": "\u0416\u0435\u043B\u0435\u0437\u043D\u044B\u0439 \u0448\u043B\u0435\u043C",
+      "NamePlural": "",
+      "Type": "helmet",
       "Price": 50,
+      "Description": "",
       "AttackBonus": 0,
       "DefenceBonus": 5,
       "AgilityBonus": 0,
@@ -190,9 +208,11 @@
     },
     {
       "ID": 1206,
-      "Name": "Железная броня",
-      "Type": 4,
+      "Name": "\u0416\u0435\u043B\u0435\u0437\u043D\u0430\u044F \u0431\u0440\u043E\u043D\u044F",
+      "NamePlural": "",
+      "Type": "armor",
       "Price": 100,
+      "Description": "",
       "AttackBonus": 0,
       "DefenceBonus": 10,
       "AgilityBonus": 0,
@@ -210,9 +230,11 @@
     },
     {
       "ID": 1207,
-      "Name": "Железные перчатки",
-      "Type": 5,
+      "Name": "\u0416\u0435\u043B\u0435\u0437\u043D\u044B\u0435 \u043F\u0435\u0440\u0447\u0430\u0442\u043A\u0438",
+      "NamePlural": "",
+      "Type": "gloves",
       "Price": 40,
+      "Description": "",
       "AttackBonus": 0,
       "DefenceBonus": 2,
       "AgilityBonus": 0,
@@ -230,9 +252,11 @@
     },
     {
       "ID": 1208,
-      "Name": "Железные сапоги",
-      "Type": 6,
+      "Name": "\u0416\u0435\u043B\u0435\u0437\u043D\u044B\u0435 \u0441\u0430\u043F\u043E\u0433\u0438",
+      "NamePlural": "",
+      "Type": "boots",
       "Price": 40,
+      "Description": "",
       "AttackBonus": 0,
       "DefenceBonus": 2,
       "AgilityBonus": 0,
@@ -250,9 +274,11 @@
     },
     {
       "ID": 1301,
-      "Name": "Железный щит",
-      "Type": 7,
+      "Name": "\u0416\u0435\u043B\u0435\u0437\u043D\u044B\u0439 \u0449\u0438\u0442",
+      "NamePlural": "",
+      "Type": "offHand",
       "Price": 50,
+      "Description": "",
       "AttackBonus": 0,
       "DefenceBonus": 10,
       "AgilityBonus": 0,
@@ -270,9 +296,11 @@
     },
     {
       "ID": 1401,
-      "Name": "Фамильное кольцо",
-      "Type": 8,
+      "Name": "\u0424\u0430\u043C\u0438\u043B\u044C\u043D\u043E\u0435 \u043A\u043E\u043B\u044C\u0446\u043E",
+      "NamePlural": "",
+      "Type": "ring",
       "Price": 100,
+      "Description": "",
       "AttackBonus": 1,
       "DefenceBonus": 1,
       "AgilityBonus": 1,
@@ -290,9 +318,11 @@
     },
     {
       "ID": 1402,
-      "Name": "Золотое кольцо",
-      "Type": 8,
+      "Name": "\u0417\u043E\u043B\u043E\u0442\u043E\u0435 \u043A\u043E\u043B\u044C\u0446\u043E",
+      "NamePlural": "",
+      "Type": "ring",
       "Price": 50,
+      "Description": "",
       "AttackBonus": 0,
       "DefenceBonus": 2,
       "AgilityBonus": 0,
@@ -310,9 +340,11 @@
     },
     {
       "ID": 1403,
-      "Name": "Дорогое ожерелье",
-      "Type": 9,
+      "Name": "\u0414\u043E\u0440\u043E\u0433\u043E\u0435 \u043E\u0436\u0435\u0440\u0435\u043B\u044C\u0435",
+      "NamePlural": "",
+      "Type": "amulet",
       "Price": 50,
+      "Description": "",
       "AttackBonus": 0,
       "DefenceBonus": 0,
       "AgilityBonus": 0,
@@ -330,52 +362,65 @@
     },
     {
       "ID": 1501,
-      "Name": "Паучий шелк",
-      "Type": 10,
-      "Price": 10
+      "Name": "\u041F\u0430\u0443\u0447\u0438\u0439 \u0448\u0435\u043B\u043A",
+      "NamePlural": "",
+      "Type": "stuff",
+      "Price": 10,
+      "Description": "",
+      "Components": []
     },
     {
       "ID": 1601,
-      "Name": "Ящик с товарами",
-      "NamePlural": "Потерянный ящик торговца",
-      "Type": 11,
-      "Price": 0
+      "Name": "\u042F\u0449\u0438\u043A \u0441 \u0442\u043E\u0432\u0430\u0440\u0430\u043C\u0438",
+      "NamePlural": "\u041F\u043E\u0442\u0435\u0440\u044F\u043D\u043D\u044B\u0439 \u044F\u0449\u0438\u043A \u0442\u043E\u0440\u0433\u043E\u0432\u0446\u0430",
+      "Type": "quest",
+      "Price": 0,
+      "Description": "",
+      "Components": []
     },
     {
       "ID": 1602,
-      "Name": "Ящик с инструментами",
-      "NamePlural": "Потерянный ящик торговца",
-      "Type": 11,
-      "Price": 0
+      "Name": "\u042F\u0449\u0438\u043A \u0441 \u0438\u043D\u0441\u0442\u0440\u0443\u043C\u0435\u043D\u0442\u0430\u043C\u0438",
+      "NamePlural": "\u041F\u043E\u0442\u0435\u0440\u044F\u043D\u043D\u044B\u0439 \u044F\u0449\u0438\u043A \u0442\u043E\u0440\u0433\u043E\u0432\u0446\u0430",
+      "Type": "quest",
+      "Price": 0,
+      "Description": "",
+      "Components": []
     },
     {
       "ID": 1603,
-      "Name": "Ящик с припасами",
-      "NamePlural": "Потерянный ящик торговца",
-      "Type": 11,
-      "Price": 0
+      "Name": "\u042F\u0449\u0438\u043A \u0441 \u043F\u0440\u0438\u043F\u0430\u0441\u0430\u043C\u0438",
+      "NamePlural": "\u041F\u043E\u0442\u0435\u0440\u044F\u043D\u043D\u044B\u0439 \u044F\u0449\u0438\u043A \u0442\u043E\u0440\u0433\u043E\u0432\u0446\u0430",
+      "Type": "quest",
+      "Price": 0,
+      "Description": "",
+      "Components": []
     },
     {
       "ID": 1604,
-      "Name": "Ящик с украшениями",
-      "NamePlural": "Потерянный ящик торговца",
-      "Type": 11,
-      "Price": 0
+      "Name": "\u042F\u0449\u0438\u043A \u0441 \u0443\u043A\u0440\u0430\u0448\u0435\u043D\u0438\u044F\u043C\u0438",
+      "NamePlural": "\u041F\u043E\u0442\u0435\u0440\u044F\u043D\u043D\u044B\u0439 \u044F\u0449\u0438\u043A \u0442\u043E\u0440\u0433\u043E\u0432\u0446\u0430",
+      "Type": "quest",
+      "Price": 0,
+      "Description": "",
+      "Components": []
     },
     {
       "ID": 1701,
-      "Name": "Отмычка",
-      "NamePlural": "Отмычки",
-      "Type": 13,
+      "Name": "\u041E\u0442\u043C\u044B\u0447\u043A\u0430",
+      "NamePlural": "\u041E\u0442\u043C\u044B\u0447\u043A\u0438",
+      "Type": "lockpick",
       "Price": 25,
-      "Description": "Металлическая отмычка для взлома замков.",
+      "Description": "\u041C\u0435\u0442\u0430\u043B\u043B\u0438\u0447\u0435\u0441\u043A\u0430\u044F \u043E\u0442\u043C\u044B\u0447\u043A\u0430 \u0434\u043B\u044F \u0432\u0437\u043B\u043E\u043C\u0430 \u0437\u0430\u043C\u043A\u043E\u0432.",
       "Components": [
         {
           "ComponentType": "Lockpick",
           "LockpickBonus": 3,
           "Durability": 10,
+          "MaxDurability": 10,
           "DifficultyReduction": 0,
-          "IsConsumable": true
+          "IsConsumable": true,
+          "IsBroken": false
         }
       ]
     }
@@ -383,7 +428,7 @@
   "Monsters": [
     {
       "ID": 2001,
-      "Name": "Крыса",
+      "Name": "\u041A\u0440\u044B\u0441\u0430",
       "Level": 1,
       "CurrentHP": 10,
       "MaximumHP": 10,
@@ -412,7 +457,7 @@
     },
     {
       "ID": 2002,
-      "Name": "Паук",
+      "Name": "\u041F\u0430\u0443\u043A",
       "Level": 1,
       "CurrentHP": 25,
       "MaximumHP": 25,
@@ -441,7 +486,7 @@
     },
     {
       "ID": 2003,
-      "Name": "Матерая крыса",
+      "Name": "\u041C\u0430\u0442\u0435\u0440\u0430\u044F \u043A\u0440\u044B\u0441\u0430",
       "Level": 1,
       "CurrentHP": 30,
       "MaximumHP": 30,
@@ -480,7 +525,7 @@
     },
     {
       "ID": 2004,
-      "Name": "Матерый паук",
+      "Name": "\u041C\u0430\u0442\u0435\u0440\u044B\u0439 \u043F\u0430\u0443\u043A",
       "Level": 1,
       "CurrentHP": 50,
       "MaximumHP": 50,
@@ -509,7 +554,7 @@
     },
     {
       "ID": 2005,
-      "Name": "Бандит",
+      "Name": "\u0411\u0430\u043D\u0434\u0438\u0442",
       "Level": 1,
       "CurrentHP": 50,
       "MaximumHP": 50,
@@ -533,7 +578,7 @@
     },
     {
       "ID": 2006,
-      "Name": "Ангел",
+      "Name": "\u0410\u043D\u0433\u0435\u043B",
       "Level": 100,
       "CurrentHP": 1000,
       "MaximumHP": 1000,
@@ -546,11 +591,12 @@
         "Intelligence": 100,
         "Wisdom": 100,
         "Charisma": 100
-      }
+      },
+      "LootTable": []
     },
     {
       "ID": 2007,
-      "Name": "Волк",
+      "Name": "\u0412\u043E\u043B\u043A",
       "Level": 1,
       "CurrentHP": 50,
       "MaximumHP": 50,
@@ -576,8 +622,9 @@
   "Locations": [
     {
       "ID": 3001,
-      "Name": "Деревня",
-      "Description": "Здесь вы родились, тут безопасно.",
+      "Name": "\u0414\u0435\u0440\u0435\u0432\u043D\u044F",
+      "Description": "\u0417\u0434\u0435\u0441\u044C \u0432\u044B \u0440\u043E\u0434\u0438\u043B\u0438\u0441\u044C, \u0442\u0443\u0442 \u0431\u0435\u0437\u043E\u043F\u0430\u0441\u043D\u043E.",
+      "MonsterSpawns": [],
       "NPCsHere": [
         4001,
         4002,
@@ -607,12 +654,15 @@
           "Count": 1
         }
       ],
+      "MonsterTemplates": [],
       "GroundItems": [
         {
           "ItemID": 1103,
           "Quantity": 1
         }
       ],
+      "RoomEntrances": [],
+      "Chests": [],
       "ScaleMonstersToPlayerLevel": true,
       "LocationToNorth": 3002,
       "LocationToEast": 3004,
@@ -621,8 +671,8 @@
     },
     {
       "ID": 3002,
-      "Name": "Северная Поляна",
-      "Description": "Поляна к северу от деревни, тут обитают крысы.",
+      "Name": "\u0421\u0435\u0432\u0435\u0440\u043D\u0430\u044F \u041F\u043E\u043B\u044F\u043D\u0430",
+      "Description": "\u041F\u043E\u043B\u044F\u043D\u0430 \u043A \u0441\u0435\u0432\u0435\u0440\u0443 \u043E\u0442 \u0434\u0435\u0440\u0435\u0432\u043D\u0438, \u0442\u0443\u0442 \u043E\u0431\u0438\u0442\u0430\u044E\u0442 \u043A\u0440\u044B\u0441\u044B.",
       "MonsterSpawns": [
         {
           "MonsterTemplateID": 2003,
@@ -637,10 +687,13 @@
           "Count": 3
         }
       ],
+      "NPCsHere": [],
+      "NPCSpawns": [],
       "MonsterTemplates": [
         2003,
         2007
       ],
+      "GroundItems": [],
       "RoomEntrances": [
         6001
       ],
@@ -653,8 +706,8 @@
     },
     {
       "ID": 3003,
-      "Name": "Южная Поляна",
-      "Description": "Поляна к югу от деревни, тут обитают крысы.",
+      "Name": "\u042E\u0436\u043D\u0430\u044F \u041F\u043E\u043B\u044F\u043D\u0430",
+      "Description": "\u041F\u043E\u043B\u044F\u043D\u0430 \u043A \u044E\u0433\u0443 \u043E\u0442 \u0434\u0435\u0440\u0435\u0432\u043D\u0438, \u0442\u0443\u0442 \u043E\u0431\u0438\u0442\u0430\u044E\u0442 \u043A\u0440\u044B\u0441\u044B.",
       "MonsterSpawns": [
         {
           "MonsterTemplateID": 2003,
@@ -663,13 +716,19 @@
           "Count": 1
         }
       ],
+      "NPCsHere": [],
+      "NPCSpawns": [],
+      "MonsterTemplates": [],
+      "GroundItems": [],
+      "RoomEntrances": [],
+      "Chests": [],
       "ScaleMonstersToPlayerLevel": true,
       "LocationToNorth": 3001
     },
     {
       "ID": 3004,
-      "Name": "Восточная Поляна",
-      "Description": "Поляна к востоку от деревни, тут обитают пауки.",
+      "Name": "\u0412\u043E\u0441\u0442\u043E\u0447\u043D\u0430\u044F \u041F\u043E\u043B\u044F\u043D\u0430",
+      "Description": "\u041F\u043E\u043B\u044F\u043D\u0430 \u043A \u0432\u043E\u0441\u0442\u043E\u043A\u0443 \u043E\u0442 \u0434\u0435\u0440\u0435\u0432\u043D\u0438, \u0442\u0443\u0442 \u043E\u0431\u0438\u0442\u0430\u044E\u0442 \u043F\u0430\u0443\u043A\u0438.",
       "MonsterSpawns": [
         {
           "MonsterTemplateID": 2002,
@@ -690,13 +749,19 @@
           "Count": 1
         }
       ],
+      "NPCsHere": [],
+      "NPCSpawns": [],
+      "MonsterTemplates": [],
+      "GroundItems": [],
+      "RoomEntrances": [],
+      "Chests": [],
       "ScaleMonstersToPlayerLevel": true,
       "LocationToWest": 3001
     },
     {
       "ID": 3005,
-      "Name": "Западная Поляна",
-      "Description": "Поляна к западу от деревни, тут обитают пауки.",
+      "Name": "\u0417\u0430\u043F\u0430\u0434\u043D\u0430\u044F \u041F\u043E\u043B\u044F\u043D\u0430",
+      "Description": "\u041F\u043E\u043B\u044F\u043D\u0430 \u043A \u0437\u0430\u043F\u0430\u0434\u0443 \u043E\u0442 \u0434\u0435\u0440\u0435\u0432\u043D\u0438, \u0442\u0443\u0442 \u043E\u0431\u0438\u0442\u0430\u044E\u0442 \u043F\u0430\u0443\u043A\u0438.",
       "MonsterSpawns": [
         {
           "MonsterTemplateID": 2002,
@@ -723,13 +788,20 @@
           "Count": 1
         }
       ],
+      "NPCsHere": [],
+      "NPCSpawns": [],
+      "MonsterTemplates": [],
+      "GroundItems": [],
+      "RoomEntrances": [],
+      "Chests": [],
       "ScaleMonstersToPlayerLevel": true,
       "LocationToEast": 3001
     },
     {
       "ID": 3006,
-      "Name": "Божественный остров",
-      "Description": "Остров вдалеке от мирских забот, отсюда видно материк.",
+      "Name": "\u0411\u043E\u0436\u0435\u0441\u0442\u0432\u0435\u043D\u043D\u044B\u0439 \u043E\u0441\u0442\u0440\u043E\u0432",
+      "Description": "\u041E\u0441\u0442\u0440\u043E\u0432 \u0432\u0434\u0430\u043B\u0435\u043A\u0435 \u043E\u0442 \u043C\u0438\u0440\u0441\u043A\u0438\u0445 \u0437\u0430\u0431\u043E\u0442, \u043E\u0442\u0441\u044E\u0434\u0430 \u0432\u0438\u0434\u043D\u043E \u043C\u0430\u0442\u0435\u0440\u0438\u043A.",
+      "MonsterSpawns": [],
       "NPCsHere": [
         4005
       ],
@@ -742,162 +814,188 @@
       "MonsterTemplates": [
         2006
       ],
+      "GroundItems": [],
+      "RoomEntrances": [],
+      "Chests": [],
       "ScaleMonstersToPlayerLevel": false
     }
   ],
   "Quests": [
     {
-      "id": 5001,
-      "name": "Разведка",
-      "description": "Староста Федот попросил вас осмотреть Северную Поляну",
-      "questGiverId": 4002,
-      "conditions": [
+      "ID": 5001,
+      "Name": "\u0420\u0430\u0437\u0432\u0435\u0434\u043A\u0430",
+      "Description": "\u0421\u0442\u0430\u0440\u043E\u0441\u0442\u0430 \u0424\u0435\u0434\u043E\u0442 \u043F\u043E\u043F\u0440\u043E\u0441\u0438\u043B \u0432\u0430\u0441 \u043E\u0441\u043C\u043E\u0442\u0440\u0435\u0442\u044C \u0421\u0435\u0432\u0435\u0440\u043D\u0443\u044E \u041F\u043E\u043B\u044F\u043D\u0443",
+      "QuestGiverID": 4002,
+      "Conditions": [
         {
-          "id": 0,
-          "type": "VisitLocation",
-          "description": "Посетить Северную Поляну",
-          "requiredAmount": 1,
-          "targetId": 3002,
-          "currentProgress": 0,
-          "isCompleted": false
+          "ID": 0,
+          "Type": "VisitLocation",
+          "Description": "\u041F\u043E\u0441\u0435\u0442\u0438\u0442\u044C \u0421\u0435\u0432\u0435\u0440\u043D\u0443\u044E \u041F\u043E\u043B\u044F\u043D\u0443",
+          "RequiredAmount": 1,
+          "TargetID": 3002,
+          "CurrentProgress": 0,
+          "IsCompleted": false,
+          "SpawnLocations": []
         }
       ],
-      "rewards": {
-        "experience": 25,
-        "gold": 25
+      "Rewards": {
+        "Experience": 25,
+        "Gold": 25,
+        "Items": []
       },
-      "dialogueNodes": {
-        "Offer": "quest_5001_offer",
-        "InProgress": "quest_5001_inprogress",
-        "ReadyToComplete": "quest_5001_readytocomplete",
-        "Completed": "quest_5001_completed"
-      }
+      "PrerequisiteQuestIDs": [],
+      "DialogueNodes": {
+        "offer": "quest_5001_offer",
+        "inProgress": "quest_5001_inprogress",
+        "readyToComplete": "quest_5001_readytocomplete",
+        "completed": "quest_5001_completed"
+      },
+      "State": "notStarted"
     },
     {
-      "id": 5002,
-      "name": "Серые разбойники с Северной поляны",
-      "description": "Убить 3 волков.",
-      "detailedDescription": "Местный купец Зарубий жалуется на стаю волков, что обосновалась на северной поляне. Хищники перекрыли важный торговый путь, угрожая бизнесу купца и безопасности жителей. Он просит вас проучить «серых разбойников» и очистить дорогу.",
-      "questGiverId": 4001,
-      "conditions": [
+      "ID": 5002,
+      "Name": "\u0421\u0435\u0440\u044B\u0435 \u0440\u0430\u0437\u0431\u043E\u0439\u043D\u0438\u043A\u0438 \u0441 \u0421\u0435\u0432\u0435\u0440\u043D\u043E\u0439 \u043F\u043E\u043B\u044F\u043D\u044B",
+      "Description": "\u0423\u0431\u0438\u0442\u044C 3 \u0432\u043E\u043B\u043A\u043E\u0432.",
+      "DetailedDescription": "\u041C\u0435\u0441\u0442\u043D\u044B\u0439 \u043A\u0443\u043F\u0435\u0446 \u0417\u0430\u0440\u0443\u0431\u0438\u0439 \u0436\u0430\u043B\u0443\u0435\u0442\u0441\u044F \u043D\u0430 \u0441\u0442\u0430\u044E \u0432\u043E\u043B\u043A\u043E\u0432, \u0447\u0442\u043E \u043E\u0431\u043E\u0441\u043D\u043E\u0432\u0430\u043B\u0430\u0441\u044C \u043D\u0430 \u0441\u0435\u0432\u0435\u0440\u043D\u043E\u0439 \u043F\u043E\u043B\u044F\u043D\u0435. \u0425\u0438\u0449\u043D\u0438\u043A\u0438 \u043F\u0435\u0440\u0435\u043A\u0440\u044B\u043B\u0438 \u0432\u0430\u0436\u043D\u044B\u0439 \u0442\u043E\u0440\u0433\u043E\u0432\u044B\u0439 \u043F\u0443\u0442\u044C, \u0443\u0433\u0440\u043E\u0436\u0430\u044F \u0431\u0438\u0437\u043D\u0435\u0441\u0443 \u043A\u0443\u043F\u0446\u0430 \u0438 \u0431\u0435\u0437\u043E\u043F\u0430\u0441\u043D\u043E\u0441\u0442\u0438 \u0436\u0438\u0442\u0435\u043B\u0435\u0439. \u041E\u043D \u043F\u0440\u043E\u0441\u0438\u0442 \u0432\u0430\u0441 \u043F\u0440\u043E\u0443\u0447\u0438\u0442\u044C \u00AB\u0441\u0435\u0440\u044B\u0445 \u0440\u0430\u0437\u0431\u043E\u0439\u043D\u0438\u043A\u043E\u0432\u00BB \u0438 \u043E\u0447\u0438\u0441\u0442\u0438\u0442\u044C \u0434\u043E\u0440\u043E\u0433\u0443.",
+      "QuestGiverID": 4001,
+      "Conditions": [
         {
-          "id": 0,
-          "type": "KillMonsters",
-          "description": "Убить 3 волков",
-          "requiredAmount": 3,
-          "targetId": 2007,
-          "currentProgress": 0,
-          "isCompleted": false
+          "ID": 0,
+          "Type": "KillMonsters",
+          "Description": "\u0423\u0431\u0438\u0442\u044C 3 \u0432\u043E\u043B\u043A\u043E\u0432",
+          "RequiredAmount": 3,
+          "TargetID": 2007,
+          "CurrentProgress": 0,
+          "IsCompleted": false,
+          "SpawnLocations": []
         }
       ],
-      "rewards": {
-        "experience": 50,
-        "gold": 100
+      "Rewards": {
+        "Experience": 50,
+        "Gold": 100,
+        "Items": []
       },
-      "dialogueNodes": {
-        "Offer": "quest_5002_offer",
-        "InProgress": "quest_5002_progress",
-        "ReadyToComplete": "quest_5002_readyToComplete",
-        "Completed": "quest_5002_readyToComplete_2"
-      }
+      "PrerequisiteQuestIDs": [],
+      "DialogueNodes": {
+        "offer": "quest_5002_offer",
+        "inProgress": "quest_5002_progress",
+        "readyToComplete": "quest_5002_readyToComplete",
+        "completed": "quest_5002_readyToComplete_2"
+      },
+      "State": "notStarted"
     },
     {
-      "id": 5003,
-      "name": "Потерянные драгоценности.",
-      "description": "Ремесленник попросил вас собрать потерянные материалы.",
-      "questGiverId": 4003,
-      "conditions": [
+      "ID": 5003,
+      "Name": "\u041F\u043E\u0442\u0435\u0440\u044F\u043D\u043D\u044B\u0435 \u0434\u0440\u0430\u0433\u043E\u0446\u0435\u043D\u043D\u043E\u0441\u0442\u0438.",
+      "Description": "\u0420\u0435\u043C\u0435\u0441\u043B\u0435\u043D\u043D\u0438\u043A \u043F\u043E\u043F\u0440\u043E\u0441\u0438\u043B \u0432\u0430\u0441 \u0441\u043E\u0431\u0440\u0430\u0442\u044C \u043F\u043E\u0442\u0435\u0440\u044F\u043D\u043D\u044B\u0435 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u044B.",
+      "QuestGiverID": 4003,
+      "Conditions": [
         {
-          "id": 0,
-          "type": "CollectItems",
-          "description": "Собрать 4 ящика с материалами.",
-          "requiredAmount": 4,
-          "targetId": 1604,
-          "currentProgress": 0,
-          "isCompleted": false,
-          "spawnLocations": [
+          "ID": 0,
+          "Type": "CollectItems",
+          "Description": "\u0421\u043E\u0431\u0440\u0430\u0442\u044C 4 \u044F\u0449\u0438\u043A\u0430 \u0441 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u0430\u043C\u0438.",
+          "RequiredAmount": 4,
+          "TargetID": 1604,
+          "CurrentProgress": 0,
+          "IsCompleted": false,
+          "SpawnLocations": [
             {
               "LocationID": 3002,
               "SpawnChance": 25,
               "Quantity": 1,
               "MaxItemsOnLocation": 1,
-              "SpawnInterval": 1
+              "SpawnInterval": 1,
+              "SpawnCounter": 0,
+              "HasSpawned": false
             },
             {
               "LocationID": 3005,
               "SpawnChance": 25,
               "Quantity": 1,
               "MaxItemsOnLocation": 1,
-              "SpawnInterval": 1
+              "SpawnInterval": 1,
+              "SpawnCounter": 0,
+              "HasSpawned": false
             },
             {
               "LocationID": 3004,
               "SpawnChance": 25,
               "Quantity": 1,
               "MaxItemsOnLocation": 1,
-              "SpawnInterval": 1
+              "SpawnInterval": 1,
+              "SpawnCounter": 0,
+              "HasSpawned": false
             },
             {
               "LocationID": 3003,
               "SpawnChance": 25,
               "Quantity": 1,
               "MaxItemsOnLocation": 1,
-              "SpawnInterval": 1
+              "SpawnInterval": 1,
+              "SpawnCounter": 0,
+              "HasSpawned": false
             }
           ]
         }
       ],
-      "rewards": {
-        "experience": 25,
-        "gold": 25,
-        "items": [
+      "Rewards": {
+        "Experience": 25,
+        "Gold": 25,
+        "Items": [
           {
-            "itemId": 1403,
-            "quantity": 1
+            "ItemID": 1403,
+            "Quantity": 1
           }
         ]
       },
-      "dialogueNodes": {
-        "Offer": "quest_5003_offer",
-        "InProgress": "quest_5003_progress",
-        "ReadyToComplete": "quest_5003_readyToComplete"
-      }
+      "PrerequisiteQuestIDs": [],
+      "DialogueNodes": {
+        "offer": "quest_5003_offer",
+        "inProgress": "quest_5003_progress",
+        "readyToComplete": "quest_5003_readyToComplete"
+      },
+      "State": "notStarted"
     },
     {
-      "id": 5004,
-      "name": "Что с деньгами?",
-      "description": "Охотник попросил вас узнать у Зарубия по поводу долга.",
-      "questGiverId": 4004,
-      "conditions": [
+      "ID": 5004,
+      "Name": "\u0427\u0442\u043E \u0441 \u0434\u0435\u043D\u044C\u0433\u0430\u043C\u0438?",
+      "Description": "\u041E\u0445\u043E\u0442\u043D\u0438\u043A \u043F\u043E\u043F\u0440\u043E\u0441\u0438\u043B \u0432\u0430\u0441 \u0443\u0437\u043D\u0430\u0442\u044C \u0443 \u0417\u0430\u0440\u0443\u0431\u0438\u044F \u043F\u043E \u043F\u043E\u0432\u043E\u0434\u0443 \u0434\u043E\u043B\u0433\u0430.",
+      "QuestGiverID": 4004,
+      "Conditions": [
         {
-          "id": 0,
-          "type": "TalkToNPC",
-          "description": "Поговорить с купцом Зарубием",
-          "requiredAmount": 1,
-          "targetId": 4001,
-          "currentProgress": 0,
-          "isCompleted": false
+          "ID": 0,
+          "Type": "TalkToNPC",
+          "Description": "\u041F\u043E\u0433\u043E\u0432\u043E\u0440\u0438\u0442\u044C \u0441 \u043A\u0443\u043F\u0446\u043E\u043C \u0417\u0430\u0440\u0443\u0431\u0438\u0435\u043C",
+          "RequiredAmount": 1,
+          "TargetID": 4001,
+          "CurrentProgress": 0,
+          "IsCompleted": false,
+          "SpawnLocations": []
         }
       ],
-      "rewards": {
-        "experience": 25,
-        "gold": 25
+      "Rewards": {
+        "Experience": 25,
+        "Gold": 25,
+        "Items": []
       },
-      "dialogueNodes": {
-        "Offer": "quest_5004_offer",
-        "InProgress": "quest_5004_progress",
-        "ReadyToComplete": "quest_5004_readyToComplete"
-      }
+      "PrerequisiteQuestIDs": [],
+      "DialogueNodes": {
+        "offer": "quest_5004_offer",
+        "inProgress": "quest_5004_progress",
+        "readyToComplete": "quest_5004_readyToComplete"
+      },
+      "State": "notStarted"
     }
   ],
   "NPCs": [
     {
       "ID": 4001,
-      "Name": "Купец Зарубий",
-      "Greeting": "Добро пожаловать в нашу деревню! Есть чем поторговать?",
+      "Name": "\u041A\u0443\u043F\u0435\u0446 \u0417\u0430\u0440\u0443\u0431\u0438\u0439",
+      "Greeting": "\u0414\u043E\u0431\u0440\u043E \u043F\u043E\u0436\u0430\u043B\u043E\u0432\u0430\u0442\u044C \u0432 \u043D\u0430\u0448\u0443 \u0434\u0435\u0440\u0435\u0432\u043D\u044E! \u0415\u0441\u0442\u044C \u0447\u0435\u043C \u043F\u043E\u0442\u043E\u0440\u0433\u043E\u0432\u0430\u0442\u044C?",
+      "QuestsToGive": [],
       "Merchant": {
-        "Name": "Купец Зарубий",
-        "ShopGreeting": "Добро пожаловать в мою лавку! Есть чем поторговать?",
+        "Name": "\u041A\u0443\u043F\u0435\u0446 \u0417\u0430\u0440\u0443\u0431\u0438\u0439",
+        "ShopGreeting": "\u0414\u043E\u0431\u0440\u043E \u043F\u043E\u0436\u0430\u043B\u043E\u0432\u0430\u0442\u044C \u0432 \u043C\u043E\u044E \u043B\u0430\u0432\u043A\u0443! \u0415\u0441\u0442\u044C \u0447\u0435\u043C \u043F\u043E\u0442\u043E\u0440\u0433\u043E\u0432\u0430\u0442\u044C?",
         "Gold": 1500,
         "ItemsForSale": [
           {
@@ -946,11 +1044,12 @@
     },
     {
       "ID": 4002,
-      "Name": "Староста Федот",
-      "Greeting": "Добро пожаловать в нашу деревню, путник! Нам нужна твоя помощь.",
+      "Name": "\u0421\u0442\u0430\u0440\u043E\u0441\u0442\u0430 \u0424\u0435\u0434\u043E\u0442",
+      "Greeting": "\u0414\u043E\u0431\u0440\u043E \u043F\u043E\u0436\u0430\u043B\u043E\u0432\u0430\u0442\u044C \u0432 \u043D\u0430\u0448\u0443 \u0434\u0435\u0440\u0435\u0432\u043D\u044E, \u043F\u0443\u0442\u043D\u0438\u043A! \u041D\u0430\u043C \u043D\u0443\u0436\u043D\u0430 \u0442\u0432\u043E\u044F \u043F\u043E\u043C\u043E\u0449\u044C.",
+      "QuestsToGive": [],
       "Merchant": {
-        "Name": "Староста Федот",
-        "ShopGreeting": "У меня есть несколько полезных вещей для путешественника.",
+        "Name": "\u0421\u0442\u0430\u0440\u043E\u0441\u0442\u0430 \u0424\u0435\u0434\u043E\u0442",
+        "ShopGreeting": "\u0423 \u043C\u0435\u043D\u044F \u0435\u0441\u0442\u044C \u043D\u0435\u0441\u043A\u043E\u043B\u044C\u043A\u043E \u043F\u043E\u043B\u0435\u0437\u043D\u044B\u0445 \u0432\u0435\u0449\u0435\u0439 \u0434\u043B\u044F \u043F\u0443\u0442\u0435\u0448\u0435\u0441\u0442\u0432\u0435\u043D\u043D\u0438\u043A\u0430.",
         "Gold": 500,
         "ItemsForSale": [
           {
@@ -967,36 +1066,48 @@
     },
     {
       "ID": 4003,
-      "Name": "Ремесленник",
-      "Greeting": "Приветствую! Ищу качественные материалы для своих изделий.",
+      "Name": "\u0420\u0435\u043C\u0435\u0441\u043B\u0435\u043D\u043D\u0438\u043A",
+      "Greeting": "\u041F\u0440\u0438\u0432\u0435\u0442\u0441\u0442\u0432\u0443\u044E! \u0418\u0449\u0443 \u043A\u0430\u0447\u0435\u0441\u0442\u0432\u0435\u043D\u043D\u044B\u0435 \u043C\u0430\u0442\u0435\u0440\u0438\u0430\u043B\u044B \u0434\u043B\u044F \u0441\u0432\u043E\u0438\u0445 \u0438\u0437\u0434\u0435\u043B\u0438\u0439.",
+      "QuestsToGive": [],
       "Merchant": {
-        "Gold": 0
+        "Name": "",
+        "ShopGreeting": "",
+        "Gold": 0,
+        "ItemsForSale": []
       },
       "DefaultDialogueId": "7003"
     },
     {
       "ID": 4004,
-      "Name": "Охотник",
-      "Greeting": "Эй, ищешь работу? У меня есть пара заданий для смельчака.",
+      "Name": "\u041E\u0445\u043E\u0442\u043D\u0438\u043A",
+      "Greeting": "\u042D\u0439, \u0438\u0449\u0435\u0448\u044C \u0440\u0430\u0431\u043E\u0442\u0443? \u0423 \u043C\u0435\u043D\u044F \u0435\u0441\u0442\u044C \u043F\u0430\u0440\u0430 \u0437\u0430\u0434\u0430\u043D\u0438\u0439 \u0434\u043B\u044F \u0441\u043C\u0435\u043B\u044C\u0447\u0430\u043A\u0430.",
+      "QuestsToGive": [],
       "Merchant": {
-        "Gold": 0
+        "Name": "",
+        "ShopGreeting": "",
+        "Gold": 0,
+        "ItemsForSale": []
       },
       "DefaultDialogueId": "7004"
     },
     {
       "ID": 4005,
-      "Name": "Разработчик",
-      "Greeting": "Приветики",
+      "Name": "\u0420\u0430\u0437\u0440\u0430\u0431\u043E\u0442\u0447\u0438\u043A",
+      "Greeting": "\u041F\u0440\u0438\u0432\u0435\u0442\u0438\u043A\u0438",
+      "QuestsToGive": [],
       "Merchant": {
-        "Gold": 0
+        "Name": "",
+        "ShopGreeting": "",
+        "Gold": 0,
+        "ItemsForSale": []
       }
     }
   ],
   "Titles": [
     {
       "ID": 6001,
-      "Name": "Истребитель Крыс",
-      "Description": "Убийца 50 крыс",
+      "Name": "\u0418\u0441\u0442\u0440\u0435\u0431\u0438\u0442\u0435\u043B\u044C \u041A\u0440\u044B\u0441",
+      "Description": "\u0423\u0431\u0438\u0439\u0446\u0430 50 \u043A\u0440\u044B\u0441",
       "RequirementType": "MonsterKill",
       "RequirementTarget": "Rat",
       "RequirementAmount": 50,
@@ -1008,8 +1119,8 @@
     },
     {
       "ID": 6002,
-      "Name": "Охотник на Пауков",
-      "Description": "Убийца 30 пауков",
+      "Name": "\u041E\u0445\u043E\u0442\u043D\u0438\u043A \u043D\u0430 \u041F\u0430\u0443\u043A\u043E\u0432",
+      "Description": "\u0423\u0431\u0438\u0439\u0446\u0430 30 \u043F\u0430\u0443\u043A\u043E\u0432",
       "RequirementType": "MonsterKill",
       "RequirementTarget": "Spider",
       "RequirementAmount": 30,
@@ -1021,48 +1132,52 @@
     },
     {
       "ID": 6003,
-      "Name": "Опытный Искатель Приключений",
-      "Description": "Убийца 100 монстров",
+      "Name": "\u041E\u043F\u044B\u0442\u043D\u044B\u0439 \u0418\u0441\u043A\u0430\u0442\u0435\u043B\u044C \u041F\u0440\u0438\u043A\u043B\u044E\u0447\u0435\u043D\u0438\u0439",
+      "Description": "\u0423\u0431\u0438\u0439\u0446\u0430 100 \u043C\u043E\u043D\u0441\u0442\u0440\u043E\u0432",
       "RequirementType": "TotalMonstersKilled",
+      "RequirementTarget": "",
       "RequirementAmount": 100,
       "AttackBonus": 2,
       "DefenceBonus": 2,
       "HealthBonus": 10,
+      "BonusAgainstType": "",
       "BonusAgainstAmount": 0
     }
   ],
   "Dialogues": [
     {
-      "Id": "7001",
-      "Name": "Диалог Старосты Федота",
-      "Start": "default_fedot",
-      "Nodes": [
+      "id": "7001",
+      "name": "\u0414\u0438\u0430\u043B\u043E\u0433 \u0421\u0442\u0430\u0440\u043E\u0441\u0442\u044B \u0424\u0435\u0434\u043E\u0442\u0430",
+      "start": "default_fedot",
+      "nodes": [
         {
           "Id": "quest_5001_offer",
-          "Text": "Вид у тебя здравый, а взгляд – решительный. Не подведи и меня, старосту деревни. Дело у меня к тебе есть, щекотливое. В последнее время с Северной Поляны доносятся странные звуки, а двое дровосеков, что туда на прошлой неделе ходили, еще не вернулись. Народ шепчется, нечисть ли лесная объявилась или, того хуже, разбойники логово устраивают. Сходи-ка, развей мои опасения. Разведай обстановку на поляне, посмотри, что там стряслось, и вернись с вестями. Справишься?",
+          "Text": "\u0412\u0438\u0434 \u0443 \u0442\u0435\u0431\u044F \u0437\u0434\u0440\u0430\u0432\u044B\u0439, \u0430 \u0432\u0437\u0433\u043B\u044F\u0434 \u2013 \u0440\u0435\u0448\u0438\u0442\u0435\u043B\u044C\u043D\u044B\u0439. \u041D\u0435 \u043F\u043E\u0434\u0432\u0435\u0434\u0438 \u0438 \u043C\u0435\u043D\u044F, \u0441\u0442\u0430\u0440\u043E\u0441\u0442\u0443 \u0434\u0435\u0440\u0435\u0432\u043D\u0438. \u0414\u0435\u043B\u043E \u0443 \u043C\u0435\u043D\u044F \u043A \u0442\u0435\u0431\u0435 \u0435\u0441\u0442\u044C, \u0449\u0435\u043A\u043E\u0442\u043B\u0438\u0432\u043E\u0435. \u0412 \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0435\u0435 \u0432\u0440\u0435\u043C\u044F \u0441 \u0421\u0435\u0432\u0435\u0440\u043D\u043E\u0439 \u041F\u043E\u043B\u044F\u043D\u044B \u0434\u043E\u043D\u043E\u0441\u044F\u0442\u0441\u044F \u0441\u0442\u0440\u0430\u043D\u043D\u044B\u0435 \u0437\u0432\u0443\u043A\u0438, \u0430 \u0434\u0432\u043E\u0435 \u0434\u0440\u043E\u0432\u043E\u0441\u0435\u043A\u043E\u0432, \u0447\u0442\u043E \u0442\u0443\u0434\u0430 \u043D\u0430 \u043F\u0440\u043E\u0448\u043B\u043E\u0439 \u043D\u0435\u0434\u0435\u043B\u0435 \u0445\u043E\u0434\u0438\u043B\u0438, \u0435\u0449\u0435 \u043D\u0435 \u0432\u0435\u0440\u043D\u0443\u043B\u0438\u0441\u044C. \u041D\u0430\u0440\u043E\u0434 \u0448\u0435\u043F\u0447\u0435\u0442\u0441\u044F, \u043D\u0435\u0447\u0438\u0441\u0442\u044C \u043B\u0438 \u043B\u0435\u0441\u043D\u0430\u044F \u043E\u0431\u044A\u044F\u0432\u0438\u043B\u0430\u0441\u044C \u0438\u043B\u0438, \u0442\u043E\u0433\u043E \u0445\u0443\u0436\u0435, \u0440\u0430\u0437\u0431\u043E\u0439\u043D\u0438\u043A\u0438 \u043B\u043E\u0433\u043E\u0432\u043E \u0443\u0441\u0442\u0440\u0430\u0438\u0432\u0430\u044E\u0442. \u0421\u0445\u043E\u0434\u0438-\u043A\u0430, \u0440\u0430\u0437\u0432\u0435\u0439 \u043C\u043E\u0438 \u043E\u043F\u0430\u0441\u0435\u043D\u0438\u044F. \u0420\u0430\u0437\u0432\u0435\u0434\u0430\u0439 \u043E\u0431\u0441\u0442\u0430\u043D\u043E\u0432\u043A\u0443 \u043D\u0430 \u043F\u043E\u043B\u044F\u043D\u0435, \u043F\u043E\u0441\u043C\u043E\u0442\u0440\u0438, \u0447\u0442\u043E \u0442\u0430\u043C \u0441\u0442\u0440\u044F\u0441\u043B\u043E\u0441\u044C, \u0438 \u0432\u0435\u0440\u043D\u0438\u0441\u044C \u0441 \u0432\u0435\u0441\u0442\u044F\u043C\u0438. \u0421\u043F\u0440\u0430\u0432\u0438\u0448\u044C\u0441\u044F?",
           "Type": "quest_offer",
           "Tags": [
             "quest"
           ],
           "Choices": [
             {
-              "Text": "Я помогу.",
+              "Text": "\u042F \u043F\u043E\u043C\u043E\u0433\u0443.",
               "NextNodeId": "quest_5001_offer_2",
-              "Action": 0,
+              "Condition": "",
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 3,
+                  "Type": "startQuest",
                   "Parameter": "5001"
                 }
               ],
               "ActionSummary": "StartQuest (5001)"
             },
             {
-              "Text": "Мне нужно подумать.",
-              "Action": 0,
+              "Text": "\u041C\u043D\u0435 \u043D\u0443\u0436\u043D\u043E \u043F\u043E\u0434\u0443\u043C\u0430\u0442\u044C.",
+              "Condition": "",
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 7
+                  "Type": "endDialogue"
                 }
               ],
               "ActionSummary": "EndDialogue"
@@ -1071,43 +1186,48 @@
         },
         {
           "Id": "quest_5001_inprogress",
-          "Text": "А, это снова ты. Что-то новое узнал? Или просто мимо проходил? Не задерживайся зря, дело-то важное. Пока мы тут сидим сложа руки, на Северной Поляне кто-то хозяйничает!",
+          "Text": "\u0410, \u044D\u0442\u043E \u0441\u043D\u043E\u0432\u0430 \u0442\u044B. \u0427\u0442\u043E-\u0442\u043E \u043D\u043E\u0432\u043E\u0435 \u0443\u0437\u043D\u0430\u043B? \u0418\u043B\u0438 \u043F\u0440\u043E\u0441\u0442\u043E \u043C\u0438\u043C\u043E \u043F\u0440\u043E\u0445\u043E\u0434\u0438\u043B? \u041D\u0435 \u0437\u0430\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0439\u0441\u044F \u0437\u0440\u044F, \u0434\u0435\u043B\u043E-\u0442\u043E \u0432\u0430\u0436\u043D\u043E\u0435. \u041F\u043E\u043A\u0430 \u043C\u044B \u0442\u0443\u0442 \u0441\u0438\u0434\u0438\u043C \u0441\u043B\u043E\u0436\u0430 \u0440\u0443\u043A\u0438, \u043D\u0430 \u0421\u0435\u0432\u0435\u0440\u043D\u043E\u0439 \u041F\u043E\u043B\u044F\u043D\u0435 \u043A\u0442\u043E-\u0442\u043E \u0445\u043E\u0437\u044F\u0439\u043D\u0438\u0447\u0430\u0435\u0442!",
           "Type": "quest_progress",
           "Tags": [
             "quest"
           ],
           "Choices": [
             {
-              "Text": "Я еще работаю над этим.",
-              "Action": 0,
+              "Text": "\u042F \u0435\u0449\u0435 \u0440\u0430\u0431\u043E\u0442\u0430\u044E \u043D\u0430\u0434 \u044D\u0442\u0438\u043C.",
+              "Condition": "",
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 7
+                  "Type": "endDialogue"
                 }
               ],
               "ActionSummary": "EndDialogue"
             },
             {
-              "Text": "Что мне нужно сделать?",
+              "Text": "\u0427\u0442\u043E \u043C\u043D\u0435 \u043D\u0443\u0436\u043D\u043E \u0441\u0434\u0435\u043B\u0430\u0442\u044C?",
               "NextNodeId": "quest_5001_inprogress_2",
-              "Action": 0
+              "Condition": "",
+              "Action": "none",
+              "Actions": [],
+              "ActionSummary": ""
             }
           ]
         },
         {
           "Id": "quest_5001_inprogress_2",
-          "Text": "Забыл уже? Сходи на Северную Поляну, что на север от старой мельницы. Осмотри все как следует и возвращайся ко мне с докладом. Будь осторожен, не подставляйся зря.",
+          "Text": "\u0417\u0430\u0431\u044B\u043B \u0443\u0436\u0435? \u0421\u0445\u043E\u0434\u0438 \u043D\u0430 \u0421\u0435\u0432\u0435\u0440\u043D\u0443\u044E \u041F\u043E\u043B\u044F\u043D\u0443, \u0447\u0442\u043E \u043D\u0430 \u0441\u0435\u0432\u0435\u0440 \u043E\u0442 \u0441\u0442\u0430\u0440\u043E\u0439 \u043C\u0435\u043B\u044C\u043D\u0438\u0446\u044B. \u041E\u0441\u043C\u043E\u0442\u0440\u0438 \u0432\u0441\u0435 \u043A\u0430\u043A \u0441\u043B\u0435\u0434\u0443\u0435\u0442 \u0438 \u0432\u043E\u0437\u0432\u0440\u0430\u0449\u0430\u0439\u0441\u044F \u043A\u043E \u043C\u043D\u0435 \u0441 \u0434\u043E\u043A\u043B\u0430\u0434\u043E\u043C. \u0411\u0443\u0434\u044C \u043E\u0441\u0442\u043E\u0440\u043E\u0436\u0435\u043D, \u043D\u0435 \u043F\u043E\u0434\u0441\u0442\u0430\u0432\u043B\u044F\u0439\u0441\u044F \u0437\u0440\u044F.",
           "Type": "quest_progress",
           "Tags": [
             "quest"
           ],
           "Choices": [
             {
-              "Text": "Понял.",
-              "Action": 0,
+              "Text": "\u041F\u043E\u043D\u044F\u043B.",
+              "Condition": "",
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 7
+                  "Type": "endDialogue"
                 }
               ],
               "ActionSummary": "EndDialogue"
@@ -1116,30 +1236,32 @@
         },
         {
           "Id": "quest_5001_readytocomplete",
-          "Text": "Вижу в глазах твоих – новости есть! Ну, не томи, рассказывай! Что творится на той поляне? Удалось выяснить, куда подевались мои дровосеки?",
+          "Text": "\u0412\u0438\u0436\u0443 \u0432 \u0433\u043B\u0430\u0437\u0430\u0445 \u0442\u0432\u043E\u0438\u0445 \u2013 \u043D\u043E\u0432\u043E\u0441\u0442\u0438 \u0435\u0441\u0442\u044C! \u041D\u0443, \u043D\u0435 \u0442\u043E\u043C\u0438, \u0440\u0430\u0441\u0441\u043A\u0430\u0437\u044B\u0432\u0430\u0439! \u0427\u0442\u043E \u0442\u0432\u043E\u0440\u0438\u0442\u0441\u044F \u043D\u0430 \u0442\u043E\u0439 \u043F\u043E\u043B\u044F\u043D\u0435? \u0423\u0434\u0430\u043B\u043E\u0441\u044C \u0432\u044B\u044F\u0441\u043D\u0438\u0442\u044C, \u043A\u0443\u0434\u0430 \u043F\u043E\u0434\u0435\u0432\u0430\u043B\u0438\u0441\u044C \u043C\u043E\u0438 \u0434\u0440\u043E\u0432\u043E\u0441\u0435\u043A\u0438?",
           "Type": "quest_complete",
           "Tags": [
             "quest"
           ],
           "Choices": [
             {
-              "Text": "Да, я готов рассказать.",
+              "Text": "\u0414\u0430, \u044F \u0433\u043E\u0442\u043E\u0432 \u0440\u0430\u0441\u0441\u043A\u0430\u0437\u0430\u0442\u044C.",
               "NextNodeId": "quest_5001_completed",
-              "Action": 0,
+              "Condition": "",
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 4,
+                  "Type": "completeQuest",
                   "Parameter": "5001"
                 }
               ],
               "ActionSummary": "CompleteQuest (5001)"
             },
             {
-              "Text": "Я вернусь позже.",
-              "Action": 0,
+              "Text": "\u042F \u0432\u0435\u0440\u043D\u0443\u0441\u044C \u043F\u043E\u0437\u0436\u0435.",
+              "Condition": "",
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 7
+                  "Type": "endDialogue"
                 }
               ],
               "ActionSummary": "EndDialogue"
@@ -1148,18 +1270,19 @@
         },
         {
           "Id": "quest_5001_completed",
-          "Text": "Так вот оно что! Значит, не разбойники, а гнездо вурдалаков! Это и к лучшему, теперь мы знаем врага в лицо. А за дровосеков не переживай, я уже отправил за ними группу охотников, они справятся. Спасибо тебе, друг. Твоя помощь для всей деревни дорогого стоит. Держи, это тебе за труды. И если надумаешь остаться – всегда найдем, куда применить твою смекалку да крепкую руку.",
+          "Text": "\u0422\u0430\u043A \u0432\u043E\u0442 \u043E\u043D\u043E \u0447\u0442\u043E! \u0417\u043D\u0430\u0447\u0438\u0442, \u043D\u0435 \u0440\u0430\u0437\u0431\u043E\u0439\u043D\u0438\u043A\u0438, \u0430 \u0433\u043D\u0435\u0437\u0434\u043E \u0432\u0443\u0440\u0434\u0430\u043B\u0430\u043A\u043E\u0432! \u042D\u0442\u043E \u0438 \u043A \u043B\u0443\u0447\u0448\u0435\u043C\u0443, \u0442\u0435\u043F\u0435\u0440\u044C \u043C\u044B \u0437\u043D\u0430\u0435\u043C \u0432\u0440\u0430\u0433\u0430 \u0432 \u043B\u0438\u0446\u043E. \u0410 \u0437\u0430 \u0434\u0440\u043E\u0432\u043E\u0441\u0435\u043A\u043E\u0432 \u043D\u0435 \u043F\u0435\u0440\u0435\u0436\u0438\u0432\u0430\u0439, \u044F \u0443\u0436\u0435 \u043E\u0442\u043F\u0440\u0430\u0432\u0438\u043B \u0437\u0430 \u043D\u0438\u043C\u0438 \u0433\u0440\u0443\u043F\u043F\u0443 \u043E\u0445\u043E\u0442\u043D\u0438\u043A\u043E\u0432, \u043E\u043D\u0438 \u0441\u043F\u0440\u0430\u0432\u044F\u0442\u0441\u044F. \u0421\u043F\u0430\u0441\u0438\u0431\u043E \u0442\u0435\u0431\u0435, \u0434\u0440\u0443\u0433. \u0422\u0432\u043E\u044F \u043F\u043E\u043C\u043E\u0449\u044C \u0434\u043B\u044F \u0432\u0441\u0435\u0439 \u0434\u0435\u0440\u0435\u0432\u043D\u0438 \u0434\u043E\u0440\u043E\u0433\u043E\u0433\u043E \u0441\u0442\u043E\u0438\u0442. \u0414\u0435\u0440\u0436\u0438, \u044D\u0442\u043E \u0442\u0435\u0431\u0435 \u0437\u0430 \u0442\u0440\u0443\u0434\u044B. \u0418 \u0435\u0441\u043B\u0438 \u043D\u0430\u0434\u0443\u043C\u0430\u0435\u0448\u044C \u043E\u0441\u0442\u0430\u0442\u044C\u0441\u044F \u2013 \u0432\u0441\u0435\u0433\u0434\u0430 \u043D\u0430\u0439\u0434\u0435\u043C, \u043A\u0443\u0434\u0430 \u043F\u0440\u0438\u043C\u0435\u043D\u0438\u0442\u044C \u0442\u0432\u043E\u044E \u0441\u043C\u0435\u043A\u0430\u043B\u043A\u0443 \u0434\u0430 \u043A\u0440\u0435\u043F\u043A\u0443\u044E \u0440\u0443\u043A\u0443.",
           "Type": "quest_completed",
           "Tags": [
             "quest"
           ],
           "Choices": [
             {
-              "Text": "Спасибо за награду.",
-              "Action": 0,
+              "Text": "\u0421\u043F\u0430\u0441\u0438\u0431\u043E \u0437\u0430 \u043D\u0430\u0433\u0440\u0430\u0434\u0443.",
+              "Condition": "",
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 4,
+                  "Type": "completeQuest",
                   "Parameter": "5001"
                 }
               ],
@@ -1169,18 +1292,19 @@
         },
         {
           "Id": "quest_5001_offer_2",
-          "Text": "Отлично! Буду ждать от тебя вестей.",
+          "Text": "\u041E\u0442\u043B\u0438\u0447\u043D\u043E! \u0411\u0443\u0434\u0443 \u0436\u0434\u0430\u0442\u044C \u043E\u0442 \u0442\u0435\u0431\u044F \u0432\u0435\u0441\u0442\u0435\u0439.",
           "Type": "quest_offer",
           "Tags": [
             "quest"
           ],
           "Choices": [
             {
-              "Text": "Я пошел.",
-              "Action": 0,
+              "Text": "\u042F \u043F\u043E\u0448\u0435\u043B.",
+              "Condition": "",
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 7
+                  "Type": "endDialogue"
                 }
               ],
               "ActionSummary": "EndDialogue"
@@ -1189,46 +1313,54 @@
         },
         {
           "Id": "default_fedot",
-          "Text": "Приветствую, путник.",
+          "Text": "\u041F\u0440\u0438\u0432\u0435\u0442\u0441\u0442\u0432\u0443\u044E, \u043F\u0443\u0442\u043D\u0438\u043A.",
           "Type": "greeting",
           "Tags": [
             "default"
           ],
           "Choices": [
             {
-              "Text": "Есть для меня работа?",
+              "Text": "\u0415\u0441\u0442\u044C \u0434\u043B\u044F \u043C\u0435\u043D\u044F \u0440\u0430\u0431\u043E\u0442\u0430?",
               "NextNodeId": "quest_5001_offer",
               "Condition": "questAvailableForNPC:5001",
-              "Action": 0
+              "Action": "none",
+              "Actions": [],
+              "ActionSummary": ""
             },
             {
-              "Text": "Как дела с моим заданием?",
+              "Text": "\u041A\u0430\u043A \u0434\u0435\u043B\u0430 \u0441 \u043C\u043E\u0438\u043C \u0437\u0430\u0434\u0430\u043D\u0438\u0435\u043C?",
               "NextNodeId": "quest_5001_inprogress",
               "Condition": "questInProgressForNPC:5001",
-              "Action": 0
+              "Action": "none",
+              "Actions": [],
+              "ActionSummary": ""
             },
             {
-              "Text": "Я готов отчитаться о задании.",
+              "Text": "\u042F \u0433\u043E\u0442\u043E\u0432 \u043E\u0442\u0447\u0438\u0442\u0430\u0442\u044C\u0441\u044F \u043E \u0437\u0430\u0434\u0430\u043D\u0438\u0438.",
               "NextNodeId": "quest_5001_readytocomplete",
               "Condition": "questReadyToCompleteForNPC:5001",
-              "Action": 0
+              "Action": "none",
+              "Actions": [],
+              "ActionSummary": ""
             },
             {
-              "Text": "Покажи мне свои товары...",
-              "Action": 0,
+              "Text": "\u041F\u043E\u043A\u0430\u0436\u0438 \u043C\u043D\u0435 \u0441\u0432\u043E\u0438 \u0442\u043E\u0432\u0430\u0440\u044B...",
+              "Condition": "",
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 6
+                  "Type": "startTrade"
                 }
               ],
               "ActionSummary": "StartTrade"
             },
             {
-              "Text": "Я пойду.",
-              "Action": 0,
+              "Text": "\u042F \u043F\u043E\u0439\u0434\u0443.",
+              "Condition": "",
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 7
+                  "Type": "endDialogue"
                 }
               ],
               "ActionSummary": "EndDialogue"
@@ -1238,61 +1370,70 @@
       ]
     },
     {
-      "Id": "7002",
-      "Name": "Диалог Купец Зарубий",
-      "Start": "default_zaruby",
-      "Nodes": [
+      "id": "7002",
+      "name": "\u0414\u0438\u0430\u043B\u043E\u0433 \u041A\u0443\u043F\u0435\u0446 \u0417\u0430\u0440\u0443\u0431\u0438\u0439",
+      "start": "default_zaruby",
+      "nodes": [
         {
           "Id": "default_zaruby",
-          "Text": "Привет!",
+          "Text": "\u041F\u0440\u0438\u0432\u0435\u0442!",
           "Type": "default",
+          "Tags": [],
           "Choices": [
             {
-              "Text": "Что слышно в последнее время?",
+              "Text": "\u0427\u0442\u043E \u0441\u043B\u044B\u0448\u043D\u043E \u0432 \u043F\u043E\u0441\u043B\u0435\u0434\u043D\u0435\u0435 \u0432\u0440\u0435\u043C\u044F?",
               "NextNodeId": "quest_5002_offer",
               "Condition": "questAvailableForNPC:5002",
-              "Action": 0
+              "Action": "none",
+              "Actions": [],
+              "ActionSummary": ""
             },
             {
-              "Text": "Покажи мне свои товары...",
-              "Action": 0,
+              "Text": "\u041F\u043E\u043A\u0430\u0436\u0438 \u043C\u043D\u0435 \u0441\u0432\u043E\u0438 \u0442\u043E\u0432\u0430\u0440\u044B...",
+              "Condition": "",
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 6
+                  "Type": "startTrade"
                 }
               ],
               "ActionSummary": "StartTrade"
             },
             {
-              "Text": "Уйти.",
-              "Action": 0,
+              "Text": "\u0423\u0439\u0442\u0438.",
+              "Condition": "",
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 7
+                  "Type": "endDialogue"
                 }
               ],
               "ActionSummary": "EndDialogue"
             },
             {
-              "Text": "Насчет поручения...",
+              "Text": "\u041D\u0430\u0441\u0447\u0435\u0442 \u043F\u043E\u0440\u0443\u0447\u0435\u043D\u0438\u044F...",
               "NextNodeId": "quest_5002_progress",
               "Condition": "questInProgressForNPC:5002",
-              "Action": 0
+              "Action": "none",
+              "Actions": [],
+              "ActionSummary": ""
             },
             {
-              "Text": "По поводу волков...",
+              "Text": "\u041F\u043E \u043F\u043E\u0432\u043E\u0434\u0443 \u0432\u043E\u043B\u043A\u043E\u0432...",
               "NextNodeId": "quest_5002_readyToComplete",
               "Condition": "questReadyToCompleteForNPC:5002",
-              "Action": 0
+              "Action": "none",
+              "Actions": [],
+              "ActionSummary": ""
             },
             {
-              "Text": "Я пришел кое-о-чем тебе напомнить, Зарубий.",
+              "Text": "\u042F \u043F\u0440\u0438\u0448\u0435\u043B \u043A\u043E\u0435-\u043E-\u0447\u0435\u043C \u0442\u0435\u0431\u0435 \u043D\u0430\u043F\u043E\u043C\u043D\u0438\u0442\u044C, \u0417\u0430\u0440\u0443\u0431\u0438\u0439.",
               "NextNodeId": "quest_5004_readyToComplete",
               "Condition": "questReadyToComplete:5004",
-              "Action": 0,
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 4,
+                  "Type": "completeQuest",
                   "Parameter": "5004"
                 }
               ],
@@ -1302,60 +1443,69 @@
         },
         {
           "Id": "quest_5002_offer",
-          "Text": "Эх, дела-дела... Никакой торговли, никакого покоя.",
+          "Text": "\u042D\u0445, \u0434\u0435\u043B\u0430-\u0434\u0435\u043B\u0430... \u041D\u0438\u043A\u0430\u043A\u043E\u0439 \u0442\u043E\u0440\u0433\u043E\u0432\u043B\u0438, \u043D\u0438\u043A\u0430\u043A\u043E\u0433\u043E \u043F\u043E\u043A\u043E\u044F.",
           "Type": "quest_offer",
+          "Tags": [],
           "Choices": [
             {
-              "Text": "У вас проблемы, купец?",
+              "Text": "\u0423 \u0432\u0430\u0441 \u043F\u0440\u043E\u0431\u043B\u0435\u043C\u044B, \u043A\u0443\u043F\u0435\u0446?",
               "NextNodeId": "quest_5002_offer_2",
               "Condition": "questAvailableForNPC:5002",
-              "Action": 0
+              "Action": "none",
+              "Actions": [],
+              "ActionSummary": ""
             }
           ]
         },
         {
           "Id": "quest_5002_offer_2",
-          "Text": "А как же! Прямо на северной поляне, где тропа на соляные копи разветвляется, расплодилась целая стая серых разбойников. Три матёрых волка совсем дорогу перекрыли! Товар не провезти, людей боюсь посылать.",
+          "Text": "\u0410 \u043A\u0430\u043A \u0436\u0435! \u041F\u0440\u044F\u043C\u043E \u043D\u0430 \u0441\u0435\u0432\u0435\u0440\u043D\u043E\u0439 \u043F\u043E\u043B\u044F\u043D\u0435, \u0433\u0434\u0435 \u0442\u0440\u043E\u043F\u0430 \u043D\u0430 \u0441\u043E\u043B\u044F\u043D\u044B\u0435 \u043A\u043E\u043F\u0438 \u0440\u0430\u0437\u0432\u0435\u0442\u0432\u043B\u044F\u0435\u0442\u0441\u044F, \u0440\u0430\u0441\u043F\u043B\u043E\u0434\u0438\u043B\u0430\u0441\u044C \u0446\u0435\u043B\u0430\u044F \u0441\u0442\u0430\u044F \u0441\u0435\u0440\u044B\u0445 \u0440\u0430\u0437\u0431\u043E\u0439\u043D\u0438\u043A\u043E\u0432. \u0422\u0440\u0438 \u043C\u0430\u0442\u0451\u0440\u044B\u0445 \u0432\u043E\u043B\u043A\u0430 \u0441\u043E\u0432\u0441\u0435\u043C \u0434\u043E\u0440\u043E\u0433\u0443 \u043F\u0435\u0440\u0435\u043A\u0440\u044B\u043B\u0438! \u0422\u043E\u0432\u0430\u0440 \u043D\u0435 \u043F\u0440\u043E\u0432\u0435\u0437\u0442\u0438, \u043B\u044E\u0434\u0435\u0439 \u0431\u043E\u044E\u0441\u044C \u043F\u043E\u0441\u044B\u043B\u0430\u0442\u044C.",
           "Type": "quest_offer",
+          "Tags": [],
           "Choices": [
             {
-              "Text": "Что вы собираетесь делать?",
+              "Text": "\u0427\u0442\u043E \u0432\u044B \u0441\u043E\u0431\u0438\u0440\u0430\u0435\u0442\u0435\u0441\u044C \u0434\u0435\u043B\u0430\u0442\u044C?",
               "NextNodeId": "quest_5002_offer_3",
               "Condition": "questAvailableForNPC:5002",
-              "Action": 0
+              "Action": "none",
+              "Actions": [],
+              "ActionSummary": ""
             }
           ]
         },
         {
           "Id": "quest_5002_offer_3",
-          "Text": "Делать? Я слышал, ты лицом не прыткий и руку на мече сдерживаешь. Поможешь – и мне хорошо, и тебе не хуже будет. Изведи эту нечисть, очисть поляну, а я тебя золотом отблагодарю. Как скажешь?",
+          "Text": "\u0414\u0435\u043B\u0430\u0442\u044C? \u042F \u0441\u043B\u044B\u0448\u0430\u043B, \u0442\u044B \u043B\u0438\u0446\u043E\u043C \u043D\u0435 \u043F\u0440\u044B\u0442\u043A\u0438\u0439 \u0438 \u0440\u0443\u043A\u0443 \u043D\u0430 \u043C\u0435\u0447\u0435 \u0441\u0434\u0435\u0440\u0436\u0438\u0432\u0430\u0435\u0448\u044C. \u041F\u043E\u043C\u043E\u0436\u0435\u0448\u044C \u2013 \u0438 \u043C\u043D\u0435 \u0445\u043E\u0440\u043E\u0448\u043E, \u0438 \u0442\u0435\u0431\u0435 \u043D\u0435 \u0445\u0443\u0436\u0435 \u0431\u0443\u0434\u0435\u0442. \u0418\u0437\u0432\u0435\u0434\u0438 \u044D\u0442\u0443 \u043D\u0435\u0447\u0438\u0441\u0442\u044C, \u043E\u0447\u0438\u0441\u0442\u044C \u043F\u043E\u043B\u044F\u043D\u0443, \u0430 \u044F \u0442\u0435\u0431\u044F \u0437\u043E\u043B\u043E\u0442\u043E\u043C \u043E\u0442\u0431\u043B\u0430\u0433\u043E\u0434\u0430\u0440\u044E. \u041A\u0430\u043A \u0441\u043A\u0430\u0436\u0435\u0448\u044C?",
           "Type": "quest_offer",
+          "Tags": [],
           "Choices": [
             {
-              "Text": "Ладно, разберусь с ними.",
+              "Text": "\u041B\u0430\u0434\u043D\u043E, \u0440\u0430\u0437\u0431\u0435\u0440\u0443\u0441\u044C \u0441 \u043D\u0438\u043C\u0438.",
               "Condition": "questAvailableForNPC:5002",
-              "Action": 0,
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 3,
+                  "Type": "startQuest",
                   "Parameter": "5002"
                 }
               ],
               "ActionSummary": "StartQuest (5002)"
             },
             {
-              "Text": "А сколько вы заплатите?",
+              "Text": "\u0410 \u0441\u043A\u043E\u043B\u044C\u043A\u043E \u0432\u044B \u0437\u0430\u043F\u043B\u0430\u0442\u0438\u0442\u0435?",
               "NextNodeId": "quest_5002_offer_3_T",
               "Condition": "questAvailableForNPC:5002",
-              "Action": 0
+              "Action": "none",
+              "Actions": [],
+              "ActionSummary": ""
             },
             {
-              "Text": "Это не моё дело.",
+              "Text": "\u042D\u0442\u043E \u043D\u0435 \u043C\u043E\u0451 \u0434\u0435\u043B\u043E.",
               "Condition": "questAvailableForNPC:5002",
-              "Action": 0,
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 7
+                  "Type": "endDialogue"
                 }
               ],
               "ActionSummary": "EndDialogue"
@@ -1364,28 +1514,29 @@
         },
         {
           "Id": "quest_5002_offer_3_T",
-          "Text": "Для меня дорога спокойная – дороже любых денег. Сто монет золотом тебе хватит? Я погляжу лишним для тебя не будет. Ха-ха-ха.",
+          "Text": "\u0414\u043B\u044F \u043C\u0435\u043D\u044F \u0434\u043E\u0440\u043E\u0433\u0430 \u0441\u043F\u043E\u043A\u043E\u0439\u043D\u0430\u044F \u2013 \u0434\u043E\u0440\u043E\u0436\u0435 \u043B\u044E\u0431\u044B\u0445 \u0434\u0435\u043D\u0435\u0433. \u0421\u0442\u043E \u043C\u043E\u043D\u0435\u0442 \u0437\u043E\u043B\u043E\u0442\u043E\u043C \u0442\u0435\u0431\u0435 \u0445\u0432\u0430\u0442\u0438\u0442? \u042F \u043F\u043E\u0433\u043B\u044F\u0436\u0443 \u043B\u0438\u0448\u043D\u0438\u043C \u0434\u043B\u044F \u0442\u0435\u0431\u044F \u043D\u0435 \u0431\u0443\u0434\u0435\u0442. \u0425\u0430-\u0445\u0430-\u0445\u0430.",
           "Type": "quest_offer",
+          "Tags": [],
           "Choices": [
             {
-              "Text": "Ладно, разберусь с ними.",
+              "Text": "\u041B\u0430\u0434\u043D\u043E, \u0440\u0430\u0437\u0431\u0435\u0440\u0443\u0441\u044C \u0441 \u043D\u0438\u043C\u0438.",
               "Condition": "questAvailableForNPC:5002",
-              "Action": 0,
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 3,
+                  "Type": "startQuest",
                   "Parameter": "5002"
                 }
               ],
               "ActionSummary": "StartQuest (5002)"
             },
             {
-              "Text": "Это не моё дело.",
+              "Text": "\u042D\u0442\u043E \u043D\u0435 \u043C\u043E\u0451 \u0434\u0435\u043B\u043E.",
               "Condition": "questAvailableForNPC:5002",
-              "Action": 0,
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 7
+                  "Type": "endDialogue"
                 }
               ],
               "ActionSummary": "EndDialogue"
@@ -1394,16 +1545,17 @@
         },
         {
           "Id": "quest_5002_progress",
-          "Text": "Действуй, не зевай. И смотри в оба – зубы у тех тварей острее бритвы. Ждать тебя буду.",
+          "Text": "\u0414\u0435\u0439\u0441\u0442\u0432\u0443\u0439, \u043D\u0435 \u0437\u0435\u0432\u0430\u0439. \u0418 \u0441\u043C\u043E\u0442\u0440\u0438 \u0432 \u043E\u0431\u0430 \u2013 \u0437\u0443\u0431\u044B \u0443 \u0442\u0435\u0445 \u0442\u0432\u0430\u0440\u0435\u0439 \u043E\u0441\u0442\u0440\u0435\u0435 \u0431\u0440\u0438\u0442\u0432\u044B. \u0416\u0434\u0430\u0442\u044C \u0442\u0435\u0431\u044F \u0431\u0443\u0434\u0443.",
           "Type": "quest_progress",
+          "Tags": [],
           "Choices": [
             {
-              "Text": "Уже иду.",
+              "Text": "\u0423\u0436\u0435 \u0438\u0434\u0443.",
               "Condition": "questInProgressForNPC:5002",
-              "Action": 0,
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 7
+                  "Type": "endDialogue"
                 }
               ],
               "ActionSummary": "EndDialogue"
@@ -1412,17 +1564,18 @@
         },
         {
           "Id": "quest_5002_readyToComplete",
-          "Text": "Ну что? Справился?",
+          "Text": "\u041D\u0443 \u0447\u0442\u043E? \u0421\u043F\u0440\u0430\u0432\u0438\u043B\u0441\u044F?",
           "Type": "quest_complete",
+          "Tags": [],
           "Choices": [
             {
-              "Text": "Поляна свободна. Волков больше нет.",
+              "Text": "\u041F\u043E\u043B\u044F\u043D\u0430 \u0441\u0432\u043E\u0431\u043E\u0434\u043D\u0430. \u0412\u043E\u043B\u043A\u043E\u0432 \u0431\u043E\u043B\u044C\u0448\u0435 \u043D\u0435\u0442.",
               "NextNodeId": "quest_5002_readyToComplete_2",
               "Condition": "questReadyToCompleteForNPC:5002",
-              "Action": 0,
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 4,
+                  "Type": "completeQuest",
                   "Parameter": "5002"
                 }
               ],
@@ -1432,16 +1585,17 @@
         },
         {
           "Id": "quest_5002_readyToComplete_2",
-          "Text": "Отлично работаешь! Теперь караваны пойдут без задержки. Держи, заслужил, честно и без обмана. Будешь в этих краях – заходи, всегда найдётся для тебя дело с хорошей оплатой.",
+          "Text": "\u041E\u0442\u043B\u0438\u0447\u043D\u043E \u0440\u0430\u0431\u043E\u0442\u0430\u0435\u0448\u044C! \u0422\u0435\u043F\u0435\u0440\u044C \u043A\u0430\u0440\u0430\u0432\u0430\u043D\u044B \u043F\u043E\u0439\u0434\u0443\u0442 \u0431\u0435\u0437 \u0437\u0430\u0434\u0435\u0440\u0436\u043A\u0438. \u0414\u0435\u0440\u0436\u0438, \u0437\u0430\u0441\u043B\u0443\u0436\u0438\u043B, \u0447\u0435\u0441\u0442\u043D\u043E \u0438 \u0431\u0435\u0437 \u043E\u0431\u043C\u0430\u043D\u0430. \u0411\u0443\u0434\u0435\u0448\u044C \u0432 \u044D\u0442\u0438\u0445 \u043A\u0440\u0430\u044F\u0445 \u2013 \u0437\u0430\u0445\u043E\u0434\u0438, \u0432\u0441\u0435\u0433\u0434\u0430 \u043D\u0430\u0439\u0434\u0451\u0442\u0441\u044F \u0434\u043B\u044F \u0442\u0435\u0431\u044F \u0434\u0435\u043B\u043E \u0441 \u0445\u043E\u0440\u043E\u0448\u0435\u0439 \u043E\u043F\u043B\u0430\u0442\u043E\u0439.",
           "Type": "quest_complete",
+          "Tags": [],
           "Choices": [
             {
-              "Text": "Увидимся.",
+              "Text": "\u0423\u0432\u0438\u0434\u0438\u043C\u0441\u044F.",
               "Condition": "questCompletedForNPC:5002",
-              "Action": 0,
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 7
+                  "Type": "endDialogue"
                 }
               ],
               "ActionSummary": "EndDialogue"
@@ -1450,19 +1604,21 @@
         },
         {
           "Id": "quest_5004_readyToComplete",
-          "Text": "Точно! Совсем забыл, что проиграл некую сумму Охотнику. Спасибо, что напомнил, вот тебе за труды.",
+          "Text": "\u0422\u043E\u0447\u043D\u043E! \u0421\u043E\u0432\u0441\u0435\u043C \u0437\u0430\u0431\u044B\u043B, \u0447\u0442\u043E \u043F\u0440\u043E\u0438\u0433\u0440\u0430\u043B \u043D\u0435\u043A\u0443\u044E \u0441\u0443\u043C\u043C\u0443 \u041E\u0445\u043E\u0442\u043D\u0438\u043A\u0443. \u0421\u043F\u0430\u0441\u0438\u0431\u043E, \u0447\u0442\u043E \u043D\u0430\u043F\u043E\u043C\u043D\u0438\u043B, \u0432\u043E\u0442 \u0442\u0435\u0431\u0435 \u0437\u0430 \u0442\u0440\u0443\u0434\u044B.",
           "Type": "quest_complete",
+          "Tags": [],
           "Choices": [
             {
-              "Text": "Спасибо, я пошел.",
-              "Action": 0,
+              "Text": "\u0421\u043F\u0430\u0441\u0438\u0431\u043E, \u044F \u043F\u043E\u0448\u0435\u043B.",
+              "Condition": "",
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 4,
+                  "Type": "completeQuest",
                   "Parameter": "5004"
                 },
                 {
-                  "Type": 7
+                  "Type": "endDialogue"
                 }
               ],
               "ActionSummary": "CompleteQuest (5004), EndDialogue"
@@ -1472,46 +1628,52 @@
       ]
     },
     {
-      "Id": "7003",
-      "Name": "Диалог Ремесленника",
-      "Start": "default_remeslenik",
-      "Nodes": [
+      "id": "7003",
+      "name": "\u0414\u0438\u0430\u043B\u043E\u0433 \u0420\u0435\u043C\u0435\u0441\u043B\u0435\u043D\u043D\u0438\u043A\u0430",
+      "start": "default_remeslenik",
+      "nodes": [
         {
           "Id": "default_remeslenik",
-          "Text": "Привет!",
+          "Text": "\u041F\u0440\u0438\u0432\u0435\u0442!",
           "Type": "greeting",
+          "Tags": [],
           "Choices": [
             {
-              "Text": "Привет! Что-то ты хмурый.",
+              "Text": "\u041F\u0440\u0438\u0432\u0435\u0442! \u0427\u0442\u043E-\u0442\u043E \u0442\u044B \u0445\u043C\u0443\u0440\u044B\u0439.",
               "NextNodeId": "quest_5003_offer",
               "Condition": "questAvailableForNPC:5003",
-              "Action": 0
+              "Action": "none",
+              "Actions": [],
+              "ActionSummary": ""
             },
             {
-              "Text": "Насчет твоих ящиков...",
+              "Text": "\u041D\u0430\u0441\u0447\u0435\u0442 \u0442\u0432\u043E\u0438\u0445 \u044F\u0449\u0438\u043A\u043E\u0432...",
               "NextNodeId": "quest_5003_progress",
               "Condition": "questInProgressForNPC:5003",
-              "Action": 0
+              "Action": "none",
+              "Actions": [],
+              "ActionSummary": ""
             },
             {
-              "Text": "Вот твои ящики!",
+              "Text": "\u0412\u043E\u0442 \u0442\u0432\u043E\u0438 \u044F\u0449\u0438\u043A\u0438!",
               "NextNodeId": "quest_5003_readyToComplete",
               "Condition": "questReadyToCompleteForNPC:5003",
-              "Action": 0,
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 4,
+                  "Type": "completeQuest",
                   "Parameter": "5003"
                 }
               ],
               "ActionSummary": "CompleteQuest (5003)"
             },
             {
-              "Text": "Уйти.",
-              "Action": 0,
+              "Text": "\u0423\u0439\u0442\u0438.",
+              "Condition": "",
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 7
+                  "Type": "endDialogue"
                 }
               ],
               "ActionSummary": "EndDialogue"
@@ -1520,41 +1682,45 @@
         },
         {
           "Id": "quest_5003_offer",
-          "Text": "А, да, именно так! Добро пожаловать в мою мастерскую. Видишь эти пустые полки? Они должны ломиться от изящных безделушек для ярмарки лорда. Но мои поставщики подвели!",
+          "Text": "\u0410, \u0434\u0430, \u0438\u043C\u0435\u043D\u043D\u043E \u0442\u0430\u043A! \u0414\u043E\u0431\u0440\u043E \u043F\u043E\u0436\u0430\u043B\u043E\u0432\u0430\u0442\u044C \u0432 \u043C\u043E\u044E \u043C\u0430\u0441\u0442\u0435\u0440\u0441\u043A\u0443\u044E. \u0412\u0438\u0434\u0438\u0448\u044C \u044D\u0442\u0438 \u043F\u0443\u0441\u0442\u044B\u0435 \u043F\u043E\u043B\u043A\u0438? \u041E\u043D\u0438 \u0434\u043E\u043B\u0436\u043D\u044B \u043B\u043E\u043C\u0438\u0442\u044C\u0441\u044F \u043E\u0442 \u0438\u0437\u044F\u0449\u043D\u044B\u0445 \u0431\u0435\u0437\u0434\u0435\u043B\u0443\u0448\u0435\u043A \u0434\u043B\u044F \u044F\u0440\u043C\u0430\u0440\u043A\u0438 \u043B\u043E\u0440\u0434\u0430. \u041D\u043E \u043C\u043E\u0438 \u043F\u043E\u0441\u0442\u0430\u0432\u0449\u0438\u043A\u0438 \u043F\u043E\u0434\u0432\u0435\u043B\u0438!",
           "Type": "quest_offer",
+          "Tags": [],
           "Choices": [
             {
-              "Text": "Чем я могу быть полезен?",
+              "Text": "\u0427\u0435\u043C \u044F \u043C\u043E\u0433\u0443 \u0431\u044B\u0442\u044C \u043F\u043E\u043B\u0435\u0437\u0435\u043D?",
               "NextNodeId": "quest_5003_offer_2",
               "Condition": "questAvailableForNPC:5003",
-              "Action": 0
+              "Action": "none",
+              "Actions": [],
+              "ActionSummary": ""
             }
           ]
         },
         {
           "Id": "quest_5003_offer_2",
-          "Text": "Я отправлял четыре ящика с готовыми украшениями из столицы, но караван подвергся нападению разбойников у старой мельницы. Они, глупцы, побросали ящики, думая, что там оружие или золото. Найди их и принеси мне. Они целы и просто валяются в траве. За работу щедро заплачу!",
+          "Text": "\u042F \u043E\u0442\u043F\u0440\u0430\u0432\u043B\u044F\u043B \u0447\u0435\u0442\u044B\u0440\u0435 \u044F\u0449\u0438\u043A\u0430 \u0441 \u0433\u043E\u0442\u043E\u0432\u044B\u043C\u0438 \u0443\u043A\u0440\u0430\u0448\u0435\u043D\u0438\u044F\u043C\u0438 \u0438\u0437 \u0441\u0442\u043E\u043B\u0438\u0446\u044B, \u043D\u043E \u043A\u0430\u0440\u0430\u0432\u0430\u043D \u043F\u043E\u0434\u0432\u0435\u0440\u0433\u0441\u044F \u043D\u0430\u043F\u0430\u0434\u0435\u043D\u0438\u044E \u0440\u0430\u0437\u0431\u043E\u0439\u043D\u0438\u043A\u043E\u0432 \u0443 \u0441\u0442\u0430\u0440\u043E\u0439 \u043C\u0435\u043B\u044C\u043D\u0438\u0446\u044B. \u041E\u043D\u0438, \u0433\u043B\u0443\u043F\u0446\u044B, \u043F\u043E\u0431\u0440\u043E\u0441\u0430\u043B\u0438 \u044F\u0449\u0438\u043A\u0438, \u0434\u0443\u043C\u0430\u044F, \u0447\u0442\u043E \u0442\u0430\u043C \u043E\u0440\u0443\u0436\u0438\u0435 \u0438\u043B\u0438 \u0437\u043E\u043B\u043E\u0442\u043E. \u041D\u0430\u0439\u0434\u0438 \u0438\u0445 \u0438 \u043F\u0440\u0438\u043D\u0435\u0441\u0438 \u043C\u043D\u0435. \u041E\u043D\u0438 \u0446\u0435\u043B\u044B \u0438 \u043F\u0440\u043E\u0441\u0442\u043E \u0432\u0430\u043B\u044F\u044E\u0442\u0441\u044F \u0432 \u0442\u0440\u0430\u0432\u0435. \u0417\u0430 \u0440\u0430\u0431\u043E\u0442\u0443 \u0449\u0435\u0434\u0440\u043E \u0437\u0430\u043F\u043B\u0430\u0447\u0443!",
           "Type": "quest_offer",
+          "Tags": [],
           "Choices": [
             {
-              "Text": "Я найду твои ящики.",
+              "Text": "\u042F \u043D\u0430\u0439\u0434\u0443 \u0442\u0432\u043E\u0438 \u044F\u0449\u0438\u043A\u0438.",
               "Condition": "questAvailableForNPC:5003",
-              "Action": 0,
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 3,
+                  "Type": "startQuest",
                   "Parameter": "5003"
                 }
               ],
               "ActionSummary": "StartQuest (5003)"
             },
             {
-              "Text": "Мне это не интересно.",
+              "Text": "\u041C\u043D\u0435 \u044D\u0442\u043E \u043D\u0435 \u0438\u043D\u0442\u0435\u0440\u0435\u0441\u043D\u043E.",
               "Condition": "questAvailableForNPC:5003",
-              "Action": 0,
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 7
+                  "Type": "endDialogue"
                 }
               ],
               "ActionSummary": "EndDialogue"
@@ -1563,16 +1729,17 @@
         },
         {
           "Id": "quest_5003_progress",
-          "Text": "Я очень жду, когда ты вернешь мне мои ящики!",
+          "Text": "\u042F \u043E\u0447\u0435\u043D\u044C \u0436\u0434\u0443, \u043A\u043E\u0433\u0434\u0430 \u0442\u044B \u0432\u0435\u0440\u043D\u0435\u0448\u044C \u043C\u043D\u0435 \u043C\u043E\u0438 \u044F\u0449\u0438\u043A\u0438!",
           "Type": "quest_progress",
+          "Tags": [],
           "Choices": [
             {
-              "Text": "Уже иду...",
+              "Text": "\u0423\u0436\u0435 \u0438\u0434\u0443...",
               "Condition": "questInProgressForNPC:5003",
-              "Action": 0,
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 7
+                  "Type": "endDialogue"
                 }
               ],
               "ActionSummary": "EndDialogue"
@@ -1581,16 +1748,17 @@
         },
         {
           "Id": "quest_5003_readyToComplete",
-          "Text": "Ох! Наконец-то! Мои драгоценные ящики с драгоценностиями! Вот, можешь еще взять это ожерелье.",
+          "Text": "\u041E\u0445! \u041D\u0430\u043A\u043E\u043D\u0435\u0446-\u0442\u043E! \u041C\u043E\u0438 \u0434\u0440\u0430\u0433\u043E\u0446\u0435\u043D\u043D\u044B\u0435 \u044F\u0449\u0438\u043A\u0438 \u0441 \u0434\u0440\u0430\u0433\u043E\u0446\u0435\u043D\u043D\u043E\u0441\u0442\u0438\u044F\u043C\u0438! \u0412\u043E\u0442, \u043C\u043E\u0436\u0435\u0448\u044C \u0435\u0449\u0435 \u0432\u0437\u044F\u0442\u044C \u044D\u0442\u043E \u043E\u0436\u0435\u0440\u0435\u043B\u044C\u0435.",
           "Type": "quest_complete",
+          "Tags": [],
           "Choices": [
             {
-              "Text": "Спасибо.",
+              "Text": "\u0421\u043F\u0430\u0441\u0438\u0431\u043E.",
               "Condition": "questReadyToCompleteForNPC:5003",
-              "Action": 0,
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 7
+                  "Type": "endDialogue"
                 }
               ],
               "ActionSummary": "EndDialogue"
@@ -1600,33 +1768,39 @@
       ]
     },
     {
-      "Id": "7004",
-      "Name": "Диалог Охотника",
-      "Start": "default_hunter",
-      "Nodes": [
+      "id": "7004",
+      "name": "\u0414\u0438\u0430\u043B\u043E\u0433 \u041E\u0445\u043E\u0442\u043D\u0438\u043A\u0430",
+      "start": "default_hunter",
+      "nodes": [
         {
           "Id": "default_hunter",
-          "Text": "Привет, любишь охоту?",
+          "Text": "\u041F\u0440\u0438\u0432\u0435\u0442, \u043B\u044E\u0431\u0438\u0448\u044C \u043E\u0445\u043E\u0442\u0443?",
           "Type": "greeting",
+          "Tags": [],
           "Choices": [
             {
-              "Text": "Конечно, слышал, у тебя есть одно дело.",
+              "Text": "\u041A\u043E\u043D\u0435\u0447\u043D\u043E, \u0441\u043B\u044B\u0448\u0430\u043B, \u0443 \u0442\u0435\u0431\u044F \u0435\u0441\u0442\u044C \u043E\u0434\u043D\u043E \u0434\u0435\u043B\u043E.",
               "NextNodeId": "quest_5004_offer",
               "Condition": "questAvailableForNPC:5004",
-              "Action": 0
+              "Action": "none",
+              "Actions": [],
+              "ActionSummary": ""
             },
             {
-              "Text": "По поводу Зарубия...",
+              "Text": "\u041F\u043E \u043F\u043E\u0432\u043E\u0434\u0443 \u0417\u0430\u0440\u0443\u0431\u0438\u044F...",
               "NextNodeId": "quest_5004_progress",
               "Condition": "questInProgressForNPC:5004",
-              "Action": 0
+              "Action": "none",
+              "Actions": [],
+              "ActionSummary": ""
             },
             {
-              "Text": "Я пошел...",
-              "Action": 0,
+              "Text": "\u042F \u043F\u043E\u0448\u0435\u043B...",
+              "Condition": "",
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 7
+                  "Type": "endDialogue"
                 }
               ],
               "ActionSummary": "EndDialogue"
@@ -1635,32 +1809,33 @@
         },
         {
           "Id": "quest_5004_offer",
-          "Text": "Да, иди и поговори с купцом Зарубием, он задолжал мне неплохую сумму в кости. Напомни ему обо мне.",
+          "Text": "\u0414\u0430, \u0438\u0434\u0438 \u0438 \u043F\u043E\u0433\u043E\u0432\u043E\u0440\u0438 \u0441 \u043A\u0443\u043F\u0446\u043E\u043C \u0417\u0430\u0440\u0443\u0431\u0438\u0435\u043C, \u043E\u043D \u0437\u0430\u0434\u043E\u043B\u0436\u0430\u043B \u043C\u043D\u0435 \u043D\u0435\u043F\u043B\u043E\u0445\u0443\u044E \u0441\u0443\u043C\u043C\u0443 \u0432 \u043A\u043E\u0441\u0442\u0438. \u041D\u0430\u043F\u043E\u043C\u043D\u0438 \u0435\u043C\u0443 \u043E\u0431\u043E \u043C\u043D\u0435.",
           "Type": "quest_offer",
+          "Tags": [],
           "Choices": [
             {
-              "Text": "Я сделаю это.",
+              "Text": "\u042F \u0441\u0434\u0435\u043B\u0430\u044E \u044D\u0442\u043E.",
               "Condition": "questAvailableForNPC:5004",
-              "Action": 0,
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 3,
+                  "Type": "startQuest",
                   "Parameter": "5004"
                 },
                 {
-                  "Type": 7,
+                  "Type": "endDialogue",
                   "Parameter": "5004"
                 }
               ],
               "ActionSummary": "StartQuest (5004), EndDialogue (5004)"
             },
             {
-              "Text": "Я не буду этого делать.",
+              "Text": "\u042F \u043D\u0435 \u0431\u0443\u0434\u0443 \u044D\u0442\u043E\u0433\u043E \u0434\u0435\u043B\u0430\u0442\u044C.",
               "Condition": "questAvailableForNPC:5004",
-              "Action": 0,
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 7
+                  "Type": "endDialogue"
                 }
               ],
               "ActionSummary": "EndDialogue"
@@ -1669,16 +1844,17 @@
         },
         {
           "Id": "quest_5004_progress",
-          "Text": "Ну что там еще? Просто иди и напомни ему, что он должен мне денег! Я же не прошу тебя избить его, а? С этим и ребенок справится!",
+          "Text": "\u041D\u0443 \u0447\u0442\u043E \u0442\u0430\u043C \u0435\u0449\u0435? \u041F\u0440\u043E\u0441\u0442\u043E \u0438\u0434\u0438 \u0438 \u043D\u0430\u043F\u043E\u043C\u043D\u0438 \u0435\u043C\u0443, \u0447\u0442\u043E \u043E\u043D \u0434\u043E\u043B\u0436\u0435\u043D \u043C\u043D\u0435 \u0434\u0435\u043D\u0435\u0433! \u042F \u0436\u0435 \u043D\u0435 \u043F\u0440\u043E\u0448\u0443 \u0442\u0435\u0431\u044F \u0438\u0437\u0431\u0438\u0442\u044C \u0435\u0433\u043E, \u0430? \u0421 \u044D\u0442\u0438\u043C \u0438 \u0440\u0435\u0431\u0435\u043D\u043E\u043A \u0441\u043F\u0440\u0430\u0432\u0438\u0442\u0441\u044F!",
           "Type": "quest_progress",
+          "Tags": [],
           "Choices": [
             {
-              "Text": "Понял я, иду...",
+              "Text": "\u041F\u043E\u043D\u044F\u043B \u044F, \u0438\u0434\u0443...",
               "Condition": "questInProgressForNPC:5004",
-              "Action": 0,
+              "Action": "none",
               "Actions": [
                 {
-                  "Type": 7
+                  "Type": "endDialogue"
                 }
               ],
               "ActionSummary": "EndDialogue"
@@ -1691,9 +1867,11 @@
   "Rooms": [
     {
       "ID": 5001,
-      "Name": "Пещера крыс",
-      "Description": "Темная и сырая пещера, полная крыс. Стены покрыты мхом, а воздух пропитан запахом гнили.",
+      "Name": "\u041F\u0435\u0449\u0435\u0440\u0430 \u043A\u0440\u044B\u0441",
+      "Description": "\u0422\u0435\u043C\u043D\u0430\u044F \u0438 \u0441\u044B\u0440\u0430\u044F \u043F\u0435\u0449\u0435\u0440\u0430, \u043F\u043E\u043B\u043D\u0430\u044F \u043A\u0440\u044B\u0441. \u0421\u0442\u0435\u043D\u044B \u043F\u043E\u043A\u0440\u044B\u0442\u044B \u043C\u0445\u043E\u043C, \u0430 \u0432\u043E\u0437\u0434\u0443\u0445 \u043F\u0440\u043E\u043F\u0438\u0442\u0430\u043D \u0437\u0430\u043F\u0430\u0445\u043E\u043C \u0433\u043D\u0438\u043B\u0438.",
       "ParentLocationID": 3002,
+      "NPCsHere": [],
+      "GroundItems": [],
       "MonsterSpawns": [
         {
           "MonsterTemplateID": 2003,
@@ -1705,14 +1883,17 @@
       "MonsterTemplates": [
         2003
       ],
+      "Entrances": [],
+      "Chests": [],
       "RoomToEast": 5002,
       "ScaleMonstersToPlayerLevel": true
     },
     {
       "ID": 5002,
-      "Name": "Глубокий зал",
-      "Description": "Просторный зал с высокими потолками. В центре стоит древний алтарь, покрытый пылью веков.",
+      "Name": "\u0413\u043B\u0443\u0431\u043E\u043A\u0438\u0439 \u0437\u0430\u043B",
+      "Description": "\u041F\u0440\u043E\u0441\u0442\u043E\u0440\u043D\u044B\u0439 \u0437\u0430\u043B \u0441 \u0432\u044B\u0441\u043E\u043A\u0438\u043C\u0438 \u043F\u043E\u0442\u043E\u043B\u043A\u0430\u043C\u0438. \u0412 \u0446\u0435\u043D\u0442\u0440\u0435 \u0441\u0442\u043E\u0438\u0442 \u0434\u0440\u0435\u0432\u043D\u0438\u0439 \u0430\u043B\u0442\u0430\u0440\u044C, \u043F\u043E\u043A\u0440\u044B\u0442\u044B\u0439 \u043F\u044B\u043B\u044C\u044E \u0432\u0435\u043A\u043E\u0432.",
       "ParentLocationID": 3002,
+      "NPCsHere": [],
       "GroundItems": [
         {
           "ItemID": 1102,
@@ -1730,6 +1911,7 @@
       "MonsterTemplates": [
         2007
       ],
+      "Entrances": [],
       "Chests": [
         7002
       ],
@@ -1739,12 +1921,16 @@
     },
     {
       "ID": 5003,
-      "Name": "Пещерная река",
-      "Description": "Здесь влажно и в темноте слышно журчание воды.",
+      "Name": "\u041F\u0435\u0449\u0435\u0440\u043D\u0430\u044F \u0440\u0435\u043A\u0430",
+      "Description": "\u0417\u0434\u0435\u0441\u044C \u0432\u043B\u0430\u0436\u043D\u043E \u0438 \u0432 \u0442\u0435\u043C\u043D\u043E\u0442\u0435 \u0441\u043B\u044B\u0448\u043D\u043E \u0436\u0443\u0440\u0447\u0430\u043D\u0438\u0435 \u0432\u043E\u0434\u044B.",
       "ParentLocationID": 3002,
+      "NPCsHere": [],
+      "GroundItems": [],
+      "MonsterSpawns": [],
       "MonsterTemplates": [
         2003
       ],
+      "Entrances": [],
       "Chests": [
         7003
       ],
@@ -1755,28 +1941,31 @@
   "RoomEntrances": [
     {
       "ID": 6001,
-      "Name": "Вход в пещеру",
-      "Description": "Темный проход, ведущий вглубь скалы. Отсюда доносится писк крыс.",
+      "Name": "\u0412\u0445\u043E\u0434 \u0432 \u043F\u0435\u0449\u0435\u0440\u0443",
+      "Description": "\u0422\u0435\u043C\u043D\u044B\u0439 \u043F\u0440\u043E\u0445\u043E\u0434, \u0432\u0435\u0434\u0443\u0449\u0438\u0439 \u0432\u0433\u043B\u0443\u0431\u044C \u0441\u043A\u0430\u043B\u044B. \u041E\u0442\u0441\u044E\u0434\u0430 \u0434\u043E\u043D\u043E\u0441\u0438\u0442\u0441\u044F \u043F\u0438\u0441\u043A \u043A\u0440\u044B\u0441.",
       "TargetRoomID": 5001,
       "ParentLocationID": 3002,
       "EntranceType": "cave",
       "IsLocked": false,
+      "LockDescription": "",
       "RequiresKey": false,
-      "RequiredKeyID": 0
+      "RequiredKeyID": 0,
+      "RequiredItemIDs": []
     }
   ],
   "Chests": [
     {
       "ID": 7001,
-      "Name": "Деревянный сундук",
-      "NamePlural": "Деревянные сундуки",
-      "Description": "Простой деревянный сундук с железными петлями.",
+      "Name": "\u0414\u0435\u0440\u0435\u0432\u044F\u043D\u043D\u044B\u0439 \u0441\u0443\u043D\u0434\u0443\u043A",
+      "NamePlural": "\u0414\u0435\u0440\u0435\u0432\u044F\u043D\u043D\u044B\u0435 \u0441\u0443\u043D\u0434\u0443\u043A\u0438",
+      "Description": "\u041F\u0440\u043E\u0441\u0442\u043E\u0439 \u0434\u0435\u0440\u0435\u0432\u044F\u043D\u043D\u044B\u0439 \u0441\u0443\u043D\u0434\u0443\u043A \u0441 \u0436\u0435\u043B\u0435\u0437\u043D\u044B\u043C\u0438 \u043F\u0435\u0442\u043B\u044F\u043C\u0438.",
       "Price": 0,
       "IsLocked": false,
       "IsTrapped": false,
       "RequiresKey": false,
       "RequiredKeyID": 0,
-      "LockDescription": "Сундук заперт.",
+      "RequiredItemIDs": [],
+      "LockDescription": "\u0421\u0443\u043D\u0434\u0443\u043A \u0437\u0430\u043F\u0435\u0440\u0442.",
       "MaxCapacity": 10,
       "LockDifficulty": 1,
       "InitialContents": [
@@ -1792,15 +1981,16 @@
     },
     {
       "ID": 7002,
-      "Name": "Запертый сундук",
-      "NamePlural": "Запертые сундуки",
-      "Description": "Прочный металлический сундук с надежным замком.",
+      "Name": "\u0417\u0430\u043F\u0435\u0440\u0442\u044B\u0439 \u0441\u0443\u043D\u0434\u0443\u043A",
+      "NamePlural": "\u0417\u0430\u043F\u0435\u0440\u0442\u044B\u0435 \u0441\u0443\u043D\u0434\u0443\u043A\u0438",
+      "Description": "\u041F\u0440\u043E\u0447\u043D\u044B\u0439 \u043C\u0435\u0442\u0430\u043B\u043B\u0438\u0447\u0435\u0441\u043A\u0438\u0439 \u0441\u0443\u043D\u0434\u0443\u043A \u0441 \u043D\u0430\u0434\u0435\u0436\u043D\u044B\u043C \u0437\u0430\u043C\u043A\u043E\u043C.",
       "Price": 0,
       "IsLocked": true,
       "IsTrapped": false,
       "RequiresKey": true,
       "RequiredKeyID": 0,
-      "LockDescription": "Сундук надежно заперт. Требуется ключ.",
+      "RequiredItemIDs": [],
+      "LockDescription": "\u0421\u0443\u043D\u0434\u0443\u043A \u043D\u0430\u0434\u0435\u0436\u043D\u043E \u0437\u0430\u043F\u0435\u0440\u0442. \u0422\u0440\u0435\u0431\u0443\u0435\u0442\u0441\u044F \u043A\u043B\u044E\u0447.",
       "MaxCapacity": 15,
       "LockDifficulty": 2,
       "InitialContents": [
@@ -1816,15 +2006,16 @@
     },
     {
       "ID": 7003,
-      "Name": "Ловушка-сундук",
-      "NamePlural": "Ловушка-сундуки",
-      "Description": "Подозрительно выглядящий сундук с тонкими щелями по бокам.",
+      "Name": "\u041B\u043E\u0432\u0443\u0448\u043A\u0430-\u0441\u0443\u043D\u0434\u0443\u043A",
+      "NamePlural": "\u041B\u043E\u0432\u0443\u0448\u043A\u0430-\u0441\u0443\u043D\u0434\u0443\u043A\u0438",
+      "Description": "\u041F\u043E\u0434\u043E\u0437\u0440\u0438\u0442\u0435\u043B\u044C\u043D\u043E \u0432\u044B\u0433\u043B\u044F\u0434\u044F\u0449\u0438\u0439 \u0441\u0443\u043D\u0434\u0443\u043A \u0441 \u0442\u043E\u043D\u043A\u0438\u043C\u0438 \u0449\u0435\u043B\u044F\u043C\u0438 \u043F\u043E \u0431\u043E\u043A\u0430\u043C.",
       "Price": 0,
       "IsLocked": false,
       "IsTrapped": true,
       "RequiresKey": false,
       "RequiredKeyID": 0,
-      "LockDescription": "Сундук заперт.",
+      "RequiredItemIDs": [],
+      "LockDescription": "\u0421\u0443\u043D\u0434\u0443\u043A \u0437\u0430\u043F\u0435\u0440\u0442.",
       "MaxCapacity": 8,
       "LockDifficulty": 1,
       "InitialContents": [
@@ -1836,15 +2027,16 @@
     },
     {
       "ID": 7004,
-      "Name": "Сложный сундук",
-      "NamePlural": "Сложные сундуки",
-      "Description": "Массивный сундук с множественными замками и сложным механизмом.",
+      "Name": "\u0421\u043B\u043E\u0436\u043D\u044B\u0439 \u0441\u0443\u043D\u0434\u0443\u043A",
+      "NamePlural": "\u0421\u043B\u043E\u0436\u043D\u044B\u0435 \u0441\u0443\u043D\u0434\u0443\u043A\u0438",
+      "Description": "\u041C\u0430\u0441\u0441\u0438\u0432\u043D\u044B\u0439 \u0441\u0443\u043D\u0434\u0443\u043A \u0441 \u043C\u043D\u043E\u0436\u0435\u0441\u0442\u0432\u0435\u043D\u043D\u044B\u043C\u0438 \u0437\u0430\u043C\u043A\u0430\u043C\u0438 \u0438 \u0441\u043B\u043E\u0436\u043D\u044B\u043C \u043C\u0435\u0445\u0430\u043D\u0438\u0437\u043C\u043E\u043C.",
       "Price": 0,
       "IsLocked": true,
       "IsTrapped": false,
       "RequiresKey": false,
       "RequiredKeyID": 0,
-      "LockDescription": "Сундук защищен сложной системой замков.",
+      "RequiredItemIDs": [],
+      "LockDescription": "\u0421\u0443\u043D\u0434\u0443\u043A \u0437\u0430\u0449\u0438\u0449\u0435\u043D \u0441\u043B\u043E\u0436\u043D\u043E\u0439 \u0441\u0438\u0441\u0442\u0435\u043C\u043E\u0439 \u0437\u0430\u043C\u043A\u043E\u0432.",
       "MaxCapacity": 20,
       "LockDifficulty": 1,
       "InitialContents": [
@@ -1864,15 +2056,16 @@
     },
     {
       "ID": 7005,
-      "Name": "Мастерский сундук",
-      "NamePlural": "Мастерские сундуки",
-      "Description": "Искусно изготовленный сундук с магическими замками.",
+      "Name": "\u041C\u0430\u0441\u0442\u0435\u0440\u0441\u043A\u0438\u0439 \u0441\u0443\u043D\u0434\u0443\u043A",
+      "NamePlural": "\u041C\u0430\u0441\u0442\u0435\u0440\u0441\u043A\u0438\u0435 \u0441\u0443\u043D\u0434\u0443\u043A\u0438",
+      "Description": "\u0418\u0441\u043A\u0443\u0441\u043D\u043E \u0438\u0437\u0433\u043E\u0442\u043E\u0432\u043B\u0435\u043D\u043D\u044B\u0439 \u0441\u0443\u043D\u0434\u0443\u043A \u0441 \u043C\u0430\u0433\u0438\u0447\u0435\u0441\u043A\u0438\u043C\u0438 \u0437\u0430\u043C\u043A\u0430\u043C\u0438.",
       "Price": 0,
       "IsLocked": true,
       "IsTrapped": true,
       "RequiresKey": false,
       "RequiredKeyID": 0,
-      "LockDescription": "Сундук защищен древними магическими замками.",
+      "RequiredItemIDs": [],
+      "LockDescription": "\u0421\u0443\u043D\u0434\u0443\u043A \u0437\u0430\u0449\u0438\u0449\u0435\u043D \u0434\u0440\u0435\u0432\u043D\u0438\u043C\u0438 \u043C\u0430\u0433\u0438\u0447\u0435\u0441\u043A\u0438\u043C\u0438 \u0437\u0430\u043C\u043A\u0430\u043C\u0438.",
       "MaxCapacity": 25,
       "LockDifficulty": 4,
       "InitialContents": [

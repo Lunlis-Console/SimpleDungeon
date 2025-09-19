@@ -1,6 +1,7 @@
 ﻿using Engine.Core;
 using Engine.Tools;
 using Engine.Audio;
+using Engine.Entities;
 
 namespace Engine.UI
 {
@@ -159,6 +160,31 @@ namespace Engine.UI
                 player.Inventory.AddItem(GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_LEATHER_GLOVES), 1);
                 player.Inventory.AddItem(GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_LEATHER_BOOTS), 1);
                 player.Inventory.AddItem(GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_RUSTY_SWORD), 1);
+                
+                // Добавляем отмычку с отладочной информацией
+                var lockpickItem = GameServices.WorldRepository.ItemByID(Constants.ITEM_ID_BASIC_LOCKPICK);
+                DebugConsole.Log($"[MainMenuScreen] Lockpick item from repository: {lockpickItem != null}");
+                if (lockpickItem != null)
+                {
+                    DebugConsole.Log($"[MainMenuScreen] Lockpick details: {lockpickItem.Name} (ID: {lockpickItem.ID}, Type: {lockpickItem.Type})");
+                    DebugConsole.Log($"[MainMenuScreen] Lockpick components count: {lockpickItem.Components.Count}");
+                    DebugConsole.Log($"[MainMenuScreen] Lockpick item type: {lockpickItem.GetType().FullName}");
+                    
+                    if (lockpickItem is CompositeItem compItem)
+                    {
+                        DebugConsole.Log($"[MainMenuScreen] CompositeItem components count: {compItem.Components.Count}");
+                        foreach (var component in compItem.Components)
+                        {
+                            DebugConsole.Log($"[MainMenuScreen] Component: {component.GetType().Name} - {component.ComponentType}");
+                        }
+                    }
+                    
+                    foreach (var component in lockpickItem.Components)
+                    {
+                        DebugConsole.Log($"[MainMenuScreen] Component: {component.GetType().Name} - {component.ComponentType}");
+                    }
+                }
+                player.Inventory.AddItem(lockpickItem, 1);
 
                 MessageSystem.ClearMessages();
                 MessageSystem.AddMessage("Добро пожаловать в игру!");

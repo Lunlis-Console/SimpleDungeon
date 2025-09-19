@@ -103,7 +103,7 @@ namespace Engine.Entities
             }
         }
 
-        private void OpenChest(Player player)
+        public void OpenChest(Player player)
         {
             if (IsLocked)
             {
@@ -204,9 +204,13 @@ namespace Engine.Entities
 
         private void PickLock(Player player)
         {
+            DebugConsole.Log($"[PickLock] Starting lockpicking attempt for chest: {Name}");
+            
             // Проверяем уровень навыка взлома игрока
             var lockpickingSkill = player.Skills.Lockpicking;
             var requiredMinLevel = GetRequiredMinLevel(LockDifficulty);
+            
+            DebugConsole.Log($"[PickLock] Player lockpicking skill: {lockpickingSkill.Level}, Required: {requiredMinLevel}");
             
             if (lockpickingSkill.Level < requiredMinLevel)
             {
@@ -218,8 +222,28 @@ namespace Engine.Entities
             }
 
             // Проверяем, есть ли у игрока отмычка
+            DebugConsole.Log($"[PickLock] Checking player inventory for lockpick items...");
+            DebugConsole.Log($"[PickLock] Player inventory items count: {player.Inventory.Items.Count}");
+            
+            foreach (var item in player.Inventory.Items)
+            {
+                DebugConsole.Log($"[PickLock] Inventory item: {item.Details.Name} (ID: {item.Details.ID}, Type: {item.Details.Type})");
+            }
+            
             var lockpickItem = player.Inventory.Items
                 .FirstOrDefault(item => item.Details.Type == ItemType.Lockpick);
+
+            DebugConsole.Log($"[PickLock] Lockpick item found: {lockpickItem != null}");
+            if (lockpickItem != null)
+            {
+                DebugConsole.Log($"[PickLock] Lockpick item details: {lockpickItem.Details.Name} (ID: {lockpickItem.Details.ID})");
+                DebugConsole.Log($"[PickLock] Lockpick item components count: {lockpickItem.Details.Components.Count}");
+                
+                foreach (var component in lockpickItem.Details.Components)
+                {
+                    DebugConsole.Log($"[PickLock] Component: {component.GetType().Name} - {component.ComponentType}");
+                }
+            }
 
             if (lockpickItem == null)
             {
@@ -228,9 +252,24 @@ namespace Engine.Entities
             }
 
             // Получаем компонент отмычки
-            var lockpickComponent = lockpickItem.Details.Components
-                .OfType<LockpickComponent>()
-                .FirstOrDefault();
+            LockpickComponent lockpickComponent = null;
+            
+            // Если это CompositeItem, проверяем его компоненты
+            if (lockpickItem.Details is CompositeItem compositeItem)
+            {
+                DebugConsole.Log($"[PickLock] Item is CompositeItem, checking components...");
+                lockpickComponent = compositeItem.Components
+                    .OfType<LockpickComponent>()
+                    .FirstOrDefault();
+            }
+            else
+            {
+                DebugConsole.Log($"[PickLock] Item is regular Item, checking base components...");
+                // Для обычных Item проверяем базовые компоненты
+                lockpickComponent = lockpickItem.Details.Components
+                    .OfType<LockpickComponent>()
+                    .FirstOrDefault();
+            }
 
             DebugConsole.Log($"[PickLock] LockpickComponent found: {lockpickComponent != null}");
             if (lockpickComponent != null)
@@ -255,69 +294,11 @@ namespace Engine.Entities
                 return;
             }
 
-            // Рассчитываем сложность взлома
-            int baseDifficulty = LockDifficultyHelper.GetDifficultyValue(LockDifficulty);
-            int finalDifficulty = Math.Max(5, baseDifficulty - lockpickComponent.DifficultyReduction);
-
-            // Рассчитываем шанс успеха
-            int playerSkill = lockpickingSkill.Level;
-            int toolBonus = lockpickComponent.LockpickBonus;
-            int totalBonus = playerSkill + toolBonus;
-
-            // Добавляем случайность
-            Random random = new Random();
-            int roll = random.Next(1, 21);
-            int totalResult = roll + totalBonus;
-
-            bool success = totalResult >= finalDifficulty;
-
-            if (success)
-            {
-                IsLocked = false;
-                MessageSystem.AddMessage($"Вы успешно взломали {Name}!");
-                
-                // Используем отмычку
-                lockpickComponent.Use();
-                
-                // Даем опыт за успешный взлом
-                int experienceGained = CalculateExperienceGain(LockDifficulty);
-                player.Skills.GainExperience("lockpicking", experienceGained);
-                
-                MessageSystem.AddMessage($"Получено опыта взлома: {experienceGained}");
-                
-                // Проверяем, сломалась ли отмычка
-                if (lockpickComponent.IsBroken)
-                {
-                    MessageSystem.AddMessage($"{lockpickItem.Details.Name} сломалась!");
-                    player.Inventory.RemoveItem(lockpickItem, 1);
-                }
-                
-                OpenChest(player);
-            }
-            else
-            {
-                // Используем отмычку даже при неудаче
-                lockpickComponent.Use();
-                
-                MessageSystem.AddMessage($"Взлом не удался. Сложность: {finalDifficulty}, ваш результат: {totalResult}");
-                
-                // Даем небольшой опыт даже за неудачную попытку
-                player.Skills.GainExperience("lockpicking", 1);
-                
-                // Проверяем, сломалась ли отмычка
-                if (lockpickComponent.IsBroken)
-                {
-                    MessageSystem.AddMessage($"{lockpickItem.Details.Name} сломалась!");
-                    player.Inventory.RemoveItem(lockpickItem, 1);
-                }
-                
-                // Небольшой шанс срабатывания ловушки при неудачном взломе
-                if (IsTrapped && random.Next(1, 101) <= 20)
-                {
-                    MessageSystem.AddMessage("Неудачный взлом активировал ловушку!");
-                    TriggerTrap(player);
-                }
-            }
+            DebugConsole.Log($"[PickLock] All checks passed, starting minigame...");
+            
+            // Запускаем мини-игру взлома замка
+            var minigameScreen = new LockpickingMinigameScreen(this, player, lockpickComponent, lockpickItem);
+            ScreenManager.PushScreen(minigameScreen);
         }
 
         private int CalculateExperienceGain(LockDifficulty difficulty)
