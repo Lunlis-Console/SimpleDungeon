@@ -89,12 +89,28 @@ namespace Engine.InventorySystem
 
         public void RemoveItem(InventoryItem item, int quantity = 1)
         {
+            DebugConsole.Log($"[RemoveItem] Attempting to remove item: {item?.Details?.Name ?? "null"}, quantity: {quantity}");
+            DebugConsole.Log($"[RemoveItem] Current inventory items count: {Items.Count}");
+            
+            // Проверяем, что предмет существует в инвентаре
+            if (item == null || !Items.Contains(item))
+            {
+                DebugConsole.Log($"[RemoveItem] Item not found in inventory. Item: {item?.Details?.Name ?? "null"}");
+                return;
+            }
+
+            DebugConsole.Log($"[RemoveItem] Item found in inventory, current quantity: {item.Quantity}");
+            
             item.Quantity -= quantity;
+            DebugConsole.Log($"[RemoveItem] Item quantity after reduction: {item.Quantity}");
+            
             if (item.Quantity <= 0)
             {
+                DebugConsole.Log($"[RemoveItem] Removing item from inventory completely");
                 Items.Remove(item);
             }
 
+            DebugConsole.Log($"[RemoveItem] Final inventory items count: {Items.Count}");
             OnInventoryChanged?.Invoke();
         }
 

@@ -1,6 +1,7 @@
 using Engine.Core;
 using Engine.Entities;
 using System;
+using System.Linq;
 
 namespace Engine.UI
 {
@@ -115,6 +116,9 @@ namespace Engine.UI
             if (_isSpacePressed)
             {
                 UpdateProgressAndStress();
+                
+                // Проверяем, не сломалась ли отмычка после обновления прогресса
+                if (_gameLost) return;
             }
             else
             {
@@ -140,6 +144,9 @@ namespace Engine.UI
         
         private void UpdateProgressAndStress()
         {
+            // Если игра уже завершена, не обновляем прогресс
+            if (_gameWon || _gameLost) return;
+            
             bool inLockZone = IsInLockZone();
             bool nearLockZone = IsNearLockZone();
             
@@ -162,10 +169,12 @@ namespace Engine.UI
                 _lockpickStress = Math.Min(1.0f, _lockpickStress + _stressIncreaseRate * 0.5f);
                 
                 // Проверяем, не достигли ли порога поломки
-                if (_progressFill >= 0.3f) // Рядом с зоной можно заполнить до 30%
+                if (_progressFill >= 0.3f && !_lockpickBroken) // Рядом с зоной можно заполнить до 30%
                 {
-                    _lockpickBroken = true;
+                    DebugConsole.Log($"[UpdateProgressAndStress] Lockpick broken by progress threshold (near zone): {_progressFill:F2}");
                     _gameLost = true;
+                    BreakLockpick();
+                    return; // Останавливаем выполнение метода
                 }
             }
             else
@@ -178,16 +187,21 @@ namespace Engine.UI
                 _lockpickStress = Math.Min(1.0f, _lockpickStress + _stressIncreaseRate * 1.5f);
                 
                 // Проверяем, не достигли ли порога поломки
-                if (_progressFill >= _breakThreshold)
+                if (_progressFill >= _breakThreshold && !_lockpickBroken)
                 {
-                    _lockpickBroken = true;
+                    DebugConsole.Log($"[UpdateProgressAndStress] Lockpick broken by progress threshold (outside zone): {_progressFill:F2}");
                     _gameLost = true;
+                    BreakLockpick();
+                    return; // Останавливаем выполнение метода
                 }
             }
         }
         
         private void CheckGameConditions()
         {
+            // Если игра уже завершена, не проверяем условия
+            if (_gameWon || _gameLost) return;
+            
             // Проверяем победу
             if (_progressFill >= 1.0f)
             {
@@ -196,9 +210,9 @@ namespace Engine.UI
             }
             
             // Проверяем поломку отмычки
-            if (_lockpickStress >= 1.0f)
+            if (_lockpickStress >= 1.0f && !_lockpickBroken)
             {
-                _lockpickBroken = true;
+                DebugConsole.Log($"[CheckGameConditions] Lockpick broken by stress threshold: {_lockpickStress:F2}");
                 _gameLost = true;
                 BreakLockpick();
                 return;
@@ -359,7 +373,19 @@ namespace Engine.UI
             if (_lockpickComponent.IsBroken)
             {
                 MessageSystem.AddMessage($"{_lockpickItem.Details.Name} сломалась!");
-                _player.Inventory.RemoveItem(_lockpickItem, 1);
+                
+                // Находим отмычку в инвентаре по ID
+                var lockpickInInventory = _player.Inventory.Items.FirstOrDefault(item => item.Details.ID == _lockpickItem.Details.ID);
+                
+                if (lockpickInInventory != null)
+                {
+                    DebugConsole.Log($"[CompleteLockpicking] Found broken lockpick in inventory, removing it");
+                    _player.Inventory.RemoveItem(lockpickInInventory, 1);
+                }
+                else
+                {
+                    DebugConsole.Log($"[CompleteLockpicking] Broken lockpick not found in inventory");
+                }
             }
             
             // Закрываем экран взлома замков
@@ -371,9 +397,35 @@ namespace Engine.UI
         
         private void BreakLockpick()
         {
-            // Отмычка сломалась
-            MessageSystem.AddMessage($"{_lockpickItem.Details.Name} сломалась от напряжения!");
-            _player.Inventory.RemoveItem(_lockpickItem, 1);
+            // Проверяем, что отмычка еще не была сломана
+            if (_lockpickBroken) 
+            {
+                DebugConsole.Log($"[BreakLockpick] Lockpick already broken, skipping removal");
+                return;
+            }
+            
+            // Устанавливаем флаг поломки сразу, чтобы предотвратить повторные вызовы
+            _lockpickBroken = true;
+            
+            DebugConsole.Log($"[BreakLockpick] Breaking lockpick: {_lockpickItem.Details.Name}");
+            DebugConsole.Log($"[BreakLockpick] Player inventory before removal: {_player.Inventory.Items.Count} items");
+            
+            // Находим отмычку в инвентаре по ID
+            var lockpickInInventory = _player.Inventory.Items.FirstOrDefault(item => item.Details.ID == _lockpickItem.Details.ID);
+            
+            if (lockpickInInventory != null)
+            {
+                DebugConsole.Log($"[BreakLockpick] Found lockpick in inventory, removing it");
+                // Отмычка сломалась
+                MessageSystem.AddMessage($"{_lockpickItem.Details.Name} сломалась от напряжения!");
+                _player.Inventory.RemoveItem(lockpickInInventory, 1);
+            }
+            else
+            {
+                DebugConsole.Log($"[BreakLockpick] Lockpick not found in inventory, it may have been already removed");
+            }
+            
+            DebugConsole.Log($"[BreakLockpick] Player inventory after removal: {_player.Inventory.Items.Count} items");
         }
 
         private int CalculateExperienceGain(LockDifficulty difficulty)
