@@ -43,6 +43,13 @@
         public const int ITEM_ID_SPIDER_SILK = ITEMS_BASE + 501;
 
         // Квестовые предметы (1600-1699)
+        
+        // Инструменты для взлома (1700-1799)
+        public const int ITEM_ID_BASIC_LOCKPICK = ITEMS_BASE + 701;
+        public const int ITEM_ID_ADVANCED_LOCKPICK = ITEMS_BASE + 702;
+        public const int ITEM_ID_MASTER_LOCKPICK = ITEMS_BASE + 703;
+        public const int ITEM_ID_LOCKPICK_SET = ITEMS_BASE + 704;
+        public const int ITEM_ID_THIEVES_TOOLS = ITEMS_BASE + 705;
         public const int ITEM_ID_CRATE = ITEMS_BASE + 601;
         public const int ITEM_ID_CRATE2 = ITEMS_BASE + 602;
         public const int ITEM_ID_CRATE3 = ITEMS_BASE + 603;

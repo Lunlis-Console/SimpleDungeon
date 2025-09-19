@@ -207,7 +207,7 @@ namespace Engine.UI
 
         private void RenderNavigation()
         {
-            RenderFooter("WASD - движение │ I - инвентарь │ C - персонаж │ J - журнал │ E - взаимодействие │ ESC - меню", 0);
+            RenderFooter("WASD - движение │ I - инвентарь │ C - персонаж │ J - журнал │ L - навыки │ E - взаимодействие │ ESC - меню", 0);
 
             RenderCompass();
         }
@@ -329,6 +329,10 @@ namespace Engine.UI
                     break;
                 case ConsoleKey.J: // Журнал заданий
                     _player.QuestLog.DisplayQuestLog();
+                    RequestFullRedraw();
+                    break;
+                case ConsoleKey.L: // Навыки
+                    ScreenManager.PushScreen(new SkillsScreen(_player));
                     RequestFullRedraw();
                     break;
                 case ConsoleKey.F2: // Перезагрузка данных

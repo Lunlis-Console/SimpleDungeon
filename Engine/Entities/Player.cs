@@ -52,6 +52,7 @@ namespace Engine.Entities
         public List<Title> UnlockedTitles { get; set; }
         public Title ActiveTitle { get; set; }
         public Dictionary<string, int> MonstersKilledByType { get; set; }
+        public PlayerSkills Skills { get; set; }
 
         private readonly IWorldRepository _worldRepository;
 
@@ -74,6 +75,7 @@ namespace Engine.Entities
             UnlockedTitles = new List<Title>();
             MonstersKilledByType = new Dictionary<string, int>();
             ActiveTitle = null;
+            Skills = new PlayerSkills();
 
             EvasionChance = 5 + Attributes.Dexterity / 2;
 

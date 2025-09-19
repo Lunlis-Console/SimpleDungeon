@@ -1,0 +1,19 @@
+// Изменения для EditChestForm.cs
+// Добавить после строки 106:
+
+            var lblLockDifficulty = new Label { Text = "Сложность замка:", Location = new System.Drawing.Point(10, 85), Size = new System.Drawing.Size(100, 20) };
+            _cmbLockDifficulty = new ComboBox { Location = new System.Drawing.Point(120, 83), Size = new System.Drawing.Size(200, 20), DropDownStyle = ComboBoxStyle.DropDownList };
+            _cmbLockDifficulty.Items.AddRange(new object[] { "Простой (1+ уровень)", "Обычный (25+ уровень)", "Сложный (50+ уровень)", "Мастерский (75+ уровень)", "Легендарный (100+ уровень)" });
+
+// Обновить строку 108-111:
+            chestPropertiesGroup.Controls.AddRange(new Control[] { 
+                _chkIsLocked, _chkIsTrapped, _chkRequiresKey, 
+                lblRequiredKeyId, _nudRequiredKeyId, lblLockDescription, _txtLockDescription,
+                lblLockDifficulty, _cmbLockDifficulty
+            });
+
+// Добавить в метод LoadData() после строки 190:
+            _cmbLockDifficulty.SelectedIndex = Math.Max(0, _chest.LockDifficulty - 1);
+
+// Добавить в метод SaveData() после строки 250:
+            _chest.LockDifficulty = _cmbLockDifficulty.SelectedIndex + 1;

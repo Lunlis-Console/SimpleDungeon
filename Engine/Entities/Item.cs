@@ -1,4 +1,5 @@
 ﻿using Engine.Core;
+using System.Collections.Generic;
 
 namespace Engine.Entities
 {
@@ -10,6 +11,7 @@ namespace Engine.Entities
         public ItemType Type { get; set; }
         public int Price { get; set; }
         public string Description { get; set; }
+        public List<IItemComponent> Components { get; set; } = new List<IItemComponent>();
 
         public Item(int id, string name, string namePlural, ItemType type, int price, string description = "")
         {
@@ -19,6 +21,7 @@ namespace Engine.Entities
             Type = type;
             Price = price;
             Description = description;
+            Components = new List<IItemComponent>();
         }
 
         public void Read()

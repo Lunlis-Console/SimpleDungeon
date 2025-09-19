@@ -330,6 +330,7 @@ namespace Engine.Data
         public List<int> RequiredItemIDs { get; set; } = new List<int>();
         public string LockDescription { get; set; } = "Сундук заперт.";
         public int MaxCapacity { get; set; } = 20;
+        public int LockDifficulty { get; set; } = 1; // 1 = Simple, 2 = Average, etc.
         
         // Начальное содержимое сундука
         public List<InventoryItemData> InitialContents { get; set; } = new List<InventoryItemData>();

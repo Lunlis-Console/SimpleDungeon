@@ -14,7 +14,9 @@
         Amulet,
         Stuff,
         Quest,
-        Container
+        Container,
+        Lockpick,
+        Tool
     }
 
     public enum ItemCategory

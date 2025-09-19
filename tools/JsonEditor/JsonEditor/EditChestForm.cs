@@ -23,6 +23,7 @@ namespace JsonEditor
         private NumericUpDown _nudRequiredKeyId;
         private TextBox _txtLockDescription;
         private NumericUpDown _nudMaxCapacity;
+        private ComboBox _cmbLockDifficulty;
         private DataGridView _gridInitialContents;
         private Button _btnAddItem;
         private Button _btnRemoveItem;
@@ -102,11 +103,21 @@ namespace JsonEditor
             _nudRequiredKeyId = new NumericUpDown { Location = new System.Drawing.Point(100, 53), Size = new System.Drawing.Size(100, 20), Maximum = 99999, Minimum = 0 };
 
             var lblLockDescription = new Label { Text = "Описание замка:", Location = new System.Drawing.Point(220, 55), Size = new System.Drawing.Size(100, 20) };
-            _txtLockDescription = new TextBox { Location = new System.Drawing.Point(330, 53), Size = new System.Drawing.Size(420, 20) };
+            _txtLockDescription = new TextBox { Location = new System.Drawing.Point(330, 53), Size = new System.Drawing.Size(200, 20) };
+
+            var lblLockDifficulty = new Label { Text = "Сложность замка:", Location = new System.Drawing.Point(540, 55), Size = new System.Drawing.Size(100, 20) };
+            _cmbLockDifficulty = new ComboBox { Location = new System.Drawing.Point(650, 53), Size = new System.Drawing.Size(100, 20), DropDownStyle = ComboBoxStyle.DropDownList };
+            
+            // Заполняем ComboBox значениями сложности замка
+            _cmbLockDifficulty.Items.AddRange(new object[] { 
+                "Простой", "Обычный", "Сложный", "Мастерский", "Легендарный" 
+            });
+            _cmbLockDifficulty.SelectedIndex = 0; // По умолчанию "Простой"
 
             chestPropertiesGroup.Controls.AddRange(new Control[] { 
                 _chkIsLocked, _chkIsTrapped, _chkRequiresKey, 
-                lblRequiredKeyId, _nudRequiredKeyId, lblLockDescription, _txtLockDescription 
+                lblRequiredKeyId, _nudRequiredKeyId, lblLockDescription, _txtLockDescription,
+                lblLockDifficulty, _cmbLockDifficulty
             });
 
             // Начальное содержимое
@@ -173,6 +184,7 @@ namespace JsonEditor
 
             // Обработчики событий
             _chkRequiresKey.CheckedChanged += (s, e) => _nudRequiredKeyId.Enabled = _chkRequiresKey.Checked;
+            _chkIsLocked.CheckedChanged += (s, e) => _cmbLockDifficulty.Enabled = _chkIsLocked.Checked;
         }
 
         private void LoadData()
@@ -188,8 +200,12 @@ namespace JsonEditor
             _nudRequiredKeyId.Value = _chest.RequiredKeyID;
             _txtLockDescription.Text = _chest.LockDescription;
             _nudMaxCapacity.Value = _chest.MaxCapacity;
+            
+            // Загружаем сложность замка (конвертируем из числового значения в индекс ComboBox)
+            _cmbLockDifficulty.SelectedIndex = Math.Max(0, Math.Min(_chest.LockDifficulty - 1, _cmbLockDifficulty.Items.Count - 1));
 
             _nudRequiredKeyId.Enabled = _chkRequiresKey.Checked;
+            _cmbLockDifficulty.Enabled = _chkIsLocked.Checked;
 
             // Загружаем содержимое
             RefreshContentsGrid();
@@ -299,6 +315,9 @@ namespace JsonEditor
             _chest.RequiredKeyID = (int)_nudRequiredKeyId.Value;
             _chest.LockDescription = _txtLockDescription.Text;
             _chest.MaxCapacity = (int)_nudMaxCapacity.Value;
+            
+            // Сохраняем сложность замка (конвертируем из индекса ComboBox в числовое значение)
+            _chest.LockDifficulty = _cmbLockDifficulty.SelectedIndex + 1;
         }
 
         public ChestData GetChestData()

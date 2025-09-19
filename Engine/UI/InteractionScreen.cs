@@ -595,6 +595,14 @@ namespace Engine.UI
                 if (selectedAction != "Назад")
                 {
                     chest.ExecuteAction(_player, selectedAction);
+                    
+                    // Если действие было "Взломать" и оно успешно, обновляем список действий
+                    if (selectedAction == "Взломать" && !chest.IsLocked)
+                    {
+                        // Обновляем список сущностей для взаимодействия
+                        _interactableEntities = GetInteractableEntities();
+                    }
+                    
                     ScreenManager.RequestPartialRedraw();
                 }
             });

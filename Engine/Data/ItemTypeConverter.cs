@@ -35,6 +35,9 @@ namespace Engine.Data
                     "stuff" => Engine.Core.ItemType.Stuff,
                     "ring" => Engine.Core.ItemType.Ring,
                     "amulet" => Engine.Core.ItemType.Amulet,
+                    "lockpick" => Engine.Core.ItemType.Lockpick,
+                    "tool" => Engine.Core.ItemType.Tool,
+                    "container" => Engine.Core.ItemType.Container,
                     _ => Engine.Core.ItemType.Stuff // безопасный дефолт — подставь свой
                 };
             }

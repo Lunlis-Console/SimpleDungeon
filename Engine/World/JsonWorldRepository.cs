@@ -453,8 +453,27 @@ namespace Engine.World
                     itemData.Description
                 );
 
+                // Создаем новые экземпляры компонентов для каждого предмета
                 foreach (var c in itemData.Components)
-                    compItem.Components.Add(c);
+                {
+                    if (c is LockpickComponent lockpickComp)
+                    {
+                        var newLockpick = new LockpickComponent(
+                            lockpickComp.LockpickBonus,
+                            lockpickComp.MaxDurability, // Используем MaxDurability как начальную прочность
+                            lockpickComp.DifficultyReduction,
+                            lockpickComp.IsConsumable
+                        );
+                        DebugConsole.Log($"[CreateItemFromData] Created LockpickComponent: Bonus={newLockpick.LockpickBonus}, Durability={newLockpick.Durability}/{newLockpick.MaxDurability}, IsBroken={newLockpick.IsBroken}");
+                        compItem.Components.Add(newLockpick);
+                    }
+                    else
+                    {
+                        // Для других компонентов пока просто добавляем ссылку
+                        // В будущем можно добавить клонирование и для них
+                        compItem.Components.Add(c);
+                    }
+                }
 
                 DebugConsole.Log($"[CreateItemFromData] Created CompositeItem with {itemData.Components.Count} components for Item ID={itemData.ID}");
                 return compItem;
@@ -979,6 +998,7 @@ namespace Engine.World
                 var chestData = _gameData?.Chests?.FirstOrDefault(c => c.ID == chestId);
                 if (chestData == null) return null;
 
+                var lockDifficulty = (LockDifficulty)chestData.LockDifficulty;
                 var chest = new Chest(
                     chestData.ID,
                     chestData.Name,
@@ -990,7 +1010,8 @@ namespace Engine.World
                     chestData.RequiresKey,
                     chestData.RequiredKeyID,
                     chestData.RequiredItemIDs,
-                    chestData.MaxCapacity
+                    chestData.MaxCapacity,
+                    lockDifficulty
                 );
 
                 // Добавляем начальное содержимое

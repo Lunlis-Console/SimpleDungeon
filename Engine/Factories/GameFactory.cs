@@ -170,6 +170,7 @@ namespace Engine.Factories
 
             try
             {
+                var lockDifficulty = (LockDifficulty)chestData.LockDifficulty;
                 var chest = new Chest(
                     chestData.ID,
                     chestData.Name,
@@ -181,7 +182,8 @@ namespace Engine.Factories
                     chestData.RequiresKey,
                     chestData.RequiredKeyID,
                     chestData.RequiredItemIDs,
-                    chestData.MaxCapacity
+                    chestData.MaxCapacity,
+                    lockDifficulty
                 );
 
                 // Добавляем начальное содержимое

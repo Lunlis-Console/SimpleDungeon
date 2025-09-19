@@ -23,6 +23,7 @@ namespace Engine.Data
                 "Damage" => JsonSerializer.Deserialize<DamageComponent>(root.GetRawText(), options)!,
                 "Buff" => JsonSerializer.Deserialize<BuffComponent>(root.GetRawText(), options)!,
                 "Equip" => JsonSerializer.Deserialize<EquipComponent>(root.GetRawText(), options)!,
+                "Lockpick" => JsonSerializer.Deserialize<LockpickComponent>(root.GetRawText(), options)!,
                 _ => throw new NotSupportedException($"Unknown component type: {type}")
             };
         }
@@ -35,6 +36,7 @@ namespace Engine.Data
                 case DamageComponent d: JsonSerializer.Serialize(writer, d, options); break;
                 case BuffComponent b: JsonSerializer.Serialize(writer, b, options); break;
                 case EquipComponent eq: JsonSerializer.Serialize(writer, eq, options); break;
+                case LockpickComponent lp: JsonSerializer.Serialize(writer, lp, options); break;
 
                 default: throw new NotSupportedException($"Cannot serialize component type {value.GetType().Name}");
             }

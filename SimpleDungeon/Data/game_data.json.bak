@@ -361,6 +361,23 @@
       "NamePlural": "Потерянный ящик торговца",
       "Type": 11,
       "Price": 0
+    },
+    {
+      "ID": 1701,
+      "Name": "Отмычка",
+      "NamePlural": "Отмычки",
+      "Type": 13,
+      "Price": 25,
+      "Description": "Металлическая отмычка для взлома замков.",
+      "Components": [
+        {
+          "ComponentType": "Lockpick",
+          "LockpickBonus": 3,
+          "Durability": 10,
+          "DifficultyReduction": 0,
+          "IsConsumable": true
+        }
+      ]
     }
   ],
   "Monsters": [
@@ -626,6 +643,9 @@
       ],
       "RoomEntrances": [
         6001
+      ],
+      "Chests": [
+        7001
       ],
       "ScaleMonstersToPlayerLevel": true,
       "LocationToSouth": 3001
@@ -1698,6 +1718,9 @@
           "Quantity": 1
         }
       ],
+      "Chests": [
+        7002
+      ],
       "MonsterSpawns": [
         {
           "MonsterTemplateID": 2007,
@@ -1709,6 +1732,7 @@
       "MonsterTemplates": [
         2007
       ],
+      "RoomToEast": 5003,
       "RoomToWest": 5001,
       "ScaleMonstersToPlayerLevel": true
     },
@@ -1719,6 +1743,9 @@
       "ParentLocationID": 3002,
       "MonsterTemplates": [
         2003
+      ],
+      "Chests": [
+        7003
       ],
       "RoomToWest": 5002,
       "ScaleMonstersToPlayerLevel": true
@@ -1735,6 +1762,136 @@
       "IsLocked": false,
       "RequiresKey": false,
       "RequiredKeyID": 0
+    }
+  ],
+  "Chests": [
+    {
+      "ID": 7001,
+      "Name": "Деревянный сундук",
+      "NamePlural": "Деревянные сундуки",
+      "Description": "Простой деревянный сундук с железными петлями.",
+      "Price": 0,
+      "IsLocked": false,
+      "IsTrapped": false,
+      "RequiresKey": false,
+      "RequiredKeyID": 0,
+      "RequiredItemIDs": [],
+      "LockDescription": "Сундук заперт.",
+      "MaxCapacity": 10,
+      "InitialContents": [
+        {
+          "ItemID": 1001,
+          "Quantity": 3
+        },
+        {
+          "ItemID": 1002,
+          "Quantity": 1
+        }
+      ]
+    },
+    {
+      "ID": 7002,
+      "Name": "Запертый сундук",
+      "NamePlural": "Запертые сундуки",
+      "Description": "Прочный металлический сундук с надежным замком.",
+      "Price": 0,
+      "IsLocked": true,
+      "IsTrapped": false,
+      "RequiresKey": true,
+      "RequiredKeyID": 0,
+      "RequiredItemIDs": [],
+      "LockDescription": "Сундук надежно заперт. Требуется ключ.",
+      "MaxCapacity": 15,
+      "LockDifficulty": 2,
+      "InitialContents": [
+        {
+          "ItemID": 1101,
+          "Quantity": 1
+        },
+        {
+          "ItemID": 1002,
+          "Quantity": 2
+        }
+      ]
+    },
+    {
+      "ID": 7003,
+      "Name": "Ловушка-сундук",
+      "NamePlural": "Ловушка-сундуки",
+      "Description": "Подозрительно выглядящий сундук с тонкими щелями по бокам.",
+      "Price": 0,
+      "IsLocked": false,
+      "IsTrapped": true,
+      "RequiresKey": false,
+      "RequiredKeyID": 0,
+      "RequiredItemIDs": [],
+      "LockDescription": "Сундук заперт.",
+      "MaxCapacity": 8,
+      "LockDifficulty": 1,
+      "InitialContents": [
+        {
+          "ItemID": 1002,
+          "Quantity": 5
+        }
+      ]
+    },
+    {
+      "ID": 7004,
+      "Name": "Сложный сундук",
+      "NamePlural": "Сложные сундуки",
+      "Description": "Массивный сундук с множественными замками и сложным механизмом.",
+      "Price": 0,
+      "IsLocked": true,
+      "IsTrapped": false,
+      "RequiresKey": false,
+      "RequiredKeyID": 0,
+      "RequiredItemIDs": [],
+      "LockDescription": "Сундук защищен сложной системой замков.",
+      "MaxCapacity": 20,
+      "LockDifficulty": 3,
+      "InitialContents": [
+        {
+          "ItemID": 1102,
+          "Quantity": 1
+        },
+        {
+          "ItemID": 1205,
+          "Quantity": 1
+        },
+        {
+          "ItemID": 1002,
+          "Quantity": 3
+        }
+      ]
+    },
+    {
+      "ID": 7005,
+      "Name": "Мастерский сундук",
+      "NamePlural": "Мастерские сундуки",
+      "Description": "Искусно изготовленный сундук с магическими замками.",
+      "Price": 0,
+      "IsLocked": true,
+      "IsTrapped": true,
+      "RequiresKey": false,
+      "RequiredKeyID": 0,
+      "RequiredItemIDs": [],
+      "LockDescription": "Сундук защищен древними магическими замками.",
+      "MaxCapacity": 25,
+      "LockDifficulty": 4,
+      "InitialContents": [
+        {
+          "ItemID": 1103,
+          "Quantity": 1
+        },
+        {
+          "ItemID": 1403,
+          "Quantity": 1
+        },
+        {
+          "ItemID": 1002,
+          "Quantity": 5
+        }
+      ]
     }
   ]
 }
